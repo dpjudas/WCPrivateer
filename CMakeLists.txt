@@ -10,6 +10,10 @@ set(WCPRIVATEERCOMMON_SOURCES
 	Sources/Precomp.h
 	Sources/Game/GameApp.cpp
 	Sources/Game/GameApp.h
+	Sources/Game/RenderDevice.cpp
+	Sources/Game/RenderDevice.h
+	Sources/Game/Vulkan/VulkanRenderDevice.cpp
+	Sources/Game/Vulkan/VulkanRenderDevice.h
 	Sources/Tool/ToolApp.cpp
 	Sources/Tool/ToolApp.h
 	Sources/FileFormat/WCArchive.cpp
@@ -67,6 +71,7 @@ set(LIBRARY_UNIX_SOURCES
 
 source_group("Sources" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/.+")
 source_group("Sources\\Game" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/Game/.+")
+source_group("Sources\\Game\\Vulkan" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/Game/Vulkan/.+")
 source_group("Sources\\Tool" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/Tool/.+")
 source_group("Sources\\FileFormat" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/FileFormat/.+")
 source_group("Sources\\Util" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/Util/.+")
