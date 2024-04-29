@@ -1,6 +1,10 @@
 
 #include "Precomp.h"
 #include "GameApp.h"
+#include "ZWidget/core/theme.h"
+#include <ZWidget/core/widget.h>
+#include <ZWidget/window/window.h>
+#include <ZWidget/core/resourcedata.h>
 #include <zvulkan/vulkaninstance.h>
 #include <zvulkan/vulkandevice.h>
 #include <zvulkan/vulkansurface.h>
@@ -11,41 +15,30 @@
 
 bool exitFlag;
 
-LRESULT CALLBACK GameWindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+class GameWindow : public Widget
 {
-	if (msg == WM_PAINT || msg == WM_ERASEBKGND)
+public:
+	GameWindow() : Widget(nullptr, WidgetType::Window)
 	{
-		return 0;
+		SetWindowTitle("Wing Commander Privateer Viewer");
+		Size screenSize = Widget::GetScreenSize();
+		Size size(320.0 * 4.0, 200 * 4.0 * 1.2);
+		SetFrameGeometry((screenSize.width - size.width) * 0.5, (screenSize.height - size.height) * 0.5, size.width, size.height);
 	}
-	else if (msg == WM_CLOSE)
+
+	void OnClose() override
 	{
 		exitFlag = true;
-		return 0;
 	}
-	return DefWindowProc(hwnd, msg, wparam, lparam);
-}
+};
 
 int GameApp::main(std::vector<std::string> args)
 {
-	HWND hwnd = 0;
 	try
 	{
-		// Create a window class for the win32 window
-		WNDCLASSEX classdesc = {};
-		classdesc.cbSize = sizeof(WNDCLASSEX);
-		classdesc.hInstance = GetModuleHandle(nullptr);
-		classdesc.lpszClassName = L"GameWindow";
-		classdesc.lpfnWndProc = &GameWindowProc;
-		classdesc.style = CS_VREDRAW | CS_HREDRAW | CS_DBLCLKS;
-		classdesc.hbrBackground = CreateSolidBrush(RGB(0, 0, 0));
-		BOOL result = RegisterClassEx(&classdesc);
-		if (!result)
-			throw std::runtime_error("RegisterClassEx failed");
-
-		// Create and show the window
-		hwnd = CreateWindowEx(WS_EX_OVERLAPPEDWINDOW, L"GameWindow", L"Wing Commander Privateer Asset Viewer", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, 1280, 1024, 0, 0, GetModuleHandle(nullptr), nullptr);
-		if (!hwnd)
-			throw std::runtime_error("CreateWindowEx failed");
+		WidgetTheme::SetTheme(std::make_unique<DarkWidgetTheme>());
+		GameWindow window;
+		window.Show();
 
 		// Create vulkan instance
 		auto instance = VulkanInstanceBuilder()
@@ -55,7 +48,7 @@ int GameApp::main(std::vector<std::string> args)
 
 		// Create a surface for our window
 		auto surface = VulkanSurfaceBuilder()
-			.Win32Window(hwnd)
+			.Win32Window((HWND)window.GetNativeHandle())
 			.Create(instance);
 
 		// Create the vulkan device
@@ -404,22 +397,11 @@ int GameApp::main(std::vector<std::string> args)
 		// Draw a scene and pump window messages until the window is closed
 		while (!exitFlag)
 		{
-			// Pump the win32 message queue
-			MSG msg = {};
-			BOOL result = PeekMessage(&msg, 0, 0, 0, PM_REMOVE);
-			if (result < 0)
-				break;
-			if (result == TRUE)
-			{
-				if (msg.message == WM_QUIT)
-					break;
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
+			DisplayWindow::ProcessEvents();
 
 			// How big is the window client area in this frame?
 			RECT clientRect = {};
-			GetClientRect(hwnd, &clientRect);
+			GetClientRect((HWND)window.GetNativeHandle(), &clientRect);
 			int width = clientRect.right;
 			int height = clientRect.bottom;
 
@@ -538,8 +520,6 @@ int GameApp::main(std::vector<std::string> args)
 	}
 	catch (const std::exception& e)
 	{
-		if (hwnd)
-			ShowWindow(hwnd, SW_HIDE);
 		MessageBoxA(0, e.what(), "Unhandled Exception", MB_OK);
 		return 0;
 	}
@@ -555,4 +535,14 @@ void VulkanPrintLog(const char* typestr, const std::string& msg)
 void VulkanError(const char* message)
 {
 	throw std::runtime_error(message);
+}
+
+std::vector<SingleFontData> LoadWidgetFontData(const std::string& name)
+{
+	return {};
+}
+
+std::vector<uint8_t> LoadWidgetData(const std::string& name)
+{
+	return {};
 }

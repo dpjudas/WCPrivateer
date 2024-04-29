@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 project(WCPrivateer)
 
 add_subdirectory(Libraries/ZVulkan)
+add_subdirectory(Libraries/ZWidget)
 
 set(WCPRIVATEERCOMMON_SOURCES
 	Sources/Precomp.cpp
@@ -34,6 +35,7 @@ set(WCPRIVATEERCOMMON_SOURCES
 
 set(WCPRIVATEERCOMMON_LIBS
 	zvulkan
+	zwidget
 )
 
 set(WCPRIVATEERGAME_SOURCES
@@ -73,7 +75,7 @@ source_group("Libraries" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Librari
 source_group("Libraries\\miniz" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/miniz/.+")
 source_group("Libraries\\lzw" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/lzw/.+")
 
-include_directories(Sources Libraries Libraries/ZVulkan/include Libraries/miniz)
+include_directories(Sources Libraries Libraries/ZVulkan/include Libraries/ZWidget/include Libraries/miniz)
 
 if(WIN32)
 	set(WCPRIVATEERCOMMON_SOURCES ${WCPRIVATEERCOMMON_SOURCES} ${WCPRIVATEERCOMMON_WIN32_SOURCES})
