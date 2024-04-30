@@ -2,11 +2,15 @@
 #include "Precomp.h"
 #include "GameApp.h"
 #include "RenderDevice.h"
+#include "Game/Screens/GameScreen.h"
+#include "Game/Screens/MainMenuScreen.h"
+#include "Game/Screens/LoadSaveScreen.h"
+#include "Game/Screens/ShipDealerScreen.h"
+#include "Game/Screens/MissionComputerScreen.h"
+#include "Game/Screens/BarScreen.h"
+#include "Game/Screens/BaseScreen.h"
+#include "Game/Screens/HangarScreen.h"
 #include "FileFormat/WCArchive.h"
-#include "FileFormat/WCPak.h"
-#include "FileFormat/WCImage.h"
-#include "FileFormat/WCPalette.h"
-#include "FileFormat/FileEntryReader.h"
 #include "zwidget/core/theme.h"
 #include <zwidget/core/widget.h>
 #include <zwidget/window/window.h>
@@ -37,27 +41,12 @@ int GameApp::main(std::vector<std::string> args)
 	{
 		WidgetTheme::SetTheme(std::make_unique<DarkWidgetTheme>());
 
+		archive = std::make_unique<WCArchive>("PRIV.TRE");
+
 		GameWindow window;
 		window.Show();
 
-		WCArchive archive("PRIV.TRE");
-
-		std::unique_ptr<WCPalette> palette;// = std::make_unique<WCPalette>("DATA\\PALETTE\\SPACE.PAL", archive);
-		{
-			WCPak palpak("DATA\\OPTIONS\\OPTPALS.PAK", archive);
-			palette = std::make_unique<WCPalette>(palpak.openFile(39));
-		}
-
-		WCPak pak("DATA\\OPTIONS\\OPTSHPS.PAK", archive);
-		FileEntryReader reader = pak.openFile(181);
-		WCImage image(reader, palette.get());
-
-		GameTexture gameTexture;
-		gameTexture.x = image.frames[0].x;
-		gameTexture.y = image.frames[0].y;
-		gameTexture.width = image.frames[0].width;
-		gameTexture.height = image.frames[0].height;
-		gameTexture.pixels = image.frames[0].pixels;
+		auto screen = std::make_unique<MainMenuScreen>(this);
 
 		auto renderdev = RenderDevice::Create(&window);
 		while (!exitFlag)
@@ -67,7 +56,7 @@ int GameApp::main(std::vector<std::string> args)
 			if (!renderdev->Begin())
 				continue;
 
-			renderdev->DrawImage(0, 0, 320, 200, &gameTexture);
+			screen->Render(renderdev.get());
 
 			renderdev->End();
 		}

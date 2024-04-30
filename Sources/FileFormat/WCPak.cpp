@@ -4,9 +4,9 @@
 #include "WCArchive.h"
 #include "FileEntryReader.h"
 
-WCPak::WCPak(const std::string& filename, WCArchive& archive)
+WCPak::WCPak(const std::string& filename, WCArchive* archive)
 {
-	FileEntryReader reader = archive.openFile(filename);
+	FileEntryReader reader = archive->openFile(filename);
 
 	std::vector<size_t> offsets;
 

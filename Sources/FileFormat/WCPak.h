@@ -10,7 +10,7 @@ class FileEntryReader;
 class WCPak
 {
 public:
-	WCPak(const std::string& filename, WCArchive& archive);
+	WCPak(const std::string& filename, WCArchive* archive);
 
 	FileEntryReader openFile(int index);
 

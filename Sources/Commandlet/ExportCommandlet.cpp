@@ -43,10 +43,161 @@ void ExportCommandlet::OnCommand(ToolApp* console, const std::string& args)
 	{
 		ExportVpf(console);
 	}
+	else if (args == "iff")
+	{
+		WCArchive archive(mArchiveFilename);
+		FileEntryReader reader = archive.openFile("DATA\\OPTIONS\\OPTIONS.IFF");
+		if (reader.ReadTag() == "FORM")
+		{
+			PrintForm(console, reader, 0);
+		}
+	}
 	else
 	{
 		console->WriteOutput("Unknown command " + args + NewLine());
 	}
+}
+
+void ExportCommandlet::PrintForm(ToolApp* console, FileEntryReader& reader, int depth)
+{
+	uint32_t size = reader.ReadUint32BE();
+	uint32_t end = reader.Tell() + size + (size & 1);
+	std::string formName = reader.ReadTag();
+
+	console->WriteOutput("", depth * 4);
+	console->WriteOutput("FORM " + formName, 4);
+	console->WriteOutput(NewLine());
+	depth++;
+
+	if (formName == "OPTS")
+	{
+		std::string tag = reader.ReadTag();
+
+		console->WriteOutput("", depth * 4);
+		console->WriteOutput(tag, 5);
+		console->WriteOutput(NewLine());
+
+		if (tag != "TABL")
+			throw std::runtime_error("Expected TABL at beginning of OPTS form");
+
+		uint32_t itemsize = reader.ReadUint32BE();
+		uint32_t itemend = reader.Tell() + itemsize + (itemsize & 1);
+
+		std::vector<uint32_t> table;
+		int count = itemsize / 4;
+		for (int i = 0; i < count; i++)
+		{
+			table.push_back(reader.ReadUint32());
+		}
+
+		for (int y = 0; y < (count + 15) / 16; y++)
+		{
+			console->WriteOutput("", (depth + 1) * 4);
+			int start = y * 16;
+			int end = std::min(start + 16, count);
+			for (int i = start; i < end; i++)
+			{
+				console->WriteOutput(table[i], 8);
+			}
+			console->WriteOutput(NewLine());
+		}
+	}
+
+	while (reader.Tell() < end)
+	{
+		if (formName == "OPTS")
+		{
+			// Size of the block following
+			uint32_t size = reader.ReadUint32();
+			console->WriteOutput("", depth * 4);
+			console->WriteOutput(size, 8);
+			console->WriteOutput(NewLine());
+		}
+
+		std::string tag = reader.ReadTag();
+		if (tag == "FORM")
+		{
+			PrintForm(console, reader, depth);
+		}
+		else
+		{
+			uint32_t itemsize = reader.ReadUint32BE();
+			uint32_t itemend = reader.Tell() + itemsize + (itemsize & 1);
+
+			console->WriteOutput("", depth * 4);
+			console->WriteOutput(tag, 5);
+
+			if (formName == "BACK" && tag == "SHAP")
+			{
+				std::vector<uint16_t> table;
+				int count = itemsize / 2;
+				for (int i = 0; i < count; i++)
+				{
+					table.push_back(reader.ReadUint16());
+				}
+
+				console->WriteOutput(NewLine());
+				for (int y = 0; y < (count + 15) / 16; y++)
+				{
+					console->WriteOutput("", (depth + 1) * 4);
+					int start = y * 16;
+					int end = std::min(start + 16, count);
+					for (int i = start; i < end; i++)
+					{
+						console->WriteOutput(table[i], 8);
+					}
+					console->WriteOutput(NewLine());
+				}
+			}
+			else if (tag == "LABL")
+			{
+				std::string text(itemsize, '\0');
+				memcpy(text.data(), reader.CurrentPosData(), itemsize);
+				for (size_t i = 0; i < text.size(); i++)
+				{
+					if (text[i] == 0)
+					{
+						text.resize(i);
+						break;
+					}
+				}
+
+				console->WriteOutput(text);
+				console->WriteOutput(NewLine());
+			}
+			else if (tag == "INFO")
+			{
+				console->WriteOutput(reader.ReadUint16(), 8);
+				console->WriteOutput(NewLine());
+			}
+			else if (tag == "PALT")
+			{
+				console->WriteOutput(reader.ReadUint16(), 8);
+				console->WriteOutput(NewLine());
+			}
+			else if (tag == "CORD")
+			{
+				int x1 = reader.ReadUint16();
+				int y1 = reader.ReadUint16();
+				int x2 = reader.ReadUint16();
+				int y2 = reader.ReadUint16();
+				console->WriteOutput(x1, 4);
+				console->WriteOutput(y1, 4);
+				console->WriteOutput(x2, 4);
+				console->WriteOutput(y2, 4);
+				console->WriteOutput(NewLine());
+			}
+			else
+			{
+				console->WriteOutput(itemsize, 8);
+				console->WriteOutput(NewLine());
+			}
+
+			reader.Seek(itemend);
+		}
+	}
+
+	reader.Seek(end);
 }
 
 void ExportCommandlet::OnPrintHelp(ToolApp* console)
@@ -57,6 +208,7 @@ void ExportCommandlet::OnPrintHelp(ToolApp* console)
 	console->WriteOutput("        export shpimages" + NewLine());
 	console->WriteOutput("        export vpk" + NewLine());
 	console->WriteOutput("        export vpf" + NewLine());
+	console->WriteOutput("        export iff" + NewLine());
 }
 
 void ExportCommandlet::WriteFile(ToolApp* console, std::string filename, const void* data, size_t size)
@@ -96,7 +248,7 @@ void ExportCommandlet::ExportArchive(ToolApp* console)
 
 		if (ext == ".PAK" && filename != "SPEECH.PAK")
 		{
-			WCPak pak(filename, archive);
+			WCPak pak(filename, &archive);
 			int count = (int)pak.files.size();
 			for (int i = 0; i < count; i++)
 			{
@@ -112,7 +264,7 @@ void ExportCommandlet::ExportIffImages(ToolApp* console)
 	console->WriteOutput("Exporting IFF images from " + ColorEscape(96) + mArchiveFilename + ResetEscape() + NewLine());
 	WCArchive archive(mArchiveFilename);
 
-	auto spacepal = std::make_unique<WCPalette>("DATA\\PALETTE\\SPACE.PAL", archive);
+	auto spacepal = std::make_unique<WCPalette>("DATA\\PALETTE\\SPACE.PAL", &archive);
 
 	for (int i = 0; i < archive.getFileCount(); i++)
 	{
@@ -480,17 +632,17 @@ void ExportCommandlet::ExportPakImages(ToolApp* console)
 		console->WriteOutput(NewLine());
 		console->WriteOutput(filename, 40);
 
-		std::unique_ptr<WCPalette> palette = std::make_unique<WCPalette>("DATA\\PALETTE\\PCMAIN.PAL", archive);
+		std::unique_ptr<WCPalette> palette = std::make_unique<WCPalette>("DATA\\PALETTE\\PCMAIN.PAL", &archive);
 
 		bool isOptshps = filename.find("OPTSHPS.PAK") != std::string::npos;
 
-		WCPak pak(filename, archive);
+		WCPak pak(filename, &archive);
 
 		for (int i = 0; i < (int)pak.files.size(); i++)
 		{
 			if (isOptshps)
 			{
-				WCPak palpak("DATA\\OPTIONS\\OPTPALS.PAK", archive);
+				WCPak palpak("DATA\\OPTIONS\\OPTPALS.PAK", &archive);
 				palette = std::make_unique<WCPalette>(palpak.openFile(i % palpak.files.size()));
 			}
 
@@ -530,7 +682,7 @@ void ExportCommandlet::ExportShpImages(ToolApp* console)
 	console->WriteOutput("Exporting SHP images from " + ColorEscape(96) + mArchiveFilename + ResetEscape() + NewLine());
 	WCArchive archive(mArchiveFilename);
 
-	auto palette = std::make_unique<WCPalette>("DATA\\PALETTE\\PREFMAIN.PAL", archive);
+	auto palette = std::make_unique<WCPalette>("DATA\\PALETTE\\PREFMAIN.PAL", &archive);
 
 	for (int i = 0; i < archive.getFileCount(); i++)
 	{

@@ -5,9 +5,9 @@
 #include "FileEntryReader.h"
 #include <stdexcept>
 
-WCPalette::WCPalette(const std::string& filename, WCArchive& archive)
+WCPalette::WCPalette(const std::string& filename, WCArchive* archive)
 {
-	FileEntryReader reader = archive.openFile(filename);
+	FileEntryReader reader = archive->openFile(filename);
 
 	uint32_t version = reader.ReadUint32BE();
 	if (version != 1)

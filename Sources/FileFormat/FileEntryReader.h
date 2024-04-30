@@ -9,9 +9,45 @@ class FileEntryReader
 public:
 	FileEntryReader(std::vector<uint8_t> buffer) : buffer(std::move(buffer)) { }
 
+	void PushChunk(std::string tagname)
+	{
+		ReadTag(tagname);
+		uint32_t chunksize = ReadUint32BE();
+		chunks.push_back({ Tell(), chunksize });
+	}
+
+	std::string PushChunk()
+	{
+		std::string tag = ReadTag();
+		uint32_t chunksize = ReadUint32BE();
+		chunks.push_back({ Tell(), chunksize });
+		return tag;
+	}
+
+	uint32_t GetChunkSize() { return chunks.back().second; }
+
+	bool IsEndOfChunk()
+	{
+		return Tell() - chunks.back().first == chunks.back().second;
+	}
+
+	void PopChunk()
+	{
+		// Chunks always 16 bit align
+		Seek(chunks.back().first + chunks.back().second + (chunks.back().second & 1));
+		chunks.pop_back();
+	}
+
 	uint8_t ReadUint8()
 	{
 		return pos < buffer.size() ? buffer[pos++] : 0;
+	}
+
+	void ReadTag(std::string tagname)
+	{
+		std::string tag = ReadTag();
+		if (tag != tagname)
+			throw std::runtime_error("Expected " + tagname);
 	}
 
 	std::string ReadTag()
@@ -69,4 +105,5 @@ public:
 private:
 	std::vector<uint8_t> buffer;
 	size_t pos = 0;
+	std::vector<std::pair<size_t, uint32_t>> chunks;
 };
