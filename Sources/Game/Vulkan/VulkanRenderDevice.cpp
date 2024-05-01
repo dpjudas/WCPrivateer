@@ -103,6 +103,7 @@ VulkanRenderDevice::VulkanRenderDevice(Widget* viewport) : viewport(viewport)
 			void main()
 			{
 				outColor = texture(Texture, texCoord) * color;
+				if (outColor.a < 0.5) discard;
 			}
 		)";
 
@@ -261,6 +262,9 @@ VulkanRenderDevice::~VulkanRenderDevice()
 {
 	vkDeviceWaitIdle(device->device);
 
+	while (!cachedTextures.empty())
+		DestroyCachedTexture(cachedTextures.back());
+
 	vertexBuffer->Unmap();
 	uniformsBuffer->Unmap();
 	uploadBuffer->Unmap();
@@ -308,7 +312,7 @@ bool VulkanRenderDevice::Begin()
 	RenderPassBegin()
 		.RenderPass(renderPass.get())
 		.Framebuffer(framebuffers[imageIndex].get())
-		.AddClearColor(0.0f, 0.0f, 0.1f, 1.0f)
+		.AddClearColor(0.0f, 0.0f, 0.0f, 1.0f)
 		.AddClearDepthStencil(1.0f, 0)
 		.RenderArea(0, 0, width, height)
 		.Execute(drawcommands.get());
@@ -378,7 +382,7 @@ void VulkanRenderDevice::DrawImage(int x, int y, int width, int height, GameText
 	v[4] = Vertex(x2, y1, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 	v[5] = Vertex(x2, y2, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 
-	drawcommands->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayoutTextured.get(), 1, textureSet.get());
+	drawcommands->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayoutTextured.get(), 1, static_cast<VulkanCachedTexture*>(gameTexture->CacheEntry.get())->textureSet.get());
 	drawcommands->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineTextured.get());
 	drawcommands->draw(6, 1, vertexPos, 0);
 
@@ -407,6 +411,9 @@ void VulkanRenderDevice::End()
 
 	transfercommands.reset();
 	drawcommands.reset();
+
+	TransferDeleteList = std::make_unique<DeleteList>();
+	DrawDeleteList = std::make_unique<DeleteList>();
 }
 
 void VulkanRenderDevice::ValidateTexture(GameTexture* gameTexture)
@@ -414,35 +421,40 @@ void VulkanRenderDevice::ValidateTexture(GameTexture* gameTexture)
 	if (gameTexture->CacheEntry)
 		return;
 
-	gameTexture->CacheEntry = std::make_unique<CachedTexture>();
+	auto cacheEntry = std::make_unique<VulkanCachedTexture>();
 
 	// Create image and view objects
 
-	textureImage = ImageBuilder()
+	cacheEntry->textureImage = ImageBuilder()
 		.Usage(VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT)
 		.Format(VK_FORMAT_R8G8B8A8_UNORM)
 		.Size(gameTexture->width, gameTexture->height)
 		.DebugName("textureImage")
 		.Create(device.get());
 
-	textureView = ImageViewBuilder()
+	cacheEntry->textureView = ImageViewBuilder()
 		.Type(VK_IMAGE_VIEW_TYPE_2D)
-		.Image(textureImage.get(), VK_FORMAT_R8G8B8A8_UNORM)
+		.Image(cacheEntry->textureImage.get(), VK_FORMAT_R8G8B8A8_UNORM)
 		.DebugName("textureView")
 		.Create(device.get());
 
 	// Create descriptor set for the texture
 
-	textureSetPool = DescriptorPoolBuilder()
-		.AddPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1)
-		.MaxSets(1)
-		.DebugName("textureSetPool")
-		.Create(device.get());
+	if (textureSetsLeft == 0)
+	{
+		textureSetsLeft = 200;
+		textureSetPools.push_back(DescriptorPoolBuilder()
+			.AddPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, textureSetsLeft)
+			.MaxSets(textureSetsLeft)
+			.DebugName("textureSetPool")
+			.Create(device.get()));
+	}
 
-	textureSet = textureSetPool->allocate(textureSetLayout.get());
+	cacheEntry->textureSet = textureSetPools.back()->allocate(textureSetLayout.get());
+	textureSetsLeft--;
 
 	WriteDescriptors()
-		.AddCombinedImageSampler(textureSet.get(), 0, textureView.get(), sampler.get(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		.AddCombinedImageSampler(cacheEntry->textureSet.get(), 0, cacheEntry->textureView.get(), sampler.get(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 		.Execute(device.get());
 
 	// Put a texture in the upload buffer
@@ -457,7 +469,7 @@ void VulkanRenderDevice::ValidateTexture(GameTexture* gameTexture)
 	transfercommands->begin();
 
 	PipelineBarrier()
-		.AddImage(textureImage.get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, VK_ACCESS_TRANSFER_WRITE_BIT)
+		.AddImage(cacheEntry->textureImage.get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, VK_ACCESS_TRANSFER_WRITE_BIT)
 		.Execute(transfercommands.get(), VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
 	VkBufferImageCopy region = {};
@@ -466,10 +478,10 @@ void VulkanRenderDevice::ValidateTexture(GameTexture* gameTexture)
 	region.imageExtent.depth = 1;
 	region.imageSubresource.layerCount = 1;
 	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	transfercommands->copyBufferToImage(uploadBuffer->buffer, textureImage->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+	transfercommands->copyBufferToImage(uploadBuffer->buffer, cacheEntry->textureImage->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
 	PipelineBarrier()
-		.AddImage(textureImage.get(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT)
+		.AddImage(cacheEntry->textureImage.get(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT)
 		.Execute(transfercommands.get(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
 	transfercommands->end();
@@ -482,4 +494,18 @@ void VulkanRenderDevice::ValidateTexture(GameTexture* gameTexture)
 
 	vkDeviceWaitIdle(device->device);
 	transfercommands.reset();
+
+	cacheEntry->renderdev = this;
+	cacheEntry->it = cachedTextures.insert(cachedTextures.end(), cacheEntry.get());
+
+	gameTexture->CacheEntry = std::move(cacheEntry);
+}
+
+void VulkanRenderDevice::DestroyCachedTexture(VulkanCachedTexture* cachedTexture)
+{
+	DrawDeleteList->Add(std::move(cachedTexture->textureSet));
+	DrawDeleteList->Add(std::move(cachedTexture->textureView));
+	DrawDeleteList->Add(std::move(cachedTexture->textureImage));
+	cachedTexture->renderdev = nullptr;
+	cachedTextures.erase(cachedTexture->it);
 }

@@ -3,6 +3,8 @@
 #include "Game/RenderDevice.h"
 #include <zvulkan/vulkanobjects.h>
 
+class VulkanRenderDevice;
+
 struct Vertex
 {
 	Vertex() = default;
@@ -19,6 +21,18 @@ struct Uniforms
 	float ViewMatrix[16];
 };
 
+class VulkanCachedTexture : public CachedTexture
+{
+public:
+	~VulkanCachedTexture();
+
+	VulkanRenderDevice* renderdev = nullptr;
+	std::list<VulkanCachedTexture*>::iterator it;
+	std::unique_ptr<VulkanImage> textureImage;
+	std::unique_ptr<VulkanImageView> textureView;
+	std::unique_ptr<VulkanDescriptorSet> textureSet;
+};
+
 class VulkanRenderDevice : public RenderDevice
 {
 public:
@@ -28,6 +42,8 @@ public:
 	bool Begin() override;
 	void DrawImage(int x, int y, int width, int height, GameTexture* gameTexture) override;
 	void End() override;
+
+	void DestroyCachedTexture(VulkanCachedTexture* cachedTexture);
 
 private:
 	void ValidateTexture(GameTexture* gameTexture);
@@ -80,15 +96,50 @@ private:
 	uint8_t* uploads = nullptr;
 
 	std::unique_ptr<VulkanSampler> sampler;
-	std::unique_ptr<VulkanImage> textureImage;
-	std::unique_ptr<VulkanImageView> textureView;
 
 	std::unique_ptr<VulkanDescriptorPool> uniformSetPool;
 	std::unique_ptr<VulkanDescriptorSet> uniformSet;
 
-	std::unique_ptr<VulkanDescriptorPool> textureSetPool;
-	std::unique_ptr<VulkanDescriptorSet> textureSet;
+	std::vector<std::unique_ptr<VulkanDescriptorPool>> textureSetPools;
+	int textureSetsLeft = 0;
+	std::list<VulkanCachedTexture*> cachedTextures;
 
 	std::unique_ptr<VulkanCommandBuffer> transfercommands;
 	std::unique_ptr<VulkanCommandBuffer> drawcommands;
+
+	class DeleteList
+	{
+	public:
+		std::vector<std::unique_ptr<VulkanBuffer>> Buffers;
+		std::vector<std::unique_ptr<VulkanSampler>> Samplers;
+		std::vector<std::unique_ptr<VulkanImage>> Images;
+		std::vector<std::unique_ptr<VulkanImageView>> ImageViews;
+		std::vector<std::unique_ptr<VulkanFramebuffer>> Framebuffers;
+		std::vector<std::unique_ptr<VulkanAccelerationStructure>> AccelStructs;
+		std::vector<std::unique_ptr<VulkanDescriptorPool>> DescriptorPools;
+		std::vector<std::unique_ptr<VulkanDescriptorSet>> Descriptors;
+		std::vector<std::unique_ptr<VulkanShader>> Shaders;
+		std::vector<std::unique_ptr<VulkanCommandBuffer>> CommandBuffers;
+		size_t TotalSize = 0;
+
+		void Add(std::unique_ptr<VulkanBuffer> obj) { if (obj) { TotalSize += obj->size; Buffers.push_back(std::move(obj)); } }
+		void Add(std::unique_ptr<VulkanSampler> obj) { if (obj) { Samplers.push_back(std::move(obj)); } }
+		void Add(std::unique_ptr<VulkanImage> obj) { if (obj) { Images.push_back(std::move(obj)); } }
+		void Add(std::unique_ptr<VulkanImageView> obj) { if (obj) { ImageViews.push_back(std::move(obj)); } }
+		void Add(std::unique_ptr<VulkanFramebuffer> obj) { if (obj) { Framebuffers.push_back(std::move(obj)); } }
+		void Add(std::unique_ptr<VulkanAccelerationStructure> obj) { if (obj) { AccelStructs.push_back(std::move(obj)); } }
+		void Add(std::unique_ptr<VulkanDescriptorPool> obj) { if (obj) { DescriptorPools.push_back(std::move(obj)); } }
+		void Add(std::unique_ptr<VulkanDescriptorSet> obj) { if (obj) { Descriptors.push_back(std::move(obj)); } }
+		void Add(std::unique_ptr<VulkanCommandBuffer> obj) { if (obj) { CommandBuffers.push_back(std::move(obj)); } }
+		void Add(std::unique_ptr<VulkanShader> obj) { if (obj) { Shaders.push_back(std::move(obj)); } }
+	};
+
+	std::unique_ptr<DeleteList> TransferDeleteList = std::make_unique<DeleteList>();
+	std::unique_ptr<DeleteList> DrawDeleteList = std::make_unique<DeleteList>();
 };
+
+inline VulkanCachedTexture::~VulkanCachedTexture()
+{
+	if (renderdev)
+		renderdev->DestroyCachedTexture(this);
+}

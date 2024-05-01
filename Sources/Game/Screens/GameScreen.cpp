@@ -41,6 +41,17 @@ std::unique_ptr<WCPalette> GameScreen::LoadPalette(const std::string& filename)
 	return std::make_unique<WCPalette>(filename, app->archive.get());
 }
 
+std::unique_ptr<GameTexture> GameScreen::LoadWCImage(const WCImage& image, int index)
+{
+	auto gameTexture = std::make_unique<GameTexture>();
+	gameTexture->x = image.frames[index].x;
+	gameTexture->y = image.frames[index].y;
+	gameTexture->width = image.frames[index].width;
+	gameTexture->height = image.frames[index].height;
+	gameTexture->pixels = image.frames[index].pixels;
+	return gameTexture;
+}
+
 std::unique_ptr<GameTexture> GameScreen::LoadPakImage(const std::string& pakFilename, int pakindex, WCPalette* palette)
 {
 	WCPak pak("DATA\\OPTIONS\\OPTSHPS.PAK", app->archive.get());
@@ -60,13 +71,7 @@ std::unique_ptr<GameTexture> GameScreen::LoadShpImage(const std::string& filenam
 {
 	FileEntryReader reader = app->archive->openFile(filename);
 	WCImage image(reader, palette);
-	auto gameTexture = std::make_unique<GameTexture>();
-	gameTexture->x = image.frames[index].x;
-	gameTexture->y = image.frames[index].y;
-	gameTexture->width = image.frames[index].width;
-	gameTexture->height = image.frames[index].height;
-	gameTexture->pixels = image.frames[index].pixels;
-	return gameTexture;
+	return LoadWCImage(image, index);
 }
 
 std::unique_ptr<GameTexture> GameScreen::LoadIffImage(const std::string& filename, int index, WCPalette* palette)

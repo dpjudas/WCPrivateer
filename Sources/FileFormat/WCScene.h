@@ -21,6 +21,8 @@ class WCSceneShape
 public:
 	int type = 0;
 	int optpakIndex = 0;
+	int offsetX = 0;
+	int offsetY = 0;
 	std::vector<uint8_t> unknown;
 };
 

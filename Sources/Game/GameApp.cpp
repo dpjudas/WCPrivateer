@@ -5,11 +5,11 @@
 #include "Game/Screens/GameScreen.h"
 #include "Game/Screens/MainMenuScreen.h"
 #include "Game/Screens/LoadSaveScreen.h"
-#include "Game/Screens/ShipDealerScreen.h"
-#include "Game/Screens/MissionComputerScreen.h"
-#include "Game/Screens/BarScreen.h"
-#include "Game/Screens/BaseScreen.h"
-#include "Game/Screens/HangarScreen.h"
+#include "Game/Screens/Scene/SceneScreen.h"
+#include "Game/Screens/Scene/MissionComputerScreen.h"
+#include "Game/Screens/Scene/BarScreen.h"
+#include "Game/Screens/Scene/BaseScreen.h"
+#include "Game/Screens/Scene/HangarScreen.h"
 #include "FileFormat/WCArchive.h"
 #include "zwidget/core/theme.h"
 #include <zwidget/core/widget.h>
@@ -17,6 +17,7 @@
 #include <zwidget/core/resourcedata.h>
 
 bool exitFlag;
+std::vector<InputKey> keysPressed;
 
 class GameWindow : public Widget
 {
@@ -27,6 +28,11 @@ public:
 		Size screenSize = Widget::GetScreenSize();
 		Size size(320.0 * 4.0, 200 * 4.0 * 1.2);
 		SetFrameGeometry((screenSize.width - size.width) * 0.5, (screenSize.height - size.height) * 0.5, size.width, size.height);
+	}
+
+	void OnKeyDown(InputKey key) override
+	{
+		keysPressed.push_back(key);
 	}
 
 	void OnClose() override
@@ -44,14 +50,21 @@ int GameApp::main(std::vector<std::string> args)
 		archive = std::make_unique<WCArchive>("PRIV.TRE");
 
 		GameWindow window;
+		window.SetFocus();
 		window.Show();
 
-		auto screen = std::make_unique<MainMenuScreen>(this);
+		auto screen = std::make_unique<SceneScreen>(this);
 
 		auto renderdev = RenderDevice::Create(&window);
 		while (!exitFlag)
 		{
 			DisplayWindow::ProcessEvents();
+
+			for (InputKey key : keysPressed)
+			{
+				screen->OnKeyDown(key);
+			}
+			keysPressed.clear();
 
 			if (!renderdev->Begin())
 				continue;

@@ -14,16 +14,10 @@ set(WCPRIVATEERCOMMON_SOURCES
 	Sources/Game/Screens/GameScreen.h
 	Sources/Game/Screens/AutopilotScreen.cpp
 	Sources/Game/Screens/AutopilotScreen.h
-	Sources/Game/Screens/BarScreen.cpp
-	Sources/Game/Screens/BarScreen.h
-	Sources/Game/Screens/BaseScreen.cpp
-	Sources/Game/Screens/BaseScreen.h
 	Sources/Game/Screens/CockpitScreen.cpp
 	Sources/Game/Screens/CockpitScreen.h
 	Sources/Game/Screens/ConversationScreen.cpp
 	Sources/Game/Screens/ConversationScreen.h
-	Sources/Game/Screens/HangarScreen.cpp
-	Sources/Game/Screens/HangarScreen.h
 	Sources/Game/Screens/IntroScreen.cpp
 	Sources/Game/Screens/IntroScreen.h
 	Sources/Game/Screens/LandingScreen.cpp
@@ -32,26 +26,34 @@ set(WCPRIVATEERCOMMON_SOURCES
 	Sources/Game/Screens/LoadSaveScreen.h
 	Sources/Game/Screens/MainMenuScreen.cpp
 	Sources/Game/Screens/MainMenuScreen.h
-	Sources/Game/Screens/MercenaryScreen.cpp
-	Sources/Game/Screens/MercenaryScreen.h
-	Sources/Game/Screens/MerchantScreen.cpp
-	Sources/Game/Screens/MerchantScreen.h
-	Sources/Game/Screens/MissionComputerScreen.cpp
-	Sources/Game/Screens/MissionComputerScreen.h
 	Sources/Game/Screens/NavScreen.cpp
 	Sources/Game/Screens/NavScreen.h
 	Sources/Game/Screens/OptionsScreen.cpp
 	Sources/Game/Screens/OptionsScreen.h
-	Sources/Game/Screens/ShipDealerScreen.cpp
-	Sources/Game/Screens/ShipDealerScreen.h
-	Sources/Game/Screens/ShipGarageScreen.cpp
-	Sources/Game/Screens/ShipGarageScreen.h
-	Sources/Game/Screens/ShipSoftwareScreen.cpp
-	Sources/Game/Screens/ShipSoftwareScreen.h
 	Sources/Game/Screens/TakeoffScreen.cpp
 	Sources/Game/Screens/TakeoffScreen.h
-	Sources/Game/Screens/TradeScreen.cpp
-	Sources/Game/Screens/TradeScreen.h
+	Sources/Game/Screens/Scene/SceneScreen.cpp
+	Sources/Game/Screens/Scene/SceneScreen.h
+	Sources/Game/Screens/Scene/BarScreen.cpp
+	Sources/Game/Screens/Scene/BarScreen.h
+	Sources/Game/Screens/Scene/BaseScreen.cpp
+	Sources/Game/Screens/Scene/BaseScreen.h
+	Sources/Game/Screens/Scene/HangarScreen.cpp
+	Sources/Game/Screens/Scene/HangarScreen.h
+	Sources/Game/Screens/Scene/MercenaryScreen.cpp
+	Sources/Game/Screens/Scene/MercenaryScreen.h
+	Sources/Game/Screens/Scene/MerchantScreen.cpp
+	Sources/Game/Screens/Scene/MerchantScreen.h
+	Sources/Game/Screens/Scene/MissionComputerScreen.cpp
+	Sources/Game/Screens/Scene/MissionComputerScreen.h
+	Sources/Game/Screens/Scene/ShipDealerScreen.cpp
+	Sources/Game/Screens/Scene/ShipDealerScreen.h
+	Sources/Game/Screens/Scene/ShipGarageScreen.cpp
+	Sources/Game/Screens/Scene/ShipGarageScreen.h
+	Sources/Game/Screens/Scene/ShipSoftwareScreen.cpp
+	Sources/Game/Screens/Scene/ShipSoftwareScreen.h
+	Sources/Game/Screens/Scene/TradeScreen.cpp
+	Sources/Game/Screens/Scene/TradeScreen.h
 	Sources/Game/RenderDevice.cpp
 	Sources/Game/RenderDevice.h
 	Sources/Game/Vulkan/VulkanRenderDevice.cpp
@@ -116,6 +118,7 @@ set(LIBRARY_UNIX_SOURCES
 source_group("Sources" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/.+")
 source_group("Sources\\Game" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/Game/.+")
 source_group("Sources\\Game\\Screens" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/Game/Screens/.+")
+source_group("Sources\\Game\\Screens\\Scene" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/Game/Screens/Scene/.+")
 source_group("Sources\\Game\\Vulkan" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/Game/Vulkan/.+")
 source_group("Sources\\Tool" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/Tool/.+")
 source_group("Sources\\FileFormat" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/FileFormat/.+")

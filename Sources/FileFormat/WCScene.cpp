@@ -127,7 +127,9 @@ WCSceneBackground WCSceneList::ReadBackground(FileEntryReader& reader)
 			WCSceneShape shape;
 			shape.type = reader.ReadUint16();
 			shape.optpakIndex = reader.ReadUint16();
-			for (int i = 0, count = reader.GetChunkSize() - 4; i < count; i++)
+			shape.offsetX = reader.ReadUint16();
+			shape.offsetY = reader.ReadUint16();
+			for (int i = 0, count = reader.GetChunkSize() - 8; i < count; i++)
 				shape.unknown.push_back(reader.ReadUint8());
 			bg.shapes.push_back(std::move(shape));
 		}

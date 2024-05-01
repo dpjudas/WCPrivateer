@@ -40,7 +40,7 @@ WCImage::WCImage(FileEntryReader& reader, WCPalette* palette)
 			throw std::runtime_error("Invalid image header");
 		}
 
-		std::vector<uint32_t> pixels(1000 * 1000, 0xff000000);
+		std::vector<uint32_t> pixels(1000 * 1000, 0x00000000);
 
 		int minx = 10000;
 		int maxx = -10000;
@@ -132,8 +132,8 @@ WCImage::WCImage(FileEntryReader& reader, WCPalette* palette)
 		}
 
 		WCImageFrame frame;
-		frame.x = minx;
-		frame.y = miny;
+		frame.x = minx - 500;
+		frame.y = miny - 500;
 		frame.width = width;
 		frame.height = height;
 		frame.pixels = std::move(image);
