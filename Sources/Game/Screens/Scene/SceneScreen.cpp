@@ -24,15 +24,7 @@ void SceneScreen::Render(RenderDevice* renderdev)
 		auto palette = LoadPakPalette("DATA\\OPTIONS\\OPTPALS.PAK", sceneList->scenes[scene].background.palette);
 		for (const auto& bgshape : sceneList->scenes[scene].background.shapes)
 		{
-			try
-			{
-				backgrounds.push_back(LoadPakImage("DATA\\OPTIONS\\OPTSHPS.PAK", bgshape.optpakIndex, palette.get()));
-			}
-			catch (...)
-			{
-				// To do: figure out why some images fail to load
-				backgrounds.push_back(nullptr);
-			}
+			backgrounds.push_back(LoadPakImage("DATA\\OPTIONS\\OPTSHPS.PAK", bgshape.optpakIndex, palette.get()));
 		}
 		if (sceneList->scenes[scene].ship.shape)
 			ship = LoadWCImage(*sceneList->scenes[scene].ship.shape, 0);
