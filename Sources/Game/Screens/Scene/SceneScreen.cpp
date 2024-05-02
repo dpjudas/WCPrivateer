@@ -18,6 +18,7 @@ void SceneScreen::Render(RenderDevice* renderdev)
 	if (scene != nextScene)
 	{
 		backgrounds.clear();
+		sprites.clear();
 		ship.clear();
 		scene = nextScene;
 
@@ -26,6 +27,12 @@ void SceneScreen::Render(RenderDevice* renderdev)
 		{
 			backgrounds.push_back(LoadPakImage("DATA\\OPTIONS\\OPTSHPS.PAK", bgshape.optpakIndex, palette.get()));
 		}
+
+		for (const auto& fgsprite : sceneList->scenes[scene].foreground.sprites)
+		{
+			sprites.push_back(LoadPakImage("DATA\\OPTIONS\\OPTSHPS.PAK", fgsprite.optpakIndex, palette.get()));
+		}
+
 		if (sceneList->scenes[scene].ship.shape)
 			ship = LoadWCImage(*sceneList->scenes[scene].ship.shape);
 
@@ -49,6 +56,19 @@ void SceneScreen::Render(RenderDevice* renderdev)
 			GameTexture* bgimage = backgrounds[i][(framecounter / 20) % backgrounds[i].size()].get();
 			const auto& shape = sceneList->scenes[scene].background.shapes[i];
 			renderdev->DrawImage(bgimage->x + shape.offsetX, bgimage->y + shape.offsetY, bgimage->width, bgimage->height, bgimage);
+		}
+	}
+
+	for (size_t i = 0; i < sceneList->scenes[scene].foreground.sprites.size(); i++)
+	{
+		if (!sprites[i].empty())
+		{
+			const auto& sprite = sceneList->scenes[scene].foreground.sprites[i];
+			int frame = sprite.sequence.empty() ? (framecounter / 20) % sprites[i].size() : sprite.sequence[(framecounter / 20) % sprite.sequence.size()];
+			GameTexture* fgimage = sprites[i][frame].get();
+			renderdev->DrawImage(fgimage->x + sprite.x1, fgimage->y + sprite.y1, fgimage->width, fgimage->height, fgimage);
+
+			break; // Only show one of the actors
 		}
 	}
 

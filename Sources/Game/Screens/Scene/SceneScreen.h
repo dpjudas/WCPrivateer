@@ -15,6 +15,7 @@ public:
 
 	std::unique_ptr<WCSceneList> sceneList;
 	std::vector<std::vector<std::unique_ptr<GameTexture>>> backgrounds;
+	std::vector<std::vector<std::unique_ptr<GameTexture>>> sprites;
 	std::vector<std::unique_ptr<GameTexture>> ship;
 	std::vector<std::unique_ptr<GameTexture>> font;
 

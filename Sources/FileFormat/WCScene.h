@@ -19,7 +19,7 @@ public:
 class WCSceneShape
 {
 public:
-	int type = 0;
+	int unknown16 = 0;
 	int optpakIndex = 0;
 	int offsetX = 0;
 	int offsetY = 0;
@@ -29,14 +29,16 @@ public:
 class WCSceneSprite
 {
 public:
+	int shapeunknown8 = 0;
+	int optpakIndex = 0;
 	std::vector<uint8_t> shape;
 	std::string label; // Talk to Bartender, Talk to Dr. Monkhouse
-	std::vector<uint8_t> info;
-	std::vector<uint8_t> sequence;
-	int x = 0;
-	int y = 0;
-	int width = 0;
-	int height = 0;
+	std::vector<uint16_t> info;
+	std::vector<uint16_t> sequence;
+	int x1 = 0;
+	int y1 = 0;
+	int x2 = 0;
+	int y2 = 0;
 	bool clck = false;
 	struct
 	{

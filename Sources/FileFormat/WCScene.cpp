@@ -125,7 +125,7 @@ WCSceneBackground WCSceneList::ReadBackground(FileEntryReader& reader)
 		else if (tag == "SHAP")
 		{
 			WCSceneShape shape;
-			shape.type = reader.ReadUint16();
+			shape.unknown16 = reader.ReadUint16();
 			shape.optpakIndex = reader.ReadUint16();
 			shape.offsetX = reader.ReadUint16();
 			shape.offsetY = reader.ReadUint16();
@@ -164,7 +164,9 @@ WCSceneForeground WCSceneList::ReadForeground(FileEntryReader& reader)
 				tag = reader.PushChunk();
 				if (tag == "SHAP")
 				{
-					for (int i = 0, count = reader.GetChunkSize(); i < count; i++)
+					sprite.shapeunknown8 = reader.ReadUint8();
+					sprite.optpakIndex = reader.ReadUint8();
+					for (int i = 0, count = reader.GetChunkSize() - 2; i < count; i++)
 						sprite.shape.push_back(reader.ReadUint8());
 				}
 				else if (tag == "LABL")
@@ -181,20 +183,20 @@ WCSceneForeground WCSceneList::ReadForeground(FileEntryReader& reader)
 				}
 				else if (tag == "RECT")
 				{
-					sprite.x = reader.ReadUint16();
-					sprite.y = reader.ReadUint16();
-					sprite.width = reader.ReadUint16();
-					sprite.height = reader.ReadUint16();
+					sprite.x1 = reader.ReadUint16();
+					sprite.y1 = reader.ReadUint16();
+					sprite.x2 = reader.ReadUint16();
+					sprite.y2 = reader.ReadUint16();
 				}
 				else if (tag == "INFO")
 				{
-					for (int i = 0, count = reader.GetChunkSize(); i < count; i++)
-						sprite.info.push_back(reader.ReadUint8());
+					for (int i = 0, count = reader.GetChunkSize() / 2; i < count; i++)
+						sprite.info.push_back(reader.ReadUint16());
 				}
 				else if (tag == "SEQU")
 				{
-					for (int i = 0, count = reader.GetChunkSize(); i < count; i++)
-						sprite.sequence.push_back(reader.ReadUint8());
+					for (int i = 0, count = reader.GetChunkSize() / 2; i < count; i++)
+						sprite.sequence.push_back(reader.ReadUint16());
 				}
 				else if (tag == "CLCK")
 				{
