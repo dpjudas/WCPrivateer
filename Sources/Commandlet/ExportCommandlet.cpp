@@ -23,6 +23,10 @@ void ExportCommandlet::OnCommand(ToolApp* console, const std::string& args)
 	{
 		ExportArchive(console);
 	}
+	else if (args == "pak")
+	{
+		ExportPak(console);
+	}
 	else if (args == "iffimages")
 	{
 		ExportIffImages(console);
@@ -203,6 +207,7 @@ void ExportCommandlet::PrintForm(ToolApp* console, FileEntryReader& reader, int 
 void ExportCommandlet::OnPrintHelp(ToolApp* console)
 {
 	console->WriteOutput("Syntax: export archive" + NewLine());
+	console->WriteOutput("        export pak" + NewLine());
 	console->WriteOutput("        export iffimages" + NewLine());
 	console->WriteOutput("        export pakimages" + NewLine());
 	console->WriteOutput("        export shpimages" + NewLine());
@@ -241,10 +246,20 @@ void ExportCommandlet::ExportArchive(ToolApp* console)
 		std::string filename = archive.getFilename(i);
 		std::string ext = filename.substr(filename.size() - 4);
 
-		{
-			FileEntryReader reader = archive.openFile(i);
-			WriteFile(console, filename, reader.CurrentPosData(), reader.Size());
-		}
+		FileEntryReader reader = archive.openFile(i);
+		WriteFile(console, filename, reader.CurrentPosData(), reader.Size());
+	}
+}
+
+void ExportCommandlet::ExportPak(ToolApp* console)
+{
+	console->WriteOutput("Exporting PAK file content from " + ColorEscape(96) + mArchiveFilename + ResetEscape() + NewLine());
+	WCArchive archive(mArchiveFilename);
+
+	for (int i = 0; i < archive.getFileCount(); i++)
+	{
+		std::string filename = archive.getFilename(i);
+		std::string ext = filename.substr(filename.size() - 4);
 
 		if (ext == ".PAK" && filename != "SPEECH.PAK")
 		{
