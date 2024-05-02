@@ -23,10 +23,10 @@ public:
 	std::unique_ptr<WCPalette> LoadPalette(const std::string& filename);
 	std::unique_ptr<WCPalette> LoadPakPalette(const std::string& pakFilename, int pakindex);
 
-	std::unique_ptr<GameTexture> LoadPakImage(const std::string& pakFilename, int pakindex, WCPalette* palette);
-	std::unique_ptr<GameTexture> LoadShpImage(const std::string& filename, int index, WCPalette* palette);
+	std::vector<std::unique_ptr<GameTexture>> LoadPakImage(const std::string& pakFilename, int pakindex, WCPalette* palette);
+	std::vector<std::unique_ptr<GameTexture>> LoadShpImage(const std::string& filename, WCPalette* palette);
 	std::unique_ptr<GameTexture> LoadIffImage(const std::string& filename, int index, WCPalette* palette);
-	std::unique_ptr<GameTexture> LoadWCImage(const WCImage& image, int index);
+	std::vector<std::unique_ptr<GameTexture>> LoadWCImage(const WCImage& image);
 
 	GameApp* app = nullptr;
 };

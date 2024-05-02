@@ -10,5 +10,5 @@ public:
 
 	void Render(RenderDevice* renderdev) override;
 
-	std::unique_ptr<GameTexture> background;
+	std::vector<std::unique_ptr<GameTexture>> background;
 };

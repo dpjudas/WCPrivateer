@@ -13,11 +13,11 @@ MainMenuScreen::~MainMenuScreen()
 
 void MainMenuScreen::Render(RenderDevice* renderdev)
 {
-	if (!background)
+	if (background.empty())
 	{
 		auto palette = LoadPakPalette("DATA\\OPTIONS\\OPTPALS.PAK", 39);
 		background = LoadPakImage("DATA\\OPTIONS\\OPTSHPS.PAK", 181, palette.get());
 	}
 
-	renderdev->DrawImage(background->x, background->y, background->width, background->height, background.get());
+	renderdev->DrawImage(background[0]->x, background[0]->y, background[0]->width, background[0]->height, background[0].get());
 }

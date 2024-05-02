@@ -14,8 +14,9 @@ public:
 	void Render(RenderDevice* renderdev) override;
 
 	std::unique_ptr<WCSceneList> sceneList;
-	std::vector<std::unique_ptr<GameTexture>> backgrounds;
-	std::unique_ptr<GameTexture> ship;
+	std::vector<std::vector<std::unique_ptr<GameTexture>>> backgrounds;
+	std::vector<std::unique_ptr<GameTexture>> ship;
+	std::vector<std::unique_ptr<GameTexture>> font;
 
 	int scene = -1;
 	int nextScene = 0;

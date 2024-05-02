@@ -41,37 +41,35 @@ std::unique_ptr<WCPalette> GameScreen::LoadPalette(const std::string& filename)
 	return std::make_unique<WCPalette>(filename, app->archive.get());
 }
 
-std::unique_ptr<GameTexture> GameScreen::LoadWCImage(const WCImage& image, int index)
+std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadWCImage(const WCImage& image)
 {
-	auto gameTexture = std::make_unique<GameTexture>();
-	gameTexture->x = image.frames[index].x;
-	gameTexture->y = image.frames[index].y;
-	gameTexture->width = image.frames[index].width;
-	gameTexture->height = image.frames[index].height;
-	gameTexture->pixels = image.frames[index].pixels;
-	return gameTexture;
+	std::vector<std::unique_ptr<GameTexture>> frames;
+	for (auto& frame : image.frames)
+	{
+		auto gameTexture = std::make_unique<GameTexture>();
+		gameTexture->x = frame.x;
+		gameTexture->y = frame.y;
+		gameTexture->width = frame.width;
+		gameTexture->height = frame.height;
+		gameTexture->pixels = frame.pixels;
+		frames.push_back(std::move(gameTexture));
+	}
+	return frames;
 }
 
-std::unique_ptr<GameTexture> GameScreen::LoadPakImage(const std::string& pakFilename, int pakindex, WCPalette* palette)
+std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadPakImage(const std::string& pakFilename, int pakindex, WCPalette* palette)
 {
 	WCPak pak("DATA\\OPTIONS\\OPTSHPS.PAK", app->archive.get());
 	FileEntryReader reader = pak.openFile(pakindex);
 	WCImage image(reader, palette);
-
-	auto gameTexture = std::make_unique<GameTexture>();
-	gameTexture->x = image.frames[0].x;
-	gameTexture->y = image.frames[0].y;
-	gameTexture->width = image.frames[0].width;
-	gameTexture->height = image.frames[0].height;
-	gameTexture->pixels = image.frames[0].pixels;
-	return gameTexture;
+	return LoadWCImage(image);
 }
 
-std::unique_ptr<GameTexture> GameScreen::LoadShpImage(const std::string& filename, int index, WCPalette* palette)
+std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadShpImage(const std::string& filename, WCPalette* palette)
 {
 	FileEntryReader reader = app->archive->openFile(filename);
 	WCImage image(reader, palette);
-	return LoadWCImage(image, index);
+	return LoadWCImage(image);
 }
 
 std::unique_ptr<GameTexture> GameScreen::LoadIffImage(const std::string& filename, int index, WCPalette* palette)
