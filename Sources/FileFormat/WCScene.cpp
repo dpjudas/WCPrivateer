@@ -61,6 +61,14 @@ WCSceneList::WCSceneList(WCArchive* archive)
 			{
 				scene.look = ReadLook(reader);
 			}
+			else if (tag == "RECT")
+			{
+				// To do: what is in this chunk?
+			}
+			else
+			{
+				throw std::runtime_error("Unexpected tag");
+			}
 
 			reader.PopChunk();
 		}

@@ -59,7 +59,7 @@ std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadWCImage(const WCImage&
 
 std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadPakImage(const std::string& pakFilename, int pakindex, WCPalette* palette)
 {
-	WCPak pak("DATA\\OPTIONS\\OPTSHPS.PAK", app->archive.get());
+	WCPak pak(pakFilename, app->archive.get());
 	FileEntryReader reader = pak.openFile(pakindex);
 	WCImage image(reader, palette);
 	return LoadWCImage(image);
