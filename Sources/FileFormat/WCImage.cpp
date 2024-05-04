@@ -16,6 +16,9 @@ WCImage::WCImage(FileEntryReader& reader, WCPalette* palette)
 	offsets.push_back(baseoffset + firstoffset);
 
 	uint32_t count = (firstoffset - 4) / 4;
+	if (count == 0)
+		throw std::runtime_error("Invalid image header");
+
 	for (uint32_t i = 1; i < count; i++)
 	{
 		uint32_t offset = reader.ReadUint24();

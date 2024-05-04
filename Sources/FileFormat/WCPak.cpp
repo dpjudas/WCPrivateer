@@ -32,7 +32,7 @@ WCPak::WCPak(const std::string& filename, WCArchive* archive)
 		reader.Seek(offsets[index]);
 
 		std::vector<uint8_t> file(offsets[index + 1] - offsets[index]);
-		memcpy(file.data(), reader.CurrentPosData(), file.size());
+		reader.Read(file.data(), file.size());
 		files.push_back(std::move(file));
 	}
 }

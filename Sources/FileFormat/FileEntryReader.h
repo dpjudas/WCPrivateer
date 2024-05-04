@@ -38,6 +38,15 @@ public:
 		chunks.pop_back();
 	}
 
+	size_t Read(void* dest, size_t size)
+	{
+		size_t available = buffer.size() - pos;
+		size_t count = std::min(size, available);
+		memcpy(dest, buffer.data() + pos, count);
+		pos += count;
+		return count;
+	}
+
 	uint8_t ReadUint8()
 	{
 		return pos < buffer.size() ? buffer[pos++] : 0;

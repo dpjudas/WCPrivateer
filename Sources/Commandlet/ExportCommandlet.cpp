@@ -7,8 +7,12 @@
 #include "FileFormat/WCPak.h"
 #include "FileFormat/WCPalette.h"
 #include "FileFormat/WCMovie.h"
+#include "FileFormat/WCMusic.h"
 #include "FileFormat/FileEntryReader.h"
+#include "Audio/AudioPlayer.h"
+#include "Audio/AudioSource.h"
 #include <miniz/miniz.h>
+#include <zmusic.h>
 
 ExportCommandlet::ExportCommandlet()
 {
@@ -51,6 +55,41 @@ void ExportCommandlet::OnCommand(ToolApp* console, const std::string& args)
 	else if (args == "vpf")
 	{
 		ExportVpf(console);
+	}
+	else if (args == "music")
+	{
+		WCArchive archive(mArchiveFilename);
+		WCMusic music("DATA\\SOUND\\BASETUNE.GEN", &archive);
+
+		ZMusic_MusicStream song = AudioSource::OpenSong(music.songs[8]);
+		int subsong = 0;
+		bool loop = false;
+		bool result = ZMusic_Start(song, subsong, loop);
+		if (result)
+		{
+			SoundStreamInfo fmt;
+			ZMusic_GetStreamInfo(song, &fmt);
+			if (fmt.mBufferSize == 0)
+			{
+				do
+				{
+					ZMusic_Update(song);
+					Sleep(10);
+				} while (ZMusic_IsPlaying(song));
+			}
+			else
+			{
+				auto player = AudioPlayer::Create(AudioSource::CreateZMusic(song));
+				do
+				{
+					ZMusic_Update(song);
+					Sleep(10);
+				} while (ZMusic_IsPlaying(song));
+			}
+
+			ZMusic_Stop(song);
+		}
+		ZMusic_Close(song);
 	}
 	else if (args == "iff")
 	{
@@ -161,7 +200,7 @@ void ExportCommandlet::PrintForm(ToolApp* console, FileEntryReader& reader, int 
 			else if (tag == "LABL")
 			{
 				std::string text(itemsize, '\0');
-				memcpy(text.data(), reader.CurrentPosData(), itemsize);
+				reader.Read(text.data(), itemsize);
 				for (size_t i = 0; i < text.size(); i++)
 				{
 					if (text[i] == 0)
