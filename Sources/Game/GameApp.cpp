@@ -18,6 +18,9 @@
 #include "Game/Screens/Movie/VictoryScreen.h"
 #include "FileFormat/WCArchive.h"
 #include "FileFormat/WCMusic.h"
+#include "FileFormat/WCImage.h"
+#include "FileFormat/WCPalette.h"
+#include "FileFormat/FileEntryReader.h"
 #include "Audio/AudioPlayer.h"
 #include "Audio/AudioSource.h"
 #include "zwidget/core/theme.h"
@@ -50,6 +53,64 @@ public:
 	}
 };
 
+static HCURSOR CreateAlphaCursor(const WCImageFrame& source)
+{
+	// Find closest integer scale factor for the monitor DPI
+	HDC screenDC = GetDC(0);
+	int dpi = GetDeviceCaps(screenDC, LOGPIXELSX);
+	int scale = std::max((dpi + 96 / 2 - 1) / 96, 1) * 3;
+	ReleaseDC(0, screenDC);
+
+	int w = source.width;
+	int h = source.height;
+
+	BITMAPV5HEADER bi = {};
+	bi.bV5Size = sizeof(bi);
+	bi.bV5Width = w * scale;
+	bi.bV5Height = h * scale;
+	bi.bV5Planes = 1;
+	bi.bV5BitCount = 32;
+	bi.bV5Compression = BI_BITFIELDS;
+	bi.bV5RedMask = 0x00FF0000;
+	bi.bV5GreenMask = 0x0000FF00;
+	bi.bV5BlueMask = 0x000000FF;
+	bi.bV5AlphaMask = 0xFF000000;
+
+	HDC dc = GetDC(0);
+	if (dc == 0) return 0;
+
+	void* bits = nullptr;
+	HBITMAP color = CreateDIBSection(dc, (BITMAPINFO*)&bi, DIB_RGB_COLORS, &bits, 0, 0);
+	ReleaseDC(0, dc);
+	if (!color)
+		return 0;
+
+	HBITMAP mono = CreateBitmap(w * scale, h * scale, 1, 1, 0);
+	if (!mono)
+	{
+		DeleteObject(color);
+		return 0;
+	}
+
+	const uint32_t* unscaled = source.pixels.data();
+	uint32_t* scaled = (uint32_t*)bits;
+	for (int y = 0; y < h * scale; y++)
+	{
+		for (int x = 0; x < w * scale; x++)
+		{
+			scaled[x + y * w * scale] = unscaled[x / scale + y / scale * w];
+		}
+	}
+
+	ICONINFO iconinfo = { FALSE, (DWORD)(-source.x * scale), (DWORD)(-source.y * scale), mono, color };
+	HCURSOR cursor = CreateIconIndirect(&iconinfo);
+
+	DeleteObject(mono);
+	DeleteObject(color);
+
+	return cursor;
+}
+
 int GameApp::main(std::vector<std::string> args)
 {
 	try
@@ -62,9 +123,16 @@ int GameApp::main(std::vector<std::string> args)
 		window.SetFocus();
 		window.Show();
 
+		auto renderdev = RenderDevice::Create(&window);
+
+		auto palette = std::make_unique<WCPalette>("DATA\\PALETTE\\PCMAIN.PAL", archive.get());
+		FileEntryReader cursorShp = archive->openFile("DATA\\MOUSE\\PNT.SHP");
+		WCImage cursor(cursorShp, palette.get());
+		HCURSOR win32cursor = CreateAlphaCursor(cursor.frames[0]);
+
 		WCMusic music("DATA\\SOUND\\BASETUNE.GEN", archive.get());
 
-		ZMusic_MusicStream song = AudioSource::OpenSong(music.songs[8]);
+		ZMusic_MusicStream song = AudioSource::OpenSong(music.songs[0]);
 		int subsong = 0;
 		bool loop = true;
 		bool result = ZMusic_Start(song, subsong, loop);
@@ -77,11 +145,11 @@ int GameApp::main(std::vector<std::string> args)
 
 		auto screen = std::make_unique<SceneScreen>(this);
 
-		auto renderdev = RenderDevice::Create(&window);
 		while (!exitFlag)
 		{
 			DisplayWindow::ProcessEvents();
 			ZMusic_Update(song);
+			SetCursor(win32cursor);
 
 			for (InputKey key : keysPressed)
 			{
