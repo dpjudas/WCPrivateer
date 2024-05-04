@@ -13,6 +13,7 @@ class GameScreen
 public:
 	GameScreen(GameApp* app);
 
+	virtual void SetMousePos(int x, int y) { }
 	virtual void OnKeyDown(InputKey key) { }
 	virtual void Render(RenderDevice* device) { }
 

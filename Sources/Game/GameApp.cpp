@@ -30,6 +30,7 @@
 
 bool exitFlag;
 std::vector<InputKey> keysPressed;
+Point mousepos;
 
 class GameWindow : public Widget
 {
@@ -50,6 +51,11 @@ public:
 	void OnClose() override
 	{
 		exitFlag = true;
+	}
+
+	void OnMouseMove(const Point& pos)
+	{
+		mousepos = pos;
 	}
 };
 
@@ -151,6 +157,7 @@ int GameApp::main(std::vector<std::string> args)
 			ZMusic_Update(song);
 			SetCursor(win32cursor);
 
+			screen->SetMousePos((int)std::round(mousepos.x * 320.0 / window.GetWidth()), (int)std::round(mousepos.y * 200 / window.GetHeight()));
 			for (InputKey key : keysPressed)
 			{
 				screen->OnKeyDown(key);

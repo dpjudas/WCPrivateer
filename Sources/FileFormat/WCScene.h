@@ -5,15 +5,19 @@
 class WCArchive;
 class WCPalette;
 
+class WCRegionPoint
+{
+public:
+	int x = 0;
+	int y = 0;
+};
+
 class WCRegion
 {
 public:
 	int target = 0;
 	std::string label; // Ship Dealer, Misson Computer
-	int x1 = 0;
-	int y1 = 0;
-	int x2 = 0;
-	int y2 = 0;
+	std::vector<WCRegionPoint> coords;
 };
 
 class WCSceneShape

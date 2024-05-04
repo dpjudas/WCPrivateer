@@ -104,10 +104,13 @@ WCRegion WCSceneList::ReadRegion(FileEntryReader& reader)
 		}
 		else if (tag == "CORD")
 		{
-			region.x1 = reader.ReadUint16();
-			region.y1 = reader.ReadUint16();
-			region.x2 = reader.ReadUint16();
-			region.y2 = reader.ReadUint16();
+			while (!reader.IsEndOfChunk())
+			{
+				WCRegionPoint p;
+				p.x = reader.ReadInt16();
+				p.y = reader.ReadInt16();
+				region.coords.push_back(p);
+			}
 		}
 		else
 		{

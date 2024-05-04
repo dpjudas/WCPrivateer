@@ -13,6 +13,12 @@ SceneScreen::~SceneScreen()
 {
 }
 
+void SceneScreen::SetMousePos(int x, int y)
+{
+	mouseX = x;
+	mouseY = y;
+}
+
 void SceneScreen::Render(RenderDevice* renderdev)
 {
 	if (scene != nextScene)
@@ -75,9 +81,27 @@ void SceneScreen::Render(RenderDevice* renderdev)
 	if (!ship.empty())
 		renderdev->DrawImage(ship[0]->x, ship[0]->y, ship[0]->width, ship[0]->height, ship[0].get());
 
-	if (!sceneList->scenes[scene].regions.empty())
+	for (auto& region : sceneList->scenes[scene].regions)
 	{
-		std::string text = sceneList->scenes[scene].regions[0].label;
+		// Use a crude bounding box check. Probably precise enough.
+		if (region.coords.empty())
+			continue;
+		int minx = region.coords.front().x;
+		int miny = region.coords.front().y;
+		int maxx = region.coords.front().x;
+		int maxy = region.coords.front().y;
+		for (const auto& c : region.coords)
+		{
+			minx = std::min(minx, c.x);
+			miny = std::min(miny, c.y);
+			maxx = std::max(maxx, c.x);
+			maxy = std::max(maxy, c.y);
+		}
+
+		if (mouseX < minx || mouseX > maxx || mouseY < miny || mouseY > maxy)
+			continue;
+
+		std::string text = region.label;
 		int textwidth = 0;
 		for (char c : text)
 		{
@@ -107,6 +131,8 @@ void SceneScreen::Render(RenderDevice* renderdev)
 				x += font[i]->width - font[i]->x + 1;
 			}
 		}
+
+		break;
 	}
 }
 
