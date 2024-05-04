@@ -17,6 +17,9 @@
 #include "Game/Screens/Movie/TakeoffScreen.h"
 #include "Game/Screens/Movie/VictoryScreen.h"
 #include "FileFormat/WCArchive.h"
+#include "FileFormat/WCMusic.h"
+#include "Audio/AudioPlayer.h"
+#include "Audio/AudioSource.h"
 #include "zwidget/core/theme.h"
 #include <zwidget/core/widget.h>
 #include <zwidget/window/window.h>
@@ -59,12 +62,26 @@ int GameApp::main(std::vector<std::string> args)
 		window.SetFocus();
 		window.Show();
 
+		WCMusic music("DATA\\SOUND\\BASETUNE.GEN", archive.get());
+
+		ZMusic_MusicStream song = AudioSource::OpenSong(music.songs[8]);
+		int subsong = 0;
+		bool loop = true;
+		bool result = ZMusic_Start(song, subsong, loop);
+
+		std::unique_ptr<AudioPlayer> audioPlayer;
+		SoundStreamInfo fmt;
+		ZMusic_GetStreamInfo(song, &fmt);
+		if (fmt.mBufferSize != 0)
+			audioPlayer = AudioPlayer::Create(AudioSource::CreateZMusic(song));
+
 		auto screen = std::make_unique<SceneScreen>(this);
 
 		auto renderdev = RenderDevice::Create(&window);
 		while (!exitFlag)
 		{
 			DisplayWindow::ProcessEvents();
+			ZMusic_Update(song);
 
 			for (InputKey key : keysPressed)
 			{
