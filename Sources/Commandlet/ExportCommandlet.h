@@ -16,6 +16,7 @@ public:
 private:
 	void ExportArchive(ToolApp* console);
 	void ExportPak(ToolApp* console);
+	void ExportMovie(ToolApp* console);
 	void ExportIffImages(ToolApp* console);
 	void ExportPakImages(ToolApp* console);
 	void ExportShpImages(ToolApp* console);

@@ -52,10 +52,14 @@ set(WCPRIVATEERCOMMON_SOURCES
 	Sources/Game/Screens/Movie/MovieScreen.h
 	Sources/Game/Screens/Movie/IntroScreen.cpp
 	Sources/Game/Screens/Movie/IntroScreen.h
+	Sources/Game/Screens/Movie/VictoryScreen.cpp
+	Sources/Game/Screens/Movie/VictoryScreen.h
 	Sources/Game/Screens/Movie/LandingScreen.cpp
 	Sources/Game/Screens/Movie/LandingScreen.h
 	Sources/Game/Screens/Movie/TakeoffScreen.cpp
 	Sources/Game/Screens/Movie/TakeoffScreen.h
+	Sources/Game/Screens/Movie/JumpScreen.cpp
+	Sources/Game/Screens/Movie/JumpScreen.h
 	Sources/Game/RenderDevice.cpp
 	Sources/Game/RenderDevice.h
 	Sources/Game/Vulkan/VulkanRenderDevice.cpp

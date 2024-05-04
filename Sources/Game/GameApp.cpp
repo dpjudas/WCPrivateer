@@ -11,6 +11,11 @@
 #include "Game/Screens/Scene/BaseScreen.h"
 #include "Game/Screens/Scene/HangarScreen.h"
 #include "Game/Screens/Movie/MovieScreen.h"
+#include "Game/Screens/Movie/IntroScreen.h"
+#include "Game/Screens/Movie/JumpScreen.h"
+#include "Game/Screens/Movie/LandingScreen.h"
+#include "Game/Screens/Movie/TakeoffScreen.h"
+#include "Game/Screens/Movie/VictoryScreen.h"
 #include "FileFormat/WCArchive.h"
 #include "zwidget/core/theme.h"
 #include <zwidget/core/widget.h>

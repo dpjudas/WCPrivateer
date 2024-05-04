@@ -62,14 +62,24 @@ WCMovie::WCMovie(const std::string& filename, WCArchive* archive)
 					{
 						while (!reader.IsEndOfChunk())
 						{
-							acts.aftr.push_back(reader.ReadInt16());
+							WCMovieBlock12 block;
+							for (int i = 0; i < 12; i++)
+							{
+								block.data[i] = reader.ReadUint16();
+							}
+							acts.aftr.push_back(block);
 						}
 					}
 					else if (tag == "BFOR")
 					{
 						while (!reader.IsEndOfChunk())
 						{
-							acts.bfor.push_back(reader.ReadInt16());
+							WCMovieBlock12 block;
+							for (int i = 0; i < 12; i++)
+							{
+								block.data[i] = reader.ReadUint16();
+							}
+							acts.bfor.push_back(block);
 						}
 					}
 					else if (tag == "FILD")
@@ -111,7 +121,12 @@ WCMovie::WCMovie(const std::string& filename, WCArchive* archive)
 							{
 								while (!reader.IsEndOfChunk())
 								{
-									scene.bfor.push_back(reader.ReadInt16());
+									WCMovieBlock12 block;
+									for (int i = 0; i < 12; i++)
+									{
+										block.data[i] = reader.ReadUint16();
+									}
+									scene.bfor.push_back(block);
 								}
 							}
 							else

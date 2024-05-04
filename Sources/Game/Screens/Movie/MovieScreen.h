@@ -14,5 +14,7 @@ public:
 	void Render(RenderDevice* renderdev) override;
 
 	std::unique_ptr<WCMovie> movie;
-	std::vector<std::unique_ptr<GameTexture>> frames[3];
+	std::vector<std::vector<std::unique_ptr<GameTexture>>> movies;
+	std::vector<int> offsetx;
+	std::vector<int> offsety;
 };

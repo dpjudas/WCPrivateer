@@ -10,12 +10,18 @@ public:
 	std::string filename;
 };
 
+class WCMovieBlock12
+{
+public:
+	uint16_t data[12];
+};
+
 class WCMovieScene
 {
 public:
 	std::vector<int16_t> fild;
 	std::vector<uint8_t> spri;
-	std::vector<int16_t> bfor;
+	std::vector<WCMovieBlock12> bfor;
 };
 
 class WCMovie
@@ -33,8 +39,8 @@ public:
 	{
 		std::vector<int16_t> fild;
 		std::vector<uint8_t> spri;
-		std::vector<int16_t> bfor; // seems to be int16[12] blocks?
-		std::vector<int16_t> aftr;
+		std::vector<WCMovieBlock12> bfor; // seems to be int16[12] blocks?
+		std::vector<WCMovieBlock12> aftr;
 		std::vector<WCMovieScene> scenes;
 	} acts;
 };

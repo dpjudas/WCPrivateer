@@ -6,6 +6,7 @@
 #include "FileFormat/WCImage.h"
 #include "FileFormat/WCPak.h"
 #include "FileFormat/WCPalette.h"
+#include "FileFormat/WCMovie.h"
 #include "FileFormat/FileEntryReader.h"
 #include <miniz/miniz.h>
 
@@ -26,6 +27,10 @@ void ExportCommandlet::OnCommand(ToolApp* console, const std::string& args)
 	else if (args == "pak")
 	{
 		ExportPak(console);
+	}
+	else if (args == "movie")
+	{
+		ExportMovie(console);
 	}
 	else if (args == "iffimages")
 	{
@@ -248,6 +253,54 @@ void ExportCommandlet::ExportArchive(ToolApp* console)
 
 		FileEntryReader reader = archive.openFile(i);
 		WriteFile(console, filename, reader.CurrentPosData(), reader.Size());
+	}
+}
+
+void ExportCommandlet::ExportMovie(ToolApp* console)
+{
+	WCArchive archive(mArchiveFilename);
+
+	std::vector<std::string> moviefiles =
+	{
+		"DATA\\MIDGAMES\\CUBICLE.IFF",
+		"DATA\\MIDGAMES\\JUMP.IFF",
+		"DATA\\MIDGAMES\\MID1A.IFF",
+		"DATA\\MIDGAMES\\MID1B.IFF",
+		"DATA\\MIDGAMES\\MID1C1.IFF",
+		"DATA\\MIDGAMES\\MID1C2.IFF",
+		"DATA\\MIDGAMES\\MID1C3.IFF",
+		"DATA\\MIDGAMES\\MID1C4.IFF",
+		"DATA\\MIDGAMES\\MID1D.IFF",
+		"DATA\\MIDGAMES\\MID1E1.IFF",
+		"DATA\\MIDGAMES\\MID1E2.IFF",
+		"DATA\\MIDGAMES\\MID1E3.IFF",
+		"DATA\\MIDGAMES\\MID1E4.IFF",
+		"DATA\\MIDGAMES\\MID1F.IFF",
+		"DATA\\MIDGAMES\\TAKEOFFS.IFF",
+		"DATA\\MIDGAMES\\VICTORY1.IFF",
+		"DATA\\MIDGAMES\\VICTORY2.IFF",
+		"DATA\\MIDGAMES\\VICTORY3.IFF",
+		"DATA\\MIDGAMES\\VICTORY4.IFF",
+		"DATA\\MIDGAMES\\VICTORY5.IFF",
+		"DATA\\MIDGAMES\\LANDINGS.IFF"
+	};
+
+	for (std::string filename : moviefiles)
+	{
+		auto movie = std::make_unique<WCMovie>(filename, &archive);
+		console->WriteOutput(filename, 30);
+		for (int i = 0; i < 64; i++)
+		{
+			/*if (movie->spri.size() >(size_t)i)
+			{
+				console->WriteOutput(movie->spri[i], 4);
+			}*/
+			if (movie->fild.size() > (size_t)i)
+			{
+				console->WriteOutput(movie->fild[i], 4);
+			}
+		}
+		console->WriteOutput(NewLine());
 	}
 }
 
