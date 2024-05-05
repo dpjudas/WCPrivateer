@@ -36,14 +36,7 @@ void SceneScreen::Render(RenderDevice* renderdev)
 		if (sceneList->scenes[scene].ship.shape)
 			ship = LoadWCImage(*sceneList->scenes[scene].ship.shape);
 
-		// DATA\\OPTIONS\\FONTS.IFF (seems to also be a shape with glyphs, but placed in an IFF header)
-		//font = LoadShpImage("DATA\\FONTS\\CONVFONT.SHP", palette.get());
-		//font = LoadShpImage("DATA\\FONTS\\DEMOFONT.SHP", palette.get());
-		//font = LoadShpImage("DATA\\FONTS\\MSSGFONT.SHP", palette.get());
-		//font = LoadShpImage("DATA\\FONTS\\PCFONT.SHP", palette.get());
-		//font = LoadShpImage("DATA\\FONTS\\PRIVFNT.SHP", palette.get());
-
-		font = LoadShpImage("DATA\\FONTS\\OPTFONT.SHP", palette.get());
+		font = LoadOptFont(palette.get());
 	}
 
 	static int framecounter = 0;

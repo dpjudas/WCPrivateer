@@ -41,6 +41,38 @@ std::unique_ptr<WCPalette> GameScreen::LoadPalette(const std::string& filename)
 	return std::make_unique<WCPalette>(filename, app->archive.get());
 }
 
+// DATA\\OPTIONS\\FONTS.IFF (seems to also be a shape with glyphs, but placed in an IFF header)
+
+std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadConvFont(WCPalette* palette)
+{
+	return LoadShpImage("DATA\\FONTS\\CONVFONT.SHP", palette);
+}
+
+std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadDemoFont(WCPalette* palette)
+{
+	return LoadShpImage("DATA\\FONTS\\DEMOFONT.SHP", palette);
+}
+
+std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadMssgFont(WCPalette* palette)
+{
+	return LoadShpImage("DATA\\FONTS\\MSSGFONT.SHP", palette);
+}
+
+std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadPCFont(WCPalette* palette)
+{
+	return LoadShpImage("DATA\\FONTS\\PCFONT.SHP", palette);
+}
+
+std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadPrivFont(WCPalette* palette)
+{
+	return LoadShpImage("DATA\\FONTS\\PRIVFNT.SHP", palette);
+}
+
+std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadOptFont(WCPalette* palette)
+{
+	return LoadShpImage("DATA\\FONTS\\OPTFONT.SHP", palette);
+}
+
 std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadWCImage(const WCImage& image)
 {
 	std::vector<std::unique_ptr<GameTexture>> frames;
@@ -309,12 +341,12 @@ void GameScreen::DrawText(RenderDevice* renderdev, int x, int y, const std::stri
 		uint8_t i = c;
 		if (i == 32 && font.size() > 'x')
 		{
-			x += font['x']->width + 1;
+			x += font['x']->width + 2;
 		}
 		else if (i < font.size() && !font[i]->pixels.empty())
 		{
 			renderdev->DrawImage(font[i]->x + x, font[i]->y + y, font[i]->width, font[i]->height, font[i].get());
-			x += font[i]->width - font[i]->x + 1;
+			x += font[i]->width - font[i]->x + 2;
 		}
 	}
 }

@@ -16,7 +16,6 @@ public:
 
 	std::vector<std::unique_ptr<GameTexture>> background;
 	std::vector<std::unique_ptr<GameTexture>> buttons;
-	std::vector<std::unique_ptr<GameTexture>> font;
 
 	int buttonAtMouseDown = -1;
 

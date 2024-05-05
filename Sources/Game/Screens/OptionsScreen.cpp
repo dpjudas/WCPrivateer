@@ -18,7 +18,6 @@ void OptionsScreen::Render(RenderDevice* renderdev)
 		auto palette = LoadPrefMainPalette();
 		background = LoadShpImage("DATA\\OPTIONS\\PREFMAIN.SHP", palette.get());
 		buttons = LoadShpImage("DATA\\OPTIONS\\PREFBUTT.SHP", palette.get());
-		font = LoadShpImage("DATA\\FONTS\\OPTFONT.SHP", palette.get());
 	}
 
 	renderdev->DrawImage(background[0]->x, background[0]->y, background[0]->width, background[0]->height, background[0].get());
@@ -34,12 +33,6 @@ void OptionsScreen::Render(RenderDevice* renderdev)
 		int index = i * 2 + (state ? 1 : 0);
 		renderdev->DrawImage(buttons[index]->x, buttons[index]->y, buttons[index]->width, buttons[index]->height, buttons[index].get());
 	}
-
-	std::string text = std::to_string(mouseX) + "," + std::to_string(mouseY);
-	int textwidth = GetTextWidth(text, font);
-	int x = (320 - textwidth) / 2;
-	int y = 190;
-	DrawText(renderdev, x, y, text, font);
 }
 
 void OptionsScreen::OnKeyDown(InputKey key)
