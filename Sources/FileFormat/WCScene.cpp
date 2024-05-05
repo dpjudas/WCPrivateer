@@ -88,7 +88,7 @@ WCRegion WCSceneList::ReadRegion(FileEntryReader& reader)
 		{
 			if (reader.GetChunkSize() != 1)
 				throw std::runtime_error("Unexpected REGN.INFO size");
-			region.target = reader.ReadUint8();
+			region.target = (WCTarget)reader.ReadUint8();
 		}
 		else if (tag == "LABL")
 		{
@@ -175,7 +175,7 @@ WCSceneForeground WCSceneList::ReadForeground(FileEntryReader& reader)
 				tag = reader.PushChunk();
 				if (tag == "SHAP")
 				{
-					sprite.shapeunknown8 = reader.ReadUint8();
+					sprite.target = (WCSpriteTarget)reader.ReadUint8();
 					sprite.optpakIndex = reader.ReadUint8();
 					for (int i = 0, count = reader.GetChunkSize() - 2; i < count; i++)
 						sprite.shape.push_back(reader.ReadUint8());
@@ -218,12 +218,13 @@ WCSceneForeground WCSceneList::ReadForeground(FileEntryReader& reader)
 				}
 				else if (tag == "REGN")
 				{
-					if (reader.GetChunkSize() != 16)
-						throw std::runtime_error("Unexpected SPRT.REGN size");
-					sprite.region.x1 = reader.ReadUint16();
-					sprite.region.y1 = reader.ReadUint16();
-					sprite.region.x2 = reader.ReadUint16();
-					sprite.region.y2 = reader.ReadUint16();
+					while (!reader.IsEndOfChunk())
+					{
+						WCRegionPoint p;
+						p.x = reader.ReadInt16();
+						p.y = reader.ReadInt16();
+						sprite.region.push_back(p);
+					}
 				}
 				else
 				{

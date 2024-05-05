@@ -8,6 +8,7 @@
 #include "FileFormat/WCPalette.h"
 #include "FileFormat/WCMovie.h"
 #include "FileFormat/WCMusic.h"
+#include "FileFormat/WCScene.h"
 #include "FileFormat/FileEntryReader.h"
 #include "Audio/AudioPlayer.h"
 #include "Audio/AudioSource.h"
@@ -58,38 +59,11 @@ void ExportCommandlet::OnCommand(ToolApp* console, const std::string& args)
 	}
 	else if (args == "music")
 	{
-		WCArchive archive(mArchiveFilename);
-		WCMusic music("DATA\\SOUND\\BASETUNE.GEN", &archive);
-
-		ZMusic_MusicStream song = AudioSource::OpenSong(music.songs[8]);
-		int subsong = 0;
-		bool loop = false;
-		bool result = ZMusic_Start(song, subsong, loop);
-		if (result)
-		{
-			SoundStreamInfo fmt;
-			ZMusic_GetStreamInfo(song, &fmt);
-			if (fmt.mBufferSize == 0)
-			{
-				do
-				{
-					ZMusic_Update(song);
-					Sleep(10);
-				} while (ZMusic_IsPlaying(song));
-			}
-			else
-			{
-				auto player = AudioPlayer::Create(AudioSource::CreateZMusic(song));
-				do
-				{
-					ZMusic_Update(song);
-					Sleep(10);
-				} while (ZMusic_IsPlaying(song));
-			}
-
-			ZMusic_Stop(song);
-		}
-		ZMusic_Close(song);
+		ExportMusic(console);
+	}
+	else if (args == "scene")
+	{
+		ExportScene(console);
 	}
 	else if (args == "iff")
 	{
@@ -104,6 +78,81 @@ void ExportCommandlet::OnCommand(ToolApp* console, const std::string& args)
 	{
 		console->WriteOutput("Unknown command " + args + NewLine());
 	}
+}
+
+void ExportCommandlet::ExportScene(ToolApp* console)
+{
+	WCArchive archive(mArchiveFilename);
+	WCSceneList sceneList(&archive);
+	std::map<int, std::vector<std::string>> targetToLabel, targetToLabel2;
+	for (WCScene& scene : sceneList.scenes)
+	{
+		for (WCRegion& region : scene.regions)
+		{
+			targetToLabel[(int)region.target].push_back(region.label);
+		}
+		for (WCSceneSprite& sprite : scene.foreground.sprites)
+		{
+			targetToLabel2[(int)sprite.target].push_back(sprite.label);
+		}
+	}
+
+	console->WriteOutput("Region targets:" + NewLine());
+
+	for (auto& it : targetToLabel)
+	{
+		console->WriteOutput(it.first, 4);
+		for (auto& label : it.second)
+			console->WriteOutput("'" + ColorEscape(96) + label + ResetEscape() + "' ");
+		console->WriteOutput(NewLine());
+	}
+
+	console->WriteOutput(NewLine());
+	console->WriteOutput("Sprite targets:" + NewLine());
+
+	for (auto& it : targetToLabel2)
+	{
+		console->WriteOutput(it.first, 4);
+		for (auto& label : it.second)
+			console->WriteOutput("'" + ColorEscape(96) + label + ResetEscape() + "' ");
+		console->WriteOutput(NewLine());
+	}
+}
+
+void ExportCommandlet::ExportMusic(ToolApp* console)
+{
+	WCArchive archive(mArchiveFilename);
+	WCMusic music("DATA\\SOUND\\BASETUNE.GEN", &archive);
+
+	ZMusic_MusicStream song = AudioSource::OpenSong(music.songs[8]);
+	int subsong = 0;
+	bool loop = false;
+	bool result = ZMusic_Start(song, subsong, loop);
+	if (result)
+	{
+		SoundStreamInfo fmt;
+		ZMusic_GetStreamInfo(song, &fmt);
+		if (fmt.mBufferSize == 0)
+		{
+			do
+			{
+				ZMusic_Update(song);
+				Sleep(10);
+			} while (ZMusic_IsPlaying(song));
+		}
+		else
+		{
+			auto player = AudioPlayer::Create(AudioSource::CreateZMusic(song));
+			do
+			{
+				ZMusic_Update(song);
+				Sleep(10);
+			} while (ZMusic_IsPlaying(song));
+		}
+
+		ZMusic_Stop(song);
+	}
+	ZMusic_Close(song);
 }
 
 void ExportCommandlet::PrintForm(ToolApp* console, FileEntryReader& reader, int depth)
