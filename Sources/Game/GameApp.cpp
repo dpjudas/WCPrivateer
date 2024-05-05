@@ -6,6 +6,7 @@
 #include "Game/Screens/MainMenuScreen.h"
 #include "Game/Screens/LoadSaveScreen.h"
 #include "Game/Screens/OptionsScreen.h"
+#include "Game/Screens/JoystickScreen.h"
 #include "Game/Screens/Scene/SceneScreen.h"
 #include "Game/Screens/Scene/MissionComputerScreen.h"
 #include "Game/Screens/Scene/BarScreen.h"
@@ -187,7 +188,7 @@ int GameApp::main(std::vector<std::string> args)
 #ifdef PLAY_MUSIC
 		WCMusic music("DATA\\SOUND\\BASETUNE.GEN", archive.get());
 
-		ZMusic_MusicStream song = AudioSource::OpenSong(music.songs[0]);
+		ZMusic_MusicStream song = AudioSource::OpenSong(music.songs[8]);
 		int subsong = 0;
 		bool loop = true;
 		bool result = ZMusic_Start(song, subsong, loop);

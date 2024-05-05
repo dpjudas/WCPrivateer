@@ -45,6 +45,8 @@ set(WCPRIVATEERCOMMON_SOURCES
 	Sources/Game/Screens/NavScreen.h
 	Sources/Game/Screens/OptionsScreen.cpp
 	Sources/Game/Screens/OptionsScreen.h
+	Sources/Game/Screens/JoystickScreen.cpp
+	Sources/Game/Screens/JoystickScreen.h
 	Sources/Game/Screens/Scene/SceneScreen.cpp
 	Sources/Game/Screens/Scene/SceneScreen.h
 	Sources/Game/Screens/Scene/BarScreen.cpp
