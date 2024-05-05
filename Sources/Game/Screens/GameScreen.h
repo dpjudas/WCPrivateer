@@ -13,9 +13,18 @@ class GameScreen
 public:
 	GameScreen(GameApp* app);
 
-	virtual void SetMousePos(int x, int y) { }
+	void SetMousePos(int x, int y)
+	{
+		mouseX = x;
+		mouseY = y;
+	}
+
 	virtual void OnKeyDown(InputKey key) { }
+	virtual void OnKeyUp(InputKey key) { }
 	virtual void Render(RenderDevice* device) { }
+
+	int GetTextWidth(const std::string& text, std::vector<std::unique_ptr<GameTexture>>& font);
+	void DrawText(RenderDevice* renderdev, int x, int y, const std::string& text, std::vector<std::unique_ptr<GameTexture>>& font);
 
 	std::unique_ptr<WCPalette> LoadSpacePalette();
 	std::unique_ptr<WCPalette> LoadPCMainPalette();
@@ -30,4 +39,6 @@ public:
 	std::vector<std::unique_ptr<GameTexture>> LoadWCImage(const WCImage& image);
 
 	GameApp* app = nullptr;
+	int mouseX = 0;
+	int mouseY = 0;
 };

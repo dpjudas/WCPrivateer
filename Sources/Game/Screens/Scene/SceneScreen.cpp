@@ -13,12 +13,6 @@ SceneScreen::~SceneScreen()
 {
 }
 
-void SceneScreen::SetMousePos(int x, int y)
-{
-	mouseX = x;
-	mouseY = y;
-}
-
 void SceneScreen::Render(RenderDevice* renderdev)
 {
 	if (scene != nextScene)
@@ -102,35 +96,10 @@ void SceneScreen::Render(RenderDevice* renderdev)
 			continue;
 
 		std::string text = region.label;
-		int textwidth = 0;
-		for (char c : text)
-		{
-			uint8_t i = c;
-			if (i == 32 && font.size() > 'x')
-			{
-				textwidth += font['x']->width + 1;
-			}
-			else if (i < font.size() && !font[i]->pixels.empty())
-			{
-				textwidth += font[i]->width - font[i]->x + 1;
-			}
-		}
-
+		int textwidth = GetTextWidth(region.label, font);
 		int x = (320 - textwidth) / 2;
 		int y = 190;
-		for (char c : text)
-		{
-			uint8_t i = c;
-			if (i == 32 && font.size() > 'x')
-			{
-				x += font['x']->width + 1;
-			}
-			else if (i < font.size() && !font[i]->pixels.empty())
-			{
-				renderdev->DrawImage(font[i]->x + x, font[i]->y + y, font[i]->width, font[i]->height, font[i].get());
-				x += font[i]->width - font[i]->x + 1;
-			}
-		}
+		DrawText(renderdev, x, y, text, font);
 
 		break;
 	}

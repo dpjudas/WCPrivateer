@@ -5,6 +5,7 @@
 #include "Game/Screens/GameScreen.h"
 #include "Game/Screens/MainMenuScreen.h"
 #include "Game/Screens/LoadSaveScreen.h"
+#include "Game/Screens/OptionsScreen.h"
 #include "Game/Screens/Scene/SceneScreen.h"
 #include "Game/Screens/Scene/MissionComputerScreen.h"
 #include "Game/Screens/Scene/BarScreen.h"
@@ -28,9 +29,23 @@
 #include <zwidget/window/window.h>
 #include <zwidget/core/resourcedata.h>
 
+struct GameInputEvent
+{
+	enum Type
+	{
+		keyDown,
+		keyUp,
+		mouseDown,
+		mouseUp,
+		mouseMove
+	};
+	Type type = {};
+	Point pos;
+	InputKey key = {};
+};
+
 bool exitFlag;
-std::vector<InputKey> keysPressed;
-Point mousepos;
+std::vector<GameInputEvent> gameEvents;
 
 class GameWindow : public Widget
 {
@@ -45,7 +60,10 @@ public:
 
 	void OnKeyDown(InputKey key) override
 	{
-		keysPressed.push_back(key);
+		GameInputEvent e;
+		e.type = GameInputEvent::keyDown;
+		e.key = key;
+		gameEvents.push_back(e);
 	}
 
 	void OnClose() override
@@ -53,9 +71,37 @@ public:
 		exitFlag = true;
 	}
 
+	bool OnMouseDown(const Point& pos, InputKey key) override
+	{
+		GameInputEvent e;
+		e.type = GameInputEvent::mouseDown;
+		e.key = key;
+		e.pos = pos;
+		gameEvents.push_back(e);
+		return true;
+	}
+
+	bool OnMouseDoubleclick(const Point& pos, InputKey key) override
+	{
+		return OnMouseDown(pos, key);
+	}
+
+	bool OnMouseUp(const Point& pos, InputKey key) override
+	{
+		GameInputEvent e;
+		e.type = GameInputEvent::mouseUp;
+		e.key = key;
+		e.pos = pos;
+		gameEvents.push_back(e);
+		return true;
+	}
+
 	void OnMouseMove(const Point& pos)
 	{
-		mousepos = pos;
+		GameInputEvent e;
+		e.type = GameInputEvent::mouseMove;
+		e.pos = pos;
+		gameEvents.push_back(e);
 	}
 };
 
@@ -117,6 +163,8 @@ static HCURSOR CreateAlphaCursor(const WCImageFrame& source)
 	return cursor;
 }
 
+#define PLAY_MUSIC
+
 int GameApp::main(std::vector<std::string> args)
 {
 	try
@@ -136,6 +184,7 @@ int GameApp::main(std::vector<std::string> args)
 		WCImage cursor(cursorShp, palette.get());
 		HCURSOR win32cursor = CreateAlphaCursor(cursor.frames[0]);
 
+#ifdef PLAY_MUSIC
 		WCMusic music("DATA\\SOUND\\BASETUNE.GEN", archive.get());
 
 		ZMusic_MusicStream song = AudioSource::OpenSong(music.songs[0]);
@@ -148,25 +197,47 @@ int GameApp::main(std::vector<std::string> args)
 		ZMusic_GetStreamInfo(song, &fmt);
 		if (fmt.mBufferSize != 0)
 			audioPlayer = AudioPlayer::Create(AudioSource::CreateZMusic(song));
+#endif
 
 		auto screen = std::make_unique<SceneScreen>(this);
 
 		while (!exitFlag)
 		{
 			DisplayWindow::ProcessEvents();
+#ifdef PLAY_MUSIC
 			ZMusic_Update(song);
+#endif
 			SetCursor(win32cursor);
 
 			double letterboxwidth = 320 * window.GetHeight() / 240;
 			double width = window.GetWidth();
-			double mx = mousepos.x - (width - letterboxwidth) * 0.5;
-			screen->SetMousePos((int)std::round(mx * 320.0 / letterboxwidth), (int)std::round(mousepos.y * 200 / window.GetHeight()));
-
-			for (InputKey key : keysPressed)
+			for (const GameInputEvent& e : gameEvents)
 			{
-				screen->OnKeyDown(key);
+				if (e.type == GameInputEvent::mouseMove || e.type == GameInputEvent::mouseDown || e.type == GameInputEvent::mouseUp)
+				{
+					double mx = (e.pos.x - (width - letterboxwidth) * 0.5) * 320.0 / letterboxwidth;
+					double my = e.pos.y * 200 / window.GetHeight();
+					screen->SetMousePos((int)std::round(mx), (int)std::round(my));
+				}
+				
+				if (e.type == GameInputEvent::mouseDown)
+				{
+					screen->OnKeyDown(e.key);
+				}
+				else if (e.type == GameInputEvent::mouseUp)
+				{
+					screen->OnKeyUp(e.key);
+				}
+				else if (e.type == GameInputEvent::keyDown)
+				{
+					screen->OnKeyDown(e.key);
+				}
+				else if (e.type == GameInputEvent::keyUp)
+				{
+					screen->OnKeyUp(e.key);
+				}
 			}
-			keysPressed.clear();
+			gameEvents.clear();
 
 			if (!renderdev->Begin())
 				continue;

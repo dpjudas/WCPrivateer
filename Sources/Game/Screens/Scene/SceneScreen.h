@@ -10,7 +10,6 @@ public:
 	SceneScreen(GameApp* app);
 	~SceneScreen();
 
-	void SetMousePos(int x, int y) override;
 	void OnKeyDown(InputKey key) override;
 	void Render(RenderDevice* renderdev) override;
 
@@ -22,6 +21,4 @@ public:
 
 	int scene = -1;
 	int nextScene = 0;
-	int mouseX = 0;
-	int mouseY = 0;
 };

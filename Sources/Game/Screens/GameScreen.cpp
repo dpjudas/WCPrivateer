@@ -283,3 +283,38 @@ std::unique_ptr<GameTexture> GameScreen::LoadIffImage(const std::string& filenam
 
 	throw std::runtime_error("No IFF image found");
 }
+
+int GameScreen::GetTextWidth(const std::string& text, std::vector<std::unique_ptr<GameTexture>>& font)
+{
+	int textwidth = 0;
+	for (char c : text)
+	{
+		uint8_t i = c;
+		if (i == 32 && font.size() > 'x')
+		{
+			textwidth += font['x']->width + 1;
+		}
+		else if (i < font.size() && !font[i]->pixels.empty())
+		{
+			textwidth += font[i]->width - font[i]->x + 1;
+		}
+	}
+	return textwidth;
+}
+
+void GameScreen::DrawText(RenderDevice* renderdev, int x, int y, const std::string& text, std::vector<std::unique_ptr<GameTexture>>& font)
+{
+	for (char c : text)
+	{
+		uint8_t i = c;
+		if (i == 32 && font.size() > 'x')
+		{
+			x += font['x']->width + 1;
+		}
+		else if (i < font.size() && !font[i]->pixels.empty())
+		{
+			renderdev->DrawImage(font[i]->x + x, font[i]->y + y, font[i]->width, font[i]->height, font[i].get());
+			x += font[i]->width - font[i]->x + 1;
+		}
+	}
+}
