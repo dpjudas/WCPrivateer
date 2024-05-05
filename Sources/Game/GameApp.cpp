@@ -127,7 +127,7 @@ int GameApp::main(std::vector<std::string> args)
 
 		GameWindow window;
 		window.SetFocus();
-		window.Show();
+		window.ShowMaximized();
 
 		auto renderdev = RenderDevice::Create(&window);
 
@@ -157,7 +157,11 @@ int GameApp::main(std::vector<std::string> args)
 			ZMusic_Update(song);
 			SetCursor(win32cursor);
 
-			screen->SetMousePos((int)std::round(mousepos.x * 320.0 / window.GetWidth()), (int)std::round(mousepos.y * 200 / window.GetHeight()));
+			double letterboxwidth = 320 * window.GetHeight() / 240;
+			double width = window.GetWidth();
+			double mx = mousepos.x - (width - letterboxwidth) * 0.5;
+			screen->SetMousePos((int)std::round(mx * 320.0 / letterboxwidth), (int)std::round(mousepos.y * 200 / window.GetHeight()));
+
 			for (InputKey key : keysPressed)
 			{
 				screen->OnKeyDown(key);

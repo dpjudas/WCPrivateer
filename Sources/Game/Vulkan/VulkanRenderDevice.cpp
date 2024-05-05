@@ -337,23 +337,25 @@ bool VulkanRenderDevice::Begin()
 	// Bind the uniform buffer once (share it between the pipelines)
 	drawcommands->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayoutNoTex.get(), 0, uniformSet.get());
 
-	float identityMatrix[16] =
+	int letterboxwidth = 320 * height / 240;
+
+	float viewMatrix[16] =
 	{
-		1.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f, 0.0f,
+		letterboxwidth / 320.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, height / 200.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 1.0f
+		(width - letterboxwidth) * 0.5f, 0.0f, 0.0f, 1.0f
 	};
 	float projMatrix[16] =
 	{
-		2.0f / 320.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 2.0f / 200.0f, 0.0f, 0.0f,
+		2.0f / width, 0.0f, 0.0f, 0.0f,
+		0.0f, 2.0f / height, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
 		-1.0f, -1.0f, 0.0f, 1.0f
 	};
 
 	memcpy(uniforms->ProjectionMatrix, projMatrix, sizeof(float) * 16);
-	memcpy(uniforms->ViewMatrix, identityMatrix, sizeof(float) * 16);
+	memcpy(uniforms->ViewMatrix, viewMatrix, sizeof(float) * 16);
 
 	vertexPos = 0;
 
