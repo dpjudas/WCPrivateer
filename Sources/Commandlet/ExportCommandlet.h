@@ -24,6 +24,7 @@ private:
 	void ExportVpf(ToolApp* console);
 	void ExportScene(ToolApp* console);
 	void ExportMusic(ToolApp* console);
+	void ExportConversation(ToolApp* console);
 	void SaveImage(ToolApp* console, std::string filename, const WCImage& image, size_t baseindex);
 	void WriteFile(ToolApp* console, std::string filename, const void* data, size_t size);
 	void PrintForm(ToolApp* console, FileEntryReader& reader, int depth);

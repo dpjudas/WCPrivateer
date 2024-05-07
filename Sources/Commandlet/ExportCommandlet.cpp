@@ -9,6 +9,7 @@
 #include "FileFormat/WCMovie.h"
 #include "FileFormat/WCMusic.h"
 #include "FileFormat/WCScene.h"
+#include "FileFormat/WCConversation.h"
 #include "FileFormat/FileEntryReader.h"
 #include "Audio/AudioPlayer.h"
 #include "Audio/AudioSource.h"
@@ -65,6 +66,10 @@ void ExportCommandlet::OnCommand(ToolApp* console, const std::string& args)
 	{
 		ExportScene(console);
 	}
+	else if (args == "conv")
+	{
+		ExportConversation(console);
+	}
 	else if (args == "iff")
 	{
 		WCArchive archive(mArchiveFilename);
@@ -116,6 +121,33 @@ void ExportCommandlet::ExportScene(ToolApp* console)
 		for (auto& label : it.second)
 			console->WriteOutput("'" + ColorEscape(96) + label + ResetEscape() + "' ");
 		console->WriteOutput(NewLine());
+	}
+}
+
+void ExportCommandlet::ExportConversation(ToolApp* console)
+{
+	console->WriteOutput("Exporting conversation images from " + ColorEscape(96) + mArchiveFilename + ResetEscape() + NewLine());
+
+	WCArchive archive(mArchiveFilename);
+	WCConvBackgroundList bglist(&archive);
+	WCConvFaceList facelist(&archive);
+	WCConvEyesList eyeslist(&archive);
+
+	WCPak pak("DATA\\OPTIONS\\CU.PAK", &archive);
+	for (const WCConvBackground& bg : bglist.backgrounds)
+	{
+		FileEntryReader reader = pak.openFile(bg.pakindex);
+		WCPalette palette;
+		for (int i = facelist.palette->start, end = facelist.palette->start + facelist.palette->count; i < end; i++)
+		{
+			palette.palette[i] = facelist.palette->palette[i];
+		}
+		for (int i = bg.palette->start, end = bg.palette->start + bg.palette->count; i < end; i++)
+		{
+			palette.palette[i] = bg.palette->palette[i];
+		}
+		WCImage image(reader, &palette);
+		SaveImage(console, "DATA.OPTIONS.CU." + bg.shape + ".png", image, 0);
 	}
 }
 
