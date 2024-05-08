@@ -7,10 +7,6 @@
 
 WCConvBackgroundList::WCConvBackgroundList(WCArchive* archive)
 {
-	//auto defaultpalette = std::make_unique<WCPalette>("DATA\\PALETTE\\PREFMAIN.PAL", archive);
-	//WCPak palpak("DATA\\OPTIONS\\OPTPALS.PAK", archive);
-	//auto defaultpalette = std::make_unique<WCPalette>(palpak.openFile(41));
-
 	FileEntryReader reader = archive->openFile("DATA\\OPTIONS\\CU.IFF");
 
 	reader.PushChunk("FORM");
@@ -44,10 +40,6 @@ WCConvBackgroundList::WCConvBackgroundList(WCArchive* archive)
 			else if (tag == "PALT")
 			{
 				bg.palette = std::make_unique<WCPalette>(reader);
-				/*for (int i = conversation.palette->count; i < 256; i++)
-				{
-					conversation.palette->palette[i] = defaultpalette->palette[i];
-				}*/
 			}
 			else
 			{

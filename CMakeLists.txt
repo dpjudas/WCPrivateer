@@ -107,6 +107,8 @@ set(WCPRIVATEERCOMMON_SOURCES
 	Sources/FileFormat/WCMusic.h
 	Sources/FileFormat/WCConversation.cpp
 	Sources/FileFormat/WCConversation.h
+	Sources/FileFormat/WCGameData.cpp
+	Sources/FileFormat/WCGameData.h
 	Sources/FileFormat/FileEntryReader.h
 	Sources/Util/UTF8Reader.cpp
 	Sources/Util/UTF8Reader.h
