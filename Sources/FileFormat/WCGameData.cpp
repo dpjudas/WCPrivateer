@@ -139,9 +139,28 @@ void WCGameData::LoadApprCock()
 
 void WCGameData::LoadCommStuf()
 {
-	FileEntryReader reader = archive->openFile("DATA\\OPTIONS\\COMMSTUF.IFF");
+	auto spacepal = std::make_unique<WCPalette>("DATA\\PALETTE\\SPACE.PAL", archive);
 
-	// unknown. Bunch of ITRN INFO chunks. Looks like images
+	FileEntryReader reader = archive->openFile("DATA\\OPTIONS\\COMMSTUF.IFF");
+	reader.PushChunk("FORM");
+	reader.ReadTag("COMD");
+	reader.PushChunk("FORM");
+	reader.ReadTag("ITRN");
+
+	while (!reader.IsEndOfChunk())
+	{
+		reader.PushChunk("INFO");
+
+		int index = reader.ReadUint8();
+		commStuff.push_back(std::make_unique<WCImage>(reader, spacepal.get()));
+		if (!reader.IsEndOfChunk())
+			throw std::runtime_error("Expected end of INFO chunk");
+
+		reader.PopChunk();
+	}
+
+	reader.PopChunk();
+	reader.PopChunk();
 }
 
 void WCGameData::LoadCommTxt()
@@ -152,15 +171,137 @@ void WCGameData::LoadCommTxt()
 void WCGameData::LoadComodtyp()
 {
 	FileEntryReader reader = archive->openFile("DATA\\OPTIONS\\COMODTYP.IFF");
+	reader.PushChunk("FORM");
+	reader.ReadTag("COMD");
 
-	// commodity store info (grain, generic food, luxery food, etc)
+	auto list = std::make_unique<WCCommodityList>();
+
+	while (!reader.IsEndOfChunk())
+	{
+		reader.PushChunk("FORM");
+		reader.ReadTag("COMM");
+
+		WCCommodity commodity;
+		while (!reader.IsEndOfChunk())
+		{
+			std::string tag = reader.PushChunk();
+
+			if (tag == "INFO")
+			{
+				commodity.info0 = reader.ReadUint16();
+				commodity.info1 = reader.ReadUint16();
+			}
+			else if (tag == "LABL")
+			{
+				std::vector<uint8_t> buffer(reader.GetChunkSize());
+				reader.Read(buffer.data(), buffer.size());
+
+				std::string text;
+				for (size_t i = 0; i < buffer.size(); i++)
+				{
+					char c = buffer[i];
+					if (c == 0)
+						break;
+					text.push_back(c);
+				}
+
+				commodity.label = std::move(text);
+			}
+			else if (tag == "COST")
+			{
+				std::vector<int16_t> buffer(reader.GetChunkSize() / 2);
+				reader.Read(buffer.data(), buffer.size() * 2);
+				commodity.cost = std::move(buffer);
+			}
+			else if (tag == "AVAL")
+			{
+				std::vector<int16_t> buffer(reader.GetChunkSize() / 2);
+				reader.Read(buffer.data(), buffer.size() * 2);
+				commodity.availability = std::move(buffer);
+			}
+			else
+			{
+				throw std::runtime_error("Unknown tag");
+			}
+
+			reader.PopChunk();
+		}
+		list->commodities.push_back(std::move(commodity));
+
+		reader.PopChunk();
+	}
+
+	reader.PopChunk();
+
+	reader.PushChunk("FORM");
+	reader.ReadTag("MDAT");
+
+	reader.PushChunk("FROM");
+	{
+		std::vector<uint8_t> buffer(reader.GetChunkSize());
+		reader.Read(buffer.data(), buffer.size());
+		list->from = std::move(buffer);
+	}
+	reader.PopChunk();
+
+	reader.PushChunk("SELL");
+	{
+		std::vector<uint8_t> buffer(reader.GetChunkSize());
+		reader.Read(buffer.data(), buffer.size());
+		list->sell = std::move(buffer);
+	}
+	reader.PopChunk();
+
+	reader.PushChunk("DEST");
+	{
+		std::vector<uint8_t> buffer(reader.GetChunkSize());
+		reader.Read(buffer.data(), buffer.size());
+		list->dest = std::move(buffer);
+	}
+	reader.PopChunk();
+
+	reader.PopChunk();
+
+	commodityList = std::move(list);
 }
 
 void WCGameData::LoadCompText()
 {
 	FileEntryReader reader = archive->openFile("DATA\\OPTIONS\\COMPTEXT.IFF");
+	reader.PushChunk("FORM");
+	reader.ReadTag("COMP");
+	while (!reader.IsEndOfChunk())
+	{
+		reader.PushChunk("FORM");
+		std::string tag = reader.ReadTag();
+		while (!reader.IsEndOfChunk())
+		{
+			std::string key = reader.PushChunk();
 
-	// mission computer, mercenary and merchant text
+			std::vector<uint8_t> buffer(reader.GetChunkSize());
+			reader.Read(buffer.data(), buffer.size());
+
+			std::string text;
+			for (size_t i = 0; i < buffer.size(); i++)
+			{
+				char c = buffer[i];
+				if (c == 0)
+					break;
+				text.push_back(c);
+			}
+
+			if (tag == "MRCH")
+				merchantText[key] = text;
+			else if (tag == "MERC")
+				mercenaryText[key] = text;
+			else if (tag == "AUTO")
+				missionComputerText[key] = text;
+
+			reader.PopChunk();
+		}
+		reader.PopChunk();
+	}
+	reader.PopChunk();
 }
 
 void WCGameData::LoadCU()
@@ -180,9 +321,27 @@ void WCGameData::LoadFaces()
 
 void WCGameData::LoadFonts()
 {
+	// Probably not the right font.
+	// To do: remove font from WCImage and resolve the palette at gametexture creation time
+	auto spacepal = std::make_unique<WCPalette>("DATA\\PALETTE\\SPACE.PAL", archive);
+
 	FileEntryReader reader = archive->openFile("DATA\\OPTIONS\\FONTS.IFF");
 
-	// font embedded in IFF chunks?
+	reader.PushChunk("FORM");
+	reader.ReadTag("FILE");
+
+	reader.PushChunk("FONT");
+	reader.PushChunk("conv");
+	convFont = std::make_unique<WCImage>(reader, spacepal.get());
+	reader.PopChunk();
+	reader.PopChunk();
+
+	reader.PushChunk("FONT");
+	reader.PushChunk("none");
+	reader.PopChunk();
+	reader.PopChunk();
+
+	reader.PopChunk();
 }
 
 void WCGameData::LoadGameFlow()

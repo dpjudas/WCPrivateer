@@ -174,6 +174,7 @@ int GameApp::main(std::vector<std::string> args)
 		WidgetTheme::SetTheme(std::make_unique<DarkWidgetTheme>());
 
 		archive = std::make_unique<WCArchive>("PRIV.TRE");
+		gamedata = std::make_unique<WCGameData>(archive.get());
 
 		GameWindow window;
 		window.SetFocus();

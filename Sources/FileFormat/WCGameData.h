@@ -2,8 +2,26 @@
 
 #include "WCConversation.h"
 #include "WCScene.h"
+#include "WCImage.h"
 
 class WCArchive;
+
+class WCCommodity
+{
+public:
+	std::string label;
+	int info0 = -1;
+	int info1 = -1;
+	std::vector<int16_t> cost;
+	std::vector<int16_t> availability;
+};
+
+class WCCommodityList
+{
+public:
+	std::vector<WCCommodity> commodities;
+	std::vector<uint8_t> from, sell, dest;
+};
 
 class WCGameData
 {
@@ -15,6 +33,12 @@ public:
 	int landFee = 0;
 	std::map<std::string, std::string> apprCock;
 	std::vector<std::string> commText;
+	std::vector<std::unique_ptr<WCImage>> commStuff;
+	std::unique_ptr<WCCommodityList> commodityList;
+	std::map<std::string, std::string> merchantText;
+	std::map<std::string, std::string> mercenaryText;
+	std::map<std::string, std::string> missionComputerText;
+	std::unique_ptr<WCImage> convFont;
 	std::vector<std::string> pcString;
 	std::vector<std::string> shipMText;
 	std::vector<std::string> softText;
