@@ -5,7 +5,7 @@
 #include "FileEntryReader.h"
 #include <stdexcept>
 
-WCImage::WCImage(FileEntryReader& reader, WCPalette* palette)
+WCImage::WCImage(FileEntryReader& reader)
 {
 	std::vector<size_t> offsets;
 
@@ -50,7 +50,8 @@ WCImage::WCImage(FileEntryReader& reader, WCPalette* palette)
 			throw std::runtime_error("Invalid image header");
 		}
 
-		std::vector<uint32_t> image(width * height);
+		std::vector<uint8_t> image(width * height);
+		std::vector<uint8_t> mask(width * height);
 
 		while (true)
 		{
@@ -66,7 +67,8 @@ WCImage::WCImage(FileEntryReader& reader, WCPalette* palette)
 			if (x < minx || x + segWidth > maxx || y < miny || y >= maxy)
 				throw std::runtime_error("Invalid image data"); // Segment out of bounds
 
-			uint32_t* dest = &image[(x - minx) + (y - miny) * width];
+			uint8_t* dest = &image[(x - minx) + (y - miny) * width];
+			uint8_t* destmask = &mask[(x - minx) + (y - miny) * width];
 
 			if (segIsRun)
 			{
@@ -81,20 +83,20 @@ WCImage::WCImage(FileEntryReader& reader, WCPalette* palette)
 
 					if (runIsRLE)
 					{
-						uint32_t color = reader.ReadUint8();
-						uint32_t rgbacolor = palette->palette[color];
+						uint8_t color = reader.ReadUint8();
 						for (int i = 0; i < runWidth; i++)
 						{
-							*(dest++) = rgbacolor;
+							*(dest++) = color;
+							*(destmask++) = 255;
 						}
 					}
 					else
 					{
 						for (int i = 0; i < runWidth; i++)
 						{
-							uint32_t color = reader.ReadUint8();
-							uint32_t rgbacolor = palette->palette[color];
-							*(dest++) = rgbacolor;
+							uint8_t color = reader.ReadUint8();
+							*(dest++) = color;
+							*(destmask++) = 255;
 						}
 					}
 
@@ -105,9 +107,9 @@ WCImage::WCImage(FileEntryReader& reader, WCPalette* palette)
 			{
 				for (int i = 0; i < segWidth; i++)
 				{
-					uint32_t color = reader.ReadUint8();
-					uint32_t rgbacolor = palette->palette[color];
-					*(dest++) = rgbacolor;
+					uint8_t color = reader.ReadUint8();
+					*(dest++) = color;
+					*(destmask++) = 255;
 				}
 			}
 		}
@@ -118,6 +120,23 @@ WCImage::WCImage(FileEntryReader& reader, WCPalette* palette)
 		frame.width = width;
 		frame.height = height;
 		frame.pixels = std::move(image);
+		frame.mask = std::move(mask);
 		frames.push_back(std::move(frame));
 	}
+}
+
+std::vector<uint32_t> WCImageFrame::ToBgra8(const WCPalette* palette) const
+{
+	const uint8_t* src = pixels.data();
+	const uint8_t* m = mask.data();
+	const uint32_t* pal = palette->palette;
+	std::vector<uint32_t> img(pixels.size());
+	uint32_t* dest = img.data();
+	size_t count = img.size();
+	for (size_t i = 0; i < count; i++)
+	{
+		if (m[i] != 0)
+			dest[i] = pal[src[i]];
+	}
+	return img;
 }

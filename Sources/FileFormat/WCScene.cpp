@@ -54,8 +54,7 @@ WCSceneList::WCSceneList(WCArchive* archive)
 			}
 			else if (tag == "SHIP")
 			{
-				auto palette = std::make_unique<WCPalette>(palpak.openFile(scene.background.palette));
-				scene.ship = ReadShip(reader, palette.get());
+				scene.ship = ReadShip(reader);
 			}
 			else if (tag == "LOOK")
 			{
@@ -243,7 +242,7 @@ WCSceneForeground WCSceneList::ReadForeground(FileEntryReader& reader)
 	return fg;
 }
 
-WCSceneShip WCSceneList::ReadShip(FileEntryReader& reader, WCPalette* palette)
+WCSceneShip WCSceneList::ReadShip(FileEntryReader& reader)
 {
 	WCSceneShip ship;
 	while (!reader.IsEndOfChunk())
@@ -256,7 +255,7 @@ WCSceneShip WCSceneList::ReadShip(FileEntryReader& reader, WCPalette* palette)
 		}
 		else if (tag == "SHAP")
 		{
-			ship.shape = std::make_unique<WCImage>(reader, palette);
+			ship.shape = std::make_unique<WCImage>(reader);
 		}
 		else
 		{

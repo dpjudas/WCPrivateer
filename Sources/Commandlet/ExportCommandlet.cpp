@@ -146,8 +146,8 @@ void ExportCommandlet::ExportConversation(ToolApp* console)
 		{
 			palette.palette[i] = bg.palette->palette[i];
 		}
-		WCImage image(reader, &palette);
-		SaveImage(console, "DATA.OPTIONS.CU." + bg.shape + ".png", image, 0);
+		WCImage image(reader);
+		SaveImage(console, "DATA.OPTIONS.CU." + bg.shape + ".png", image, &palette, 0);
 	}
 }
 
@@ -681,8 +681,8 @@ void ExportCommandlet::ExportIffImages(ToolApp* console)
 				if (tag != "SHAP")
 					break;
 
-				WCImage image(reader, spacepal.get());
-				SaveImage(console, filename, image, baseindex);
+				WCImage image(reader);
+				SaveImage(console, filename, image, spacepal.get(), baseindex);
 				baseindex += image.frames.size();
 
 				reader.Seek(faceoffset + facesize);
@@ -776,8 +776,8 @@ void ExportCommandlet::ExportIffImages(ToolApp* console)
 
 		if (tag == "SHAP")
 		{
-			WCImage image(reader, spacepal.get());
-			SaveImage(console, filename, image, 0);
+			WCImage image(reader);
+			SaveImage(console, filename, image, spacepal.get(), 0);
 		}
 		else if (tag == "VSHP")
 		{
@@ -791,9 +791,9 @@ void ExportCommandlet::ExportIffImages(ToolApp* console)
 				uint32_t sectionsize = reader.ReadUint32();
 
 				reader.Seek(chunkoffset + sectionoffset);
-				WCImage image(reader, spacepal.get());
+				WCImage image(reader);
 
-				SaveImage(console, filename, image, baseindex);
+				SaveImage(console, filename, image, spacepal.get(), baseindex);
 				baseindex += image.frames.size();
 
 				sectionoffset += sectionsize;
@@ -849,8 +849,8 @@ void ExportCommandlet::ExportPakImages(ToolApp* console)
 				{
 					try
 					{
-						WCImage image(reader, palette.get());
-						SaveImage(console, filename.substr(0, filename.size() - 4) + "-" + std::to_string(i) + ".png", image, 0);
+						WCImage image(reader);
+						SaveImage(console, filename.substr(0, filename.size() - 4) + "-" + std::to_string(i) + ".png", image, palette.get(), 0);
 					}
 					catch (const std::exception& ex)
 					{
@@ -886,8 +886,8 @@ void ExportCommandlet::ExportShpImages(ToolApp* console)
 		auto reader = archive.openFile(i);
 		try
 		{
-			WCImage image(reader, palette.get());
-			SaveImage(console, filename, image, 0);
+			WCImage image(reader);
+			SaveImage(console, filename, image, palette.get(), 0);
 		}
 		catch (const std::exception& ex)
 		{
@@ -947,12 +947,12 @@ void ExportCommandlet::ExportVpf(ToolApp* console)
 	// Unknown file in CONV folder
 }
 
-void ExportCommandlet::SaveImage(ToolApp* console, std::string filename, const WCImage& image, size_t baseindex)
+void ExportCommandlet::SaveImage(ToolApp* console, std::string filename, const WCImage& image, const WCPalette* palette, size_t baseindex)
 {
 	for (size_t imageindex = 0; imageindex < image.frames.size(); imageindex++)
 	{
 		size_t pngSize = 0;
-		void* pngData = tdefl_write_image_to_png_file_in_memory(image.frames[imageindex].pixels.data(), image.frames[imageindex].width, image.frames[imageindex].height, 4, &pngSize);
+		void* pngData = tdefl_write_image_to_png_file_in_memory(image.frames[imageindex].ToBgra8(palette).data(), image.frames[imageindex].width, image.frames[imageindex].height, 4, &pngSize);
 		if (pngData)
 		{
 			std::string pngfilename = filename;

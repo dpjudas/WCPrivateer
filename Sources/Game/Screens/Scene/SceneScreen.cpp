@@ -34,7 +34,7 @@ void SceneScreen::Render(RenderDevice* renderdev)
 		}
 
 		if (sceneList->scenes[scene].ship.shape)
-			ship = LoadWCImage(*sceneList->scenes[scene].ship.shape);
+			ship = LoadWCImage(*sceneList->scenes[scene].ship.shape, palette.get());
 
 		font = LoadOptFont(palette.get());
 	}

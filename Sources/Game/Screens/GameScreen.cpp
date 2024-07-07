@@ -73,7 +73,7 @@ std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadOptFont(WCPalette* pal
 	return LoadShpImage("DATA\\FONTS\\OPTFONT.SHP", palette);
 }
 
-std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadWCImage(const WCImage& image)
+std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadWCImage(const WCImage& image, const WCPalette* palette)
 {
 	std::vector<std::unique_ptr<GameTexture>> frames;
 	for (auto& frame : image.frames)
@@ -83,28 +83,28 @@ std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadWCImage(const WCImage&
 		gameTexture->y = frame.y;
 		gameTexture->width = frame.width;
 		gameTexture->height = frame.height;
-		gameTexture->pixels = frame.pixels;
+		gameTexture->pixels = frame.ToBgra8(palette);
 		frames.push_back(std::move(gameTexture));
 	}
 	return frames;
 }
 
-std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadPakImage(const std::string& pakFilename, int pakindex, WCPalette* palette)
+std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadPakImage(const std::string& pakFilename, int pakindex, const WCPalette* palette)
 {
 	WCPak pak(pakFilename, app->archive.get());
 	FileEntryReader reader = pak.openFile(pakindex);
-	WCImage image(reader, palette);
-	return LoadWCImage(image);
+	WCImage image(reader);
+	return LoadWCImage(image, palette);
 }
 
-std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadShpImage(const std::string& filename, WCPalette* palette)
+std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadShpImage(const std::string& filename, const WCPalette* palette)
 {
 	FileEntryReader reader = app->archive->openFile(filename);
-	WCImage image(reader, palette);
-	return LoadWCImage(image);
+	WCImage image(reader);
+	return LoadWCImage(image, palette);
 }
 
-std::unique_ptr<GameTexture> GameScreen::LoadIffImage(const std::string& filename, int index, WCPalette* palette)
+std::unique_ptr<GameTexture> GameScreen::LoadIffImage(const std::string& filename, int index, const WCPalette* palette)
 {
 	FileEntryReader reader = app->archive->openFile(filename);
 
@@ -245,7 +245,7 @@ std::unique_ptr<GameTexture> GameScreen::LoadIffImage(const std::string& filenam
 			if (tag != "SHAP")
 				break;
 
-			WCImage image(reader, palette);
+			WCImage image(reader);
 			if (image.frames.size() + baseindex < index)
 			{
 				auto& frame = image.frames[index - baseindex];
@@ -254,7 +254,7 @@ std::unique_ptr<GameTexture> GameScreen::LoadIffImage(const std::string& filenam
 				gameTexture->y = frame.y;
 				gameTexture->width = frame.width;
 				gameTexture->height = frame.height;
-				gameTexture->pixels = frame.pixels;
+				gameTexture->pixels = frame.ToBgra8(palette);
 				return gameTexture;
 			}
 
@@ -272,14 +272,14 @@ std::unique_ptr<GameTexture> GameScreen::LoadIffImage(const std::string& filenam
 
 	if (tag == "SHAP")
 	{
-		WCImage image(reader, palette);
+		WCImage image(reader);
 		auto& frame = image.frames[index];
 		auto gameTexture = std::make_unique<GameTexture>();
 		gameTexture->x = frame.x;
 		gameTexture->y = frame.y;
 		gameTexture->width = frame.width;
 		gameTexture->height = frame.height;
-		gameTexture->pixels = frame.pixels;
+		gameTexture->pixels = frame.ToBgra8(palette);
 		return gameTexture;
 	}
 	else if (tag == "VSHP")
@@ -294,7 +294,7 @@ std::unique_ptr<GameTexture> GameScreen::LoadIffImage(const std::string& filenam
 			uint32_t sectionsize = reader.ReadUint32();
 
 			reader.Seek(chunkoffset + sectionoffset);
-			WCImage image(reader, palette);
+			WCImage image(reader);
 
 			if (image.frames.size() + baseindex < index)
 			{
@@ -304,7 +304,7 @@ std::unique_ptr<GameTexture> GameScreen::LoadIffImage(const std::string& filenam
 				gameTexture->y = frame.y;
 				gameTexture->width = frame.width;
 				gameTexture->height = frame.height;
-				gameTexture->pixels = frame.pixels;
+				gameTexture->pixels = frame.ToBgra8(palette);
 				return gameTexture;
 			}
 			baseindex += image.frames.size();

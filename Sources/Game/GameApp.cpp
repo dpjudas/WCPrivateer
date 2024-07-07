@@ -107,7 +107,7 @@ public:
 	}
 };
 
-static HCURSOR CreateAlphaCursor(const WCImageFrame& source)
+static HCURSOR CreateAlphaCursor(const WCImageFrame& source, const WCPalette* palette)
 {
 	// Find closest integer scale factor for the monitor DPI
 	HDC screenDC = GetDC(0);
@@ -146,7 +146,8 @@ static HCURSOR CreateAlphaCursor(const WCImageFrame& source)
 		return 0;
 	}
 
-	const uint32_t* unscaled = source.pixels.data();
+	auto pixels = source.ToBgra8(palette);
+	const uint32_t* unscaled = pixels.data();
 	uint32_t* scaled = (uint32_t*)bits;
 	for (int y = 0; y < h * scale; y++)
 	{
@@ -184,8 +185,8 @@ int GameApp::main(std::vector<std::string> args)
 
 		auto palette = std::make_unique<WCPalette>("DATA\\PALETTE\\PCMAIN.PAL", archive.get());
 		FileEntryReader cursorShp = archive->openFile("DATA\\MOUSE\\PNT.SHP");
-		WCImage cursor(cursorShp, palette.get());
-		HCURSOR win32cursor = CreateAlphaCursor(cursor.frames[0]);
+		WCImage cursor(cursorShp);
+		HCURSOR win32cursor = CreateAlphaCursor(cursor.frames[0], palette.get());
 
 #ifdef PLAY_MUSIC
 		WCMusic music("DATA\\SOUND\\BASETUNE.GEN", archive.get());

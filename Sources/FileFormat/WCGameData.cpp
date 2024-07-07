@@ -141,8 +141,6 @@ void WCGameData::LoadApprCock()
 
 void WCGameData::LoadCommStuf()
 {
-	auto spacepal = std::make_unique<WCPalette>("DATA\\PALETTE\\SPACE.PAL", archive);
-
 	FileEntryReader reader = archive->openFile("DATA\\OPTIONS\\COMMSTUF.IFF");
 	reader.PushChunk("FORM");
 	reader.ReadTag("COMD");
@@ -154,7 +152,7 @@ void WCGameData::LoadCommStuf()
 		reader.PushChunk("INFO");
 
 		int index = reader.ReadUint8();
-		commStuff.push_back(std::make_unique<WCImage>(reader, spacepal.get()));
+		commStuff.push_back(std::make_unique<WCImage>(reader));
 		if (!reader.IsEndOfChunk())
 			throw std::runtime_error("Expected end of INFO chunk");
 
@@ -323,10 +321,6 @@ void WCGameData::LoadFaces()
 
 void WCGameData::LoadFonts()
 {
-	// Probably not the right palette.
-	// To do: remove palette from WCImage and resolve the palette at gametexture creation time
-	auto spacepal = std::make_unique<WCPalette>("DATA\\PALETTE\\SPACE.PAL", archive);
-
 	FileEntryReader reader = archive->openFile("DATA\\OPTIONS\\FONTS.IFF");
 
 	reader.PushChunk("FORM");
@@ -334,7 +328,7 @@ void WCGameData::LoadFonts()
 
 	reader.PushChunk("FONT");
 	reader.PushChunk("conv");
-	convFont = std::make_unique<WCImage>(reader, spacepal.get());
+	convFont = std::make_unique<WCImage>(reader);
 	reader.PopChunk();
 	reader.PopChunk();
 
@@ -448,10 +442,6 @@ void WCGameData::LoadShipMTxt()
 
 void WCGameData::LoadShipStuf()
 {
-	// Probably not the right palette.
-	// To do: remove palette from WCImage and resolve the palette at gametexture creation time
-	auto palette = std::make_unique<WCPalette>("DATA\\PALETTE\\SPACE.PAL", archive);
-
 	FileEntryReader reader = archive->openFile("DATA\\OPTIONS\\SHIPSTUF.IFF");
 
 	// label and images for ship parts (laser, mass driver, etc.)
@@ -492,7 +482,7 @@ void WCGameData::LoadShipStuf()
 			reader.PopChunk();
 
 			reader.PushChunk("SHAP");
-			item.shape = std::make_unique<WCImage>(reader, palette.get());
+			item.shape = std::make_unique<WCImage>(reader);
 			reader.PopChunk();
 
 			if (tag == "SOFT")

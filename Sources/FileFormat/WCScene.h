@@ -146,5 +146,5 @@ private:
 	WCSceneBackground ReadBackground(FileEntryReader& reader);
 	WCSceneForeground ReadForeground(FileEntryReader& reader);
 	WCSceneLook ReadLook(FileEntryReader& reader);
-	WCSceneShip ReadShip(FileEntryReader& reader, WCPalette* palette);
+	WCSceneShip ReadShip(FileEntryReader& reader);
 };

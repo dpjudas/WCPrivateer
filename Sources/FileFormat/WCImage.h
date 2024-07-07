@@ -12,13 +12,16 @@ public:
 	int y = 0;
 	int width = 0;
 	int height = 0;
-	std::vector<uint32_t> pixels;
+	std::vector<uint8_t> pixels;
+	std::vector<uint8_t> mask;
+
+	std::vector<uint32_t> ToBgra8(const WCPalette* palette) const;
 };
 
 class WCImage
 {
 public:
-	WCImage(FileEntryReader& reader, WCPalette* palette);
+	WCImage(FileEntryReader& reader);
 
 	std::vector<WCImageFrame> frames;
 };

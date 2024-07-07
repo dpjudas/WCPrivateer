@@ -7,6 +7,7 @@
 class GameApp;
 class GameTexture;
 class WCImage;
+class WCImageFrame;
 
 class GameScreen
 {
@@ -40,10 +41,10 @@ public:
 	std::vector<std::unique_ptr<GameTexture>> LoadPrivFont(WCPalette* palette);
 	std::vector<std::unique_ptr<GameTexture>> LoadOptFont(WCPalette* palette);
 
-	std::vector<std::unique_ptr<GameTexture>> LoadPakImage(const std::string& pakFilename, int pakindex, WCPalette* palette);
-	std::vector<std::unique_ptr<GameTexture>> LoadShpImage(const std::string& filename, WCPalette* palette);
-	std::unique_ptr<GameTexture> LoadIffImage(const std::string& filename, int index, WCPalette* palette);
-	std::vector<std::unique_ptr<GameTexture>> LoadWCImage(const WCImage& image);
+	std::vector<std::unique_ptr<GameTexture>> LoadPakImage(const std::string& pakFilename, int pakindex, const WCPalette* palette);
+	std::vector<std::unique_ptr<GameTexture>> LoadShpImage(const std::string& filename, const WCPalette* palette);
+	std::unique_ptr<GameTexture> LoadIffImage(const std::string& filename, int index, const WCPalette* palette);
+	std::vector<std::unique_ptr<GameTexture>> LoadWCImage(const WCImage& image, const WCPalette* palette);
 
 	GameApp* app = nullptr;
 	int mouseX = 0;
