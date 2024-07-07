@@ -29,6 +29,8 @@ WCGameData::WCGameData(WCArchive* archive) : archive(archive)
 	LoadShipStuf();
 	LoadSoftTxt();
 	LoadTypeNames();
+	LoadGuns();
+	LoadWeapons();
 }
 
 void WCGameData::LoadFiles()
@@ -523,6 +525,106 @@ void WCGameData::LoadTypeNames()
 	}
 }
 
+void WCGameData::LoadGuns()
+{
+	FileEntryReader reader = archive->openFile("DATA\\TYPES\\GUNS.IFF");
+	reader.PushChunk("FORM");
+	reader.ReadTag("GUNS");
+	reader.PushChunk("TABL");
+	std::vector<uint32_t> table;
+	int count = reader.GetChunkSize() / 4;
+	for (int i = 0; i < count; i++)
+	{
+		table.push_back(reader.ReadUint32());
+	}
+	reader.PopChunk();
+	reader.PopChunk();
+
+	for (uint32_t offset : table)
+	{
+		if (offset == 0)
+			break;
+
+		reader.Seek(offset);
+		reader.ReadUint32BE(); // Chunk size for what follows
+
+		reader.PushChunk("UNIT");
+
+		char shortname[6] = {};
+		char longname[17] = {};
+		reader.Read(shortname, 5);
+		reader.Read(longname, 16);
+
+		WCGun gun;
+		gun.shortname = shortname;
+		gun.longname = longname;
+		gun.abuse = reader.ReadUint24();
+		gun.velocity = reader.ReadUint24();
+		gun.lifetime = reader.ReadUint32(); // fixed point 24:8
+		gun.refirerate = reader.ReadUint32(); // fixed point 24:8
+		gun.energy = reader.ReadUint16();
+		gun.damage = reader.ReadInt16(); // divide by 10 to get gigajoule value
+		gun.unknown0 = reader.ReadUint8();
+		gun.unknown1 = reader.ReadUint32();
+		guns.push_back(std::move(gun));
+
+		reader.PopChunk();
+	}
+}
+
+void WCGameData::LoadWeapons()
+{
+	FileEntryReader reader = archive->openFile("DATA\\TYPES\\WEAPONS.IFF");
+	reader.PushChunk("FORM");
+	reader.ReadTag("WEAP");
+
+	reader.PushChunk("FORM");
+	reader.ReadTag("LNCH");
+	while (!reader.IsEndOfChunk())
+	{
+		reader.PushChunk("UNIT");
+
+		WCLaunchWeapon weapon;
+		weapon.velocity = reader.ReadUint16();
+		weapon.lifetime = reader.ReadUint16();
+		weapon.unknown = reader.ReadUint16();
+		weapon.damage = reader.ReadUint8();
+		launchWeapons.push_back(weapon);
+
+		reader.PopChunk();
+	}
+	reader.PopChunk();
+
+	reader.PushChunk("FORM");
+	reader.ReadTag("MISL");
+	while (!reader.IsEndOfChunk())
+	{
+		reader.PushChunk("UNIT");
+
+		WCMissileWeapon weapon;
+
+		weapon.index = reader.ReadUint8();
+
+		char shortname[9] = {};
+		char longname[17] = {};
+		reader.Read(shortname, 8);
+		reader.Read(longname, 16);
+
+		weapon.shortname = shortname;
+		weapon.longname = longname;
+		weapon.velocity = reader.ReadUint16();
+		weapon.lifetime = reader.ReadUint16();
+		weapon.unknown0 = reader.ReadUint16();
+		weapon.damage = reader.ReadUint8();
+		reader.Read(weapon.unknown1, 4);
+		missileWeapons.push_back(weapon);
+
+		reader.PopChunk();
+	}
+	reader.PopChunk();
+	reader.PopChunk();
+}
+
 std::vector<std::string> WCGameData::LoadStringList(const std::string& filename)
 {
 	FileEntryReader reader = archive->openFile(filename);
@@ -776,7 +878,6 @@ DATA.TYPES.FLSHTYPE.IFF
 DATA.TYPES.GLADTYPE.IFF
 DATA.TYPES.GLXYTYPE.IFF
 DATA.TYPES.GOTHTYPE.IFF
-DATA.TYPES.GUNS.IFF
 DATA.TYPES.IONCTYPE.IFF
 DATA.TYPES.JUMPTYPE.IFF
 DATA.TYPES.KAMKTYPE.IFF
@@ -802,6 +903,5 @@ DATA.TYPES.TARSTYPE.IFF
 DATA.TYPES.TCHNTYPE.IFF
 DATA.TYPES.TORPTYPE.IFF
 DATA.TYPES.TRSHTYPE.IFF
-DATA.TYPES.WEAPONS.IFF
 
 */

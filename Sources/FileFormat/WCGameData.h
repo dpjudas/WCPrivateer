@@ -54,6 +54,49 @@ public:
 	std::vector<WCLimitEngine> engines;
 };
 
+class WCGun
+{
+public:
+	std::string shortname;
+	std::string longname;
+
+	uint32_t abuse = 0;
+	uint32_t velocity = 0;
+	uint32_t lifetime = 0; // fixed point, divide by 256 to get seconds
+	uint32_t refirerate = 0; // fixed point, divide by 256 to get seconds
+	uint16_t energy = 0; // divide by 10 to get gigajoule value
+	int16_t damage = 0; // armor penetration
+	uint8_t unknown0 = 0;
+	uint32_t unknown1 = 0;
+
+	// "The Range can be calculated by multiplying the Lifetime and Velocity.
+	// Note that the unit kps can not mean kilometers per second. I think it
+	// means klicks per second and klick means meter. So kps is the same as
+	// mps or m/s (meters per second)."
+};
+
+class WCLaunchWeapon
+{
+public:
+	uint16_t velocity = 0;
+	uint16_t lifetime = 0; // in seconds
+	uint16_t unknown = 0;
+	uint8_t damage = 0;
+};
+
+class WCMissileWeapon
+{
+public:
+	uint8_t index = 0;
+	std::string shortname;
+	std::string longname;
+	uint16_t velocity = 0;
+	uint16_t lifetime = 0; // in seconds
+	uint16_t unknown0 = 0;
+	uint8_t damage = 0;
+	uint8_t unknown1[4] = {};
+};
+
 class WCGameData
 {
 public:
@@ -85,6 +128,10 @@ public:
 
 	WCLimits limits;
 
+	std::vector<WCGun> guns;
+	std::vector<WCLaunchWeapon> launchWeapons;
+	std::vector<WCMissileWeapon> missileWeapons;
+
 private:
 	void LoadFiles();
 	void LoadApprCock();
@@ -107,6 +154,8 @@ private:
 	void LoadShipStuf();
 	void LoadSoftTxt();
 	void LoadTypeNames();
+	void LoadGuns();
+	void LoadWeapons();
 	std::vector<std::string> LoadStringList(const std::string& filename);
 
 	WCArchive* archive = nullptr;

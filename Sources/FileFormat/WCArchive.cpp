@@ -37,6 +37,41 @@ WCArchive::WCArchive(const std::string& filename)
 
 		filenameToIndex[filename] = i;
 	}
+
+#if 0
+	fseek(f, 0, SEEK_END);
+	int totalsize = ftell(f);
+	std::vector<uint8_t> buffer(totalsize);
+	fseek(f, 0, SEEK_SET);
+	if (fread(buffer.data(), buffer.size(), 1, f) <= 0)
+		throw std::runtime_error("Bullshit failed");
+	char bull[14] = "LASRTYPELASER";
+
+	for (int i = 0; i < totalsize - 14; i++)
+	{
+		bool found = true;
+		for (int j = 0; j < 14; j++)
+		{
+			if (buffer[i + j] != bull[j])
+			{
+				found = false;
+				break;
+			}
+		}
+		if (found)
+		{
+			int bulllocation = i;
+			for (uint32_t k = 0; k < count; k++)
+			{
+				if (entries[k].offset <= bulllocation && entries[k].offset + entries[k].size > bulllocation)
+				{
+					std::string bull = entries[k].filename;
+					break;
+				}
+			}
+		}
+	}
+#endif
 }
 
 WCArchive::~WCArchive()
