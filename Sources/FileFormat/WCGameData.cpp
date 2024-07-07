@@ -321,8 +321,8 @@ void WCGameData::LoadFaces()
 
 void WCGameData::LoadFonts()
 {
-	// Probably not the right font.
-	// To do: remove font from WCImage and resolve the palette at gametexture creation time
+	// Probably not the right palette.
+	// To do: remove palette from WCImage and resolve the palette at gametexture creation time
 	auto spacepal = std::make_unique<WCPalette>("DATA\\PALETTE\\SPACE.PAL", archive);
 
 	FileEntryReader reader = archive->openFile("DATA\\OPTIONS\\FONTS.IFF");
@@ -400,9 +400,67 @@ void WCGameData::LoadShipMTxt()
 
 void WCGameData::LoadShipStuf()
 {
+	// Probably not the right palette.
+	// To do: remove palette from WCImage and resolve the palette at gametexture creation time
+	auto palette = std::make_unique<WCPalette>("DATA\\PALETTE\\SPACE.PAL", archive);
+
 	FileEntryReader reader = archive->openFile("DATA\\OPTIONS\\SHIPSTUF.IFF");
 
 	// label and images for ship parts (laser, mass driver, etc.)
+
+	reader.PushChunk("FORM");
+	reader.ReadTag("SHPM");
+
+	while (!reader.IsEndOfChunk())
+	{
+		reader.PushChunk("FORM");
+		std::string tag = reader.ReadTag();
+		if (tag == "GUNT" || tag == "SOFT")
+		{
+			WCShipStuffItem item;
+
+			reader.PushChunk("INFO");
+			item.info[0] = reader.ReadUint8();
+			item.info[1] = reader.ReadUint8();
+			reader.PopChunk();
+
+			reader.PushChunk("LABL");
+			std::vector<uint8_t> buffer(reader.GetChunkSize());
+			reader.Read(buffer.data(), buffer.size());
+			std::string label;
+			for (size_t i = 0; i < buffer.size(); i++)
+			{
+				char c = buffer[i];
+				if (c == 0)
+					break;
+				label.push_back(c);
+			}
+			item.label = std::move(label);
+			reader.PopChunk();
+
+			reader.PushChunk("COST");
+			item.buyprice = reader.ReadUint32();
+			item.sellprice = reader.ReadUint32();
+			reader.PopChunk();
+
+			reader.PushChunk("SHAP");
+			item.shape = std::make_unique<WCImage>(reader, palette.get());
+			reader.PopChunk();
+
+			if (tag == "SOFT")
+				softwareStuff.push_back(std::move(item));
+			else
+				shipStuff.push_back(std::move(item));
+		}
+		else
+		{
+			throw std::runtime_error("Unknown tag");
+		}
+
+		reader.PopChunk();
+	}
+
+	reader.PopChunk();
 }
 
 void WCGameData::LoadSoftTxt()

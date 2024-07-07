@@ -23,6 +23,16 @@ public:
 	std::vector<uint8_t> from, sell, dest;
 };
 
+class WCShipStuffItem
+{
+public:
+	uint8_t info[2] = {};
+	std::string label;
+	uint32_t buyprice = 0;
+	uint32_t sellprice = 0;
+	std::unique_ptr<WCImage> shape;
+};
+
 class WCGameData
 {
 public:
@@ -43,6 +53,8 @@ public:
 	std::vector<std::string> shipMText;
 	std::vector<std::string> softText;
 	std::map<std::string, std::string> typeNames;
+	std::vector<WCShipStuffItem> shipStuff;
+	std::vector<WCShipStuffItem> softwareStuff;
 
 	std::unique_ptr<WCConvBackgroundList> convBackgroundList;
 	std::unique_ptr<WCConvFaceList> convFaceList;
