@@ -33,6 +33,27 @@ public:
 	std::unique_ptr<WCImage> shape;
 };
 
+class WCLimitNamed
+{
+public:
+	std::string name;
+	std::vector<uint8_t> unknown;
+};
+
+class WCLimitEngine
+{
+public:
+	uint8_t info = 0;
+	int16_t genr[3] = {};
+};
+
+class WCLimits
+{
+public:
+	std::vector<WCLimitNamed> named;
+	std::vector<WCLimitEngine> engines;
+};
+
 class WCGameData
 {
 public:
@@ -61,6 +82,8 @@ public:
 	std::unique_ptr<WCConvEyesList> convEyesList;
 
 	std::unique_ptr<WCSceneList> sceneList;
+
+	WCLimits limits;
 
 private:
 	void LoadFiles();

@@ -364,9 +364,55 @@ void WCGameData::LoadLandFee()
 
 void WCGameData::LoadLimits()
 {
+	// some info about the ships. Maybe speed and power limits?
+
 	FileEntryReader reader = archive->openFile("DATA\\OPTIONS\\LIMITS.IFF");
 
-	// some info about the ships. Maybe speed and power limits?
+	reader.PushChunk("FORM");
+	reader.ReadTag("SHIP");
+
+	while (!reader.IsEndOfChunk())
+	{
+		std::string name = reader.PushChunk();
+		if (name == "FORM")
+		{
+			reader.ReadTag("ENGN");
+
+			while (!reader.IsEndOfChunk())
+			{
+				reader.PushChunk("FORM");
+				reader.ReadTag("TYPE");
+
+				WCLimitEngine engine;
+
+				reader.PushChunk("INFO");
+				engine.info = reader.ReadUint8();
+				reader.PopChunk();
+
+				reader.PushChunk("GENR");
+				for (int i = 0; i < 3; i++)
+					engine.genr[i] = reader.ReadInt16();
+				reader.PopChunk();
+
+				limits.engines.push_back(std::move(engine));
+
+				reader.PopChunk();
+			}
+		}
+		else
+		{
+			std::vector<uint8_t> data(reader.GetChunkSize());
+			reader.Read(data.data(), data.size());
+
+			WCLimitNamed named;
+			named.name = name;
+			named.unknown = std::move(data);
+			limits.named.push_back(std::move(named));
+		}
+		reader.PopChunk();
+	}
+
+	reader.PopChunk();
 }
 
 void WCGameData::LoadMisnText()
