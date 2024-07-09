@@ -607,7 +607,106 @@ void WCGameData::LoadShipArt()
 {
 	FileEntryReader reader = archive->openFile("DATA\\OPTIONS\\SHIPART.IFF");
 
-	// images of ships (maybe ships shown in garage?)
+	reader.PushChunk("FORM");
+	reader.ReadTag("SHAR");
+	while (!reader.IsEndOfChunk())
+	{
+		reader.PushChunk("FORM");
+		std::string tag = reader.ReadTag();
+		
+		WCShipArt shipart;
+		while (!reader.IsEndOfChunk())
+		{
+			reader.PushChunk("FORM");
+			std::string tag2 = reader.ReadTag();
+			if (tag2 == "APPR")
+			{
+				reader.PushChunk("SHAP");
+				shipart.shape = std::make_unique<WCImage>(reader);
+				reader.PopChunk();
+				if (!reader.IsEndOfChunk())
+					throw std::runtime_error("More data in chunk");
+			}
+			else if (tag2 == "GUNS")
+			{
+				while (!reader.IsEndOfChunk())
+				{
+					reader.PushChunk("FORM");
+					std::string tag3 = reader.ReadTag();
+					if (tag3 == "GUNT")
+					{
+						WCShipArtGunType guntype;
+
+						reader.PushChunk("INFO");
+						guntype.info = reader.ReadUint8();
+						if (!reader.IsEndOfChunk())
+							throw std::runtime_error("More data in chunk");
+						reader.PopChunk();
+						reader.PushChunk("DESC");
+						std::vector<uint8_t> desc(reader.GetChunkSize());
+						reader.Read(desc.data(), desc.size());
+						guntype.desc = std::move(desc);
+						reader.PopChunk();
+						reader.PushChunk("SHAP");
+						guntype.shape = std::make_unique<WCImage>(reader);
+						reader.PopChunk();
+						if (!reader.IsEndOfChunk())
+							throw std::runtime_error("More data in chunk");
+
+						shipart.guns.push_back(std::move(guntype));
+					}
+					else
+					{
+						throw std::runtime_error("Unknown tag3 " + tag3);
+					}
+					reader.PopChunk();
+				}
+			}
+			else if (tag2 == "MISC")
+			{
+				while (!reader.IsEndOfChunk())
+				{
+					reader.PushChunk("FORM");
+					std::string tag3 = reader.ReadTag();
+					if (tag3 == "SCAT")
+					{
+						WCShipArtGunType scat;
+						reader.PushChunk("INFO");
+						scat.info = reader.ReadUint8();
+						if (!reader.IsEndOfChunk())
+							throw std::runtime_error("More data in chunk");
+						reader.PopChunk();
+						reader.PushChunk("DESC");
+						std::vector<uint8_t> desc(reader.GetChunkSize());
+						reader.Read(desc.data(), desc.size());
+						scat.desc = std::move(desc);
+						reader.PopChunk();
+						reader.PushChunk("SHAP");
+						scat.shape = std::make_unique<WCImage>(reader);
+						reader.PopChunk();
+						if (!reader.IsEndOfChunk())
+							throw std::runtime_error("More data in chunk");
+						shipart.misc.push_back(std::move(scat));
+					}
+					else
+					{
+						throw std::runtime_error("Unknown tag3 " + tag3);
+					}
+					reader.PopChunk();
+				}
+			}
+			else
+			{
+				throw std::runtime_error("Unknown tag2 " + tag2);
+			}
+			reader.PopChunk();
+		}
+		reader.PopChunk();
+
+		shipArt[tag] = std::move(shipart);
+	}
+
+	reader.PopChunk();
 }
 
 void WCGameData::LoadShipMTxt()

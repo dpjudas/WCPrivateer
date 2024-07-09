@@ -137,6 +137,22 @@ public:
 	std::vector<std::string> conversations;
 };
 
+class WCShipArtGunType
+{
+public:
+	int info = 0;
+	std::vector<uint8_t> desc;
+	std::unique_ptr<WCImage> shape;
+};
+
+class WCShipArt
+{
+public:
+	std::unique_ptr<WCImage> shape;
+	std::vector<WCShipArtGunType> guns;
+	std::vector<WCShipArtGunType> misc;
+};
+
 class WCGameData
 {
 public:
@@ -160,6 +176,7 @@ public:
 	std::map<std::string, std::string> typeNames;
 	std::vector<WCShipStuffItem> shipStuff;
 	std::vector<WCShipStuffItem> softwareStuff;
+	std::map<std::string, WCShipArt> shipArt;
 
 	std::unique_ptr<WCConvBackgroundList> convBackgroundList;
 	std::unique_ptr<WCConvFaceList> convFaceList;
