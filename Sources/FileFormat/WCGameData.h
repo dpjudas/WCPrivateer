@@ -106,6 +106,37 @@ public:
 	std::map<std::string, std::string> copy;
 };
 
+class WCGameFlowSprite
+{
+public:
+	int info = 0;
+	std::vector<uint8_t> effect;
+	std::vector<uint8_t> request;
+};
+
+class WCGameFlowScene
+{
+public:
+	int info = 0;
+	std::vector<WCGameFlowSprite> sprites;
+};
+
+class WCGameFlowMission
+{
+public:
+	int info = 0;
+	int tune = 0;
+	std::vector<uint8_t> effect;
+	std::vector<WCGameFlowScene> scenes;
+};
+
+class WCGameFlow
+{
+public:
+	std::vector<WCGameFlowMission> missions;
+	std::vector<std::string> conversations;
+};
+
 class WCGameData
 {
 public:
@@ -134,6 +165,7 @@ public:
 	std::unique_ptr<WCConvFaceList> convFaceList;
 	std::unique_ptr<WCConvEyesList> convEyesList;
 
+	WCGameFlow gameFlow;
 	std::unique_ptr<WCSceneList> sceneList;
 
 	WCLimits limits;

@@ -344,7 +344,119 @@ void WCGameData::LoadGameFlow()
 {
 	FileEntryReader reader = archive->openFile("DATA\\OPTIONS\\GAMEFLOW.IFF");
 
-	// maybe what links together the various base scenes from options.iff and the conversation scenes in cu.iff?
+	reader.PushChunk("FORM");
+	reader.ReadTag("GAME");
+
+	while (!reader.IsEndOfChunk())
+	{
+		reader.PushChunk("FORM");
+		std::string tag = reader.ReadTag();
+		if (tag == "MISS")
+		{
+			WCGameFlowMission mission;
+
+			reader.PushChunk("INFO");
+			mission.info = reader.ReadUint8();
+			reader.PopChunk();
+
+			reader.PushChunk("TUNE");
+			mission.tune = reader.ReadUint8();
+			reader.PopChunk();
+
+			reader.PushChunk("EFCT");
+			std::vector<uint8_t> effect(reader.GetChunkSize());
+			reader.Read(effect.data(), effect.size());
+			mission.effect = std::move(effect);
+			reader.PopChunk();
+
+			while (!reader.IsEndOfChunk())
+			{
+				reader.PushChunk("FORM");
+				std::string tag2 = reader.ReadTag();
+				if (tag2 == "SCEN")
+				{
+					WCGameFlowScene scene;
+
+					reader.PushChunk("INFO");
+					scene.info = reader.ReadUint8();
+					if (!reader.IsEndOfChunk())
+						throw std::runtime_error("More data in scene info");
+					reader.PopChunk();
+					while (!reader.IsEndOfChunk())
+					{
+						reader.PushChunk("FORM");
+						tag2 = reader.ReadTag();
+
+						if (tag2 == "SPRT")
+						{
+							WCGameFlowSprite sprite;
+							while (!reader.IsEndOfChunk())
+							{
+								std::string tag3 = reader.PushChunk();
+								if (tag3 == "INFO")
+								{
+									sprite.info = reader.ReadUint8();
+								}
+								else if (tag3 == "EFCT")
+								{
+									std::vector<uint8_t> sprteffect(reader.GetChunkSize());
+									reader.Read(sprteffect.data(), sprteffect.size());
+									sprite.effect = std::move(sprteffect);
+								}
+								else if (tag3 == "REQU")
+								{
+									std::vector<uint8_t> requ(reader.GetChunkSize());
+									reader.Read(requ.data(), requ.size());
+									sprite.request = std::move(requ);
+								}
+								else
+								{
+									throw std::runtime_error("Unknown tag " + tag3);
+								}
+								if (!reader.IsEndOfChunk())
+									throw std::runtime_error("More data in sprite chunk");
+								reader.PopChunk();
+							}
+							scene.sprites.push_back(sprite);
+						}
+						else
+						{
+							throw std::runtime_error("Unknown tag " + tag2);
+						}
+
+						reader.PopChunk();
+						mission.scenes.push_back(scene);
+					}
+				}
+				else
+				{
+					throw std::runtime_error("Unknown tag " + tag2);
+				}
+				reader.PopChunk();
+			}
+
+			gameFlow.missions.push_back(std::move(mission));
+		}
+		else if (tag == "CONV")
+		{
+			reader.PushChunk("DATA");
+			while (!reader.IsEndOfChunk())
+			{
+				char buffer[9] = {};
+				reader.Read(buffer, 8);
+				std::string text = buffer;
+				gameFlow.conversations.push_back(std::move(text));
+			}
+			reader.PopChunk();
+		}
+		else
+		{
+			throw std::runtime_error("Unknown tag " + tag);
+		}
+		reader.PopChunk();
+	}
+
+	reader.PopChunk();
 }
 
 void WCGameData::LoadLandFee()
