@@ -360,8 +360,6 @@ void WCGameData::LoadLandFee()
 
 void WCGameData::LoadLimits()
 {
-	// some info about the ships. Maybe speed and power limits?
-
 	FileEntryReader reader = archive->openFile("DATA\\OPTIONS\\LIMITS.IFF");
 
 	reader.PushChunk("FORM");
@@ -415,7 +413,72 @@ void WCGameData::LoadMisnText()
 {
 	FileEntryReader reader = archive->openFile("DATA\\OPTIONS\\MISNTEXT.IFF");
 
-	// mission computer strings and other info to build missions
+	reader.PushChunk("FORM");
+	reader.ReadTag("MISN");
+
+	while (!reader.IsEndOfChunk())
+	{
+		reader.PushChunk("FORM");
+		std::string tag = reader.ReadTag();
+
+		reader.PushChunk("COUN");
+		uint8_t count = reader.ReadUint8();
+		reader.PopChunk();
+
+		while (!reader.IsEndOfChunk())
+		{
+			std::string tag2 = reader.PushChunk();
+			if (tag2 == "NAME")
+			{
+				std::vector<char> buffer(reader.GetChunkSize());
+				reader.Read(buffer.data(), buffer.size());
+				std::vector<std::string> texts;
+				size_t last = 0;
+				for (size_t pos = 0; pos < buffer.size(); pos++)
+				{
+					if (buffer[pos] == 0)
+					{
+						texts.push_back(std::string(&buffer[last], pos - last));
+						last = pos + 1;
+					}
+				}
+				if (last != buffer.size())
+					texts.push_back(std::string(&buffer[last], buffer.size() - last));
+
+				if (tag == "CORP")
+					missionText.corporations = std::move(texts);
+				else if (tag == "ENMY")
+					missionText.enemies = std::move(texts);
+				else
+					throw std::runtime_error("Unknown tag " + tag);
+			}
+			else if (tag2 == "SMRY")
+			{
+				std::vector<char> buffer(reader.GetChunkSize());
+				reader.Read(buffer.data(), buffer.size());
+				std::string text(buffer.data(), buffer.size());
+				while (!text.empty() && text.back() == 0)
+					text.pop_back();
+				missionText.summary[tag] = std::move(text);
+			}
+			else if (tag2 == "COPY")
+			{
+				std::vector<char> buffer(reader.GetChunkSize());
+				reader.Read(buffer.data(), buffer.size());
+				std::string text(buffer.data(), buffer.size());
+				while (!text.empty() && text.back() == 0)
+					text.pop_back();
+				missionText.copy[tag] = std::move(text);
+			}
+			else
+			{
+				throw std::runtime_error("Unknown tag2 " + tag2);
+			}
+			reader.PopChunk();
+		}
+		reader.PopChunk();
+	}
+	reader.PopChunk();
 }
 
 void WCGameData::LoadOptions()

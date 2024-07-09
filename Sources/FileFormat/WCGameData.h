@@ -97,6 +97,15 @@ public:
 	uint8_t unknown1[4] = {};
 };
 
+class WCMissionText
+{
+public:
+	std::vector<std::string> corporations;
+	std::vector<std::string> enemies;
+	std::map<std::string, std::string> summary;
+	std::map<std::string, std::string> copy;
+};
+
 class WCGameData
 {
 public:
@@ -112,6 +121,7 @@ public:
 	std::map<std::string, std::string> merchantText;
 	std::map<std::string, std::string> mercenaryText;
 	std::map<std::string, std::string> missionComputerText;
+	WCMissionText missionText;
 	std::unique_ptr<WCImage> convFont;
 	std::vector<std::string> pcString;
 	std::vector<std::string> shipMText;
