@@ -37,7 +37,29 @@ enum class WCTarget : int
 	MercenariesGuild = 203,
 	Bar = 206,
 	LandingPad = 207,
-	Computer = 225
+	Computer = 225,
+
+	GarageNextItem = 1,
+	GaragePrevItem = 2,
+	GarageSell = 3,
+	GarageBuy = 4,
+	GarageRepair = 6,
+	GarageActivateItem = 7,
+
+	SoftwareBuy = 1,
+	SoftwareSell = 2,
+	SoftwarePrevItem = 3,
+	SoftwareNextItem = 4,
+	SoftwareFirstItem = 5,
+	SoftwareLastItem = 18,
+	SoftwareRepair = 19,
+	SoftwareActivateItem = 20,
+
+	TradeNextItem = 1,
+	TradePrevItem = 2,
+	TradeSell = 3,
+	TradeBuy = 4,
+	TradeActivateItem = 5,
 };
 
 enum class WCSpriteTarget : int

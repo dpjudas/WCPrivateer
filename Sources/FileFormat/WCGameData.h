@@ -23,6 +23,56 @@ public:
 	std::vector<uint8_t> from, sell, dest;
 };
 
+enum class WCCommodityText
+{
+	Price,
+	Quantity,
+	Cost,
+	Credits,
+	Thanks,
+	NoSell,
+	NoBuy,
+	NoCredit,
+	NoRoom
+};
+
+enum class WCSoftwareText
+{
+	Price,
+	Mode,
+	Thanks,
+	NoCredit,
+	Buy,
+	Sell,
+	Repair,
+	NoRoom,
+	NotValid,
+	NoSell,
+	NoRepair,
+	ItemRepaired,
+	Credits
+};
+
+enum class WCShipMText
+{
+	Price,
+	ShipsQuantity,
+	Quantity,
+	Cost,
+	Credits,
+	Thanks,
+	NoSell,
+	AbortTransaction,
+	OrdnanceRemoved,
+	TurretDismounted,
+	NoCredit,
+	NoRoom,
+	OrdnanceLoaded,
+	TurretMounted,
+	NoRepair,
+	TooMuchCargo
+};
+
 class WCShipStuffItem
 {
 public:

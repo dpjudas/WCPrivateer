@@ -56,7 +56,19 @@ std::unique_ptr<WCPalette> GameScreen::LoadPalette(const std::string& filename)
 	return std::make_unique<WCPalette>(filename, app->archive.get());
 }
 
-// DATA\\OPTIONS\\FONTS.IFF (seems to also be a shape with glyphs, but placed in an IFF header)
+std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadFontsFont(WCPalette* palette)
+{
+	FileEntryReader reader = app->archive->openFile("DATA\\OPTIONS\\FONTS.IFF");
+	reader.PushChunk("FORM");
+	reader.ReadTag("FILE");
+	reader.PushChunk("FONT");
+	reader.ReadTag("conv");
+	reader.ReadUint32(); // Was this supposed to be a chunk size? its all zeros
+	WCImage image(reader);
+	reader.PopChunk();
+	reader.PopChunk();
+	return LoadWCImage(image, palette);
+}
 
 std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadConvFont(WCPalette* palette)
 {
@@ -68,9 +80,22 @@ std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadDemoFont(WCPalette* pa
 	return LoadShpImage("DATA\\FONTS\\DEMOFONT.SHP", palette);
 }
 
-std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadMssgFont(WCPalette* palette)
+std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadMssgFont(WCPalette* palette, int color)
 {
-	return LoadShpImage("DATA\\FONTS\\MSSGFONT.SHP", palette);
+	FileEntryReader reader = app->archive->openFile("DATA\\FONTS\\MSSGFONT.SHP");
+	WCImage image(reader);
+	if (color != -1)
+	{
+		for (auto& frame : image.frames)
+		{
+			for (size_t i = 0, count = frame.pixels.size(); i < count; i++)
+			{
+				if (frame.mask[i] != 0)
+					frame.pixels[i] = color;
+			}
+		}
+	}
+	return LoadWCImage(image, palette);
 }
 
 std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadPCFont(WCPalette* palette)
@@ -349,8 +374,19 @@ int GameScreen::GetTextWidth(const std::string& text, std::vector<std::unique_pt
 	return textwidth;
 }
 
-void GameScreen::DrawText(RenderDevice* renderdev, int x, int y, const std::string& text, std::vector<std::unique_ptr<GameTexture>>& font)
+void GameScreen::DrawText(RenderDevice* renderdev, int x, int y, const std::string& text, std::vector<std::unique_ptr<GameTexture>>& font, GameTextAlignment alignment)
 {
+	if (alignment == GameTextAlignment::Center)
+	{
+		int textwidth = GetTextWidth(text, font);
+		x -= textwidth / 2;
+	}
+	else if (alignment == GameTextAlignment::Right)
+	{
+		int textwidth = GetTextWidth(text, font);
+		x -= textwidth;
+	}
+
 	for (char c : text)
 	{
 		uint8_t i = c;

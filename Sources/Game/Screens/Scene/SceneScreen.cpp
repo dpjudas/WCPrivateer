@@ -21,7 +21,7 @@ void SceneScreen::Render(RenderDevice* renderdev)
 		ship.clear();
 		scene = nextScene;
 
-		auto palette = LoadPakPalette("DATA\\OPTIONS\\OPTPALS.PAK", app->gamedata->sceneList->scenes[scene].background.palette);
+		palette = LoadPakPalette("DATA\\OPTIONS\\OPTPALS.PAK", app->gamedata->sceneList->scenes[scene].background.palette);
 		for (const auto& bgshape : app->gamedata->sceneList->scenes[scene].background.shapes)
 		{
 			backgrounds.push_back(LoadPakImage("DATA\\OPTIONS\\OPTSHPS.PAK", bgshape.optpakIndex, palette.get()));
@@ -57,15 +57,14 @@ void SceneScreen::Render(RenderDevice* renderdev)
 	if (hotRegion != -1)
 	{
 		const auto& region = app->gamedata->sceneList->scenes[scene].regions[hotRegion];
+		DrawText(renderdev, regionTextX, regionTextY, region.label, font, GameTextAlignment::Center);
 
-		std::string text = region.label + " - " + std::to_string((int)region.target);
-		int textwidth = GetTextWidth(region.label, font);
-		int x = (320 - textwidth) / 2;
-		int y = 190;
-		DrawText(renderdev, x, y, text, font);
+		DrawText(renderdev, 10, 20, std::to_string(scene) + " - " + std::to_string((int)region.target), font);
 	}
-
-	DrawText(renderdev, 10, 20, std::to_string(scene), font);
+	else
+	{
+		DrawText(renderdev, 10, 20, std::to_string(scene), font);
+	}
 }
 
 void SceneScreen::DrawSprite(RenderDevice* renderdev, int i, int x, int y)

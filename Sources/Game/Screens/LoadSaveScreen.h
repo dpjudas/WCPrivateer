@@ -40,8 +40,7 @@ public:
 	std::vector<std::unique_ptr<GameTexture>> background;
 	std::vector<std::unique_ptr<GameTexture>> font;
 
-
-	int buttonAtMouseDown = 0;
+	int buttonAtMouseDown = -1;
 
 	int buttonRects[10 * 4] =
 	{

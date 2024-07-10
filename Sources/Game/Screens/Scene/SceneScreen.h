@@ -21,6 +21,7 @@ public:
 
 	int GetHotRegion();
 
+	std::unique_ptr<WCPalette> palette;
 	std::vector<std::vector<std::unique_ptr<GameTexture>>> backgrounds;
 	std::vector<std::vector<std::unique_ptr<GameTexture>>> sprites;
 	std::vector<std::unique_ptr<GameTexture>> ship;
@@ -30,4 +31,7 @@ public:
 	int nextScene = 0;
 
 	int framecounter = 0;
+
+	int regionTextX = 160;
+	int regionTextY = 190;
 };

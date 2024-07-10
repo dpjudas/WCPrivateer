@@ -12,4 +12,8 @@ public:
 	std::vector<std::unique_ptr<GameTexture>> panel;
 	std::vector<std::unique_ptr<GameTexture>> buttons;
 	std::vector<std::vector<std::unique_ptr<GameTexture>>> items;
+	std::vector<std::unique_ptr<GameTexture>> smallFont;
+
+	int mode = 1;
+	int selectedItem = 0;
 };

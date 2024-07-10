@@ -20,6 +20,8 @@ void MissionComputerScreen::Render(RenderDevice* renderdev)
 		gameTexture->height = 101;
 		gameTexture->pixels.resize(160 * 101, 0xff000000);
 		computerscreen = std::move(gameTexture);
+
+		smallFont = LoadPrivFont(palette.get());
 	}
 
 	renderdev->DrawImage(computerscreen->x, computerscreen->y, computerscreen->width, computerscreen->height, computerscreen.get());

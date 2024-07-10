@@ -7,6 +7,7 @@
 ShipGarageScreen::ShipGarageScreen(GameApp* app) : SceneScreen(app)
 {
 	nextScene = 69;
+	regionTextX = 240;
 }
 
 void ShipGarageScreen::Render(RenderDevice* renderdev)
@@ -15,7 +16,6 @@ void ShipGarageScreen::Render(RenderDevice* renderdev)
 
 	if (shipStuff.empty())
 	{
-		auto palette = LoadPakPalette("DATA\\OPTIONS\\OPTPALS.PAK", app->gamedata->sceneList->scenes[scene].background.palette);
 		for (const auto& item : app->gamedata->shipStuff)
 		{
 			shipStuff.push_back(LoadWCImage(*item.shape, palette.get()));
@@ -35,6 +35,8 @@ void ShipGarageScreen::Render(RenderDevice* renderdev)
 		{
 			misc.push_back(LoadWCImage(*item.shape, palette.get()));
 		}
+
+		smallFont = LoadMssgFont(palette.get(), 15); // The color of this font doesn't match the game. Is it actually the wrong font?
 	}
 
 	// Draw the ship
@@ -57,14 +59,30 @@ void ShipGarageScreen::Render(RenderDevice* renderdev)
 	}
 
 	// Panel
-	renderdev->DrawImage(panel[0]->x, 200 - panel[0]->y - panel[0]->height, panel[0]->width, panel[0]->height, panel[0].get());
-	renderdev->DrawImage(buttons[2]->x, 200 - buttons[2]->y - buttons[2]->height, buttons[2]->width, buttons[2]->height, buttons[2].get());
+	renderdev->DrawImage(panel[0]->x, 199 - panel[0]->y - panel[0]->height, panel[0]->width, panel[0]->height, panel[0].get());
+
+	// Active mode
+	renderdev->DrawImage(buttons[mode]->x, 199 - buttons[mode]->y - buttons[mode]->height, buttons[mode]->width, buttons[mode]->height, buttons[mode].get());
 
 	// Draw the current item
-	{
-		int item = 10;
-		renderdev->DrawImage(75 + shipStuff[item][0]->x, 150 + shipStuff[item][0]->y, shipStuff[item][0]->width, shipStuff[item][0]->height, shipStuff[item][0].get());
-	}
+	renderdev->DrawImage(75 + shipStuff[selectedItem][0]->x, 150 + shipStuff[selectedItem][0]->y, shipStuff[selectedItem][0]->width, shipStuff[selectedItem][0]->height, shipStuff[selectedItem][0].get());
+
+	const std::vector<std::string>& mtext = app->gamedata->shipMText;
+	const WCShipStuffItem& itemInfo = app->gamedata->shipStuff[selectedItem];
+	int damage = 50;
+
+	DrawText(renderdev, 65, 121, itemInfo.label, smallFont, GameTextAlignment::Center);
+	DrawText(renderdev, 65, 128, mtext[(int)WCShipMText::Quantity] + std::to_string(2), smallFont, GameTextAlignment::Center);
+	if (mode == 0)
+		DrawText(renderdev, 65, 175, mtext[(int)WCShipMText::Cost] + std::to_string(itemInfo.buyprice), smallFont, GameTextAlignment::Center);
+	else if (mode == 1)
+		DrawText(renderdev, 65, 175, mtext[(int)WCShipMText::Cost] + std::to_string(itemInfo.sellprice), smallFont, GameTextAlignment::Center);
+	else if (mode == 2)
+		DrawText(renderdev, 65, 175, mtext[(int)WCShipMText::Cost] + std::to_string(itemInfo.sellprice * 100 / damage), smallFont, GameTextAlignment::Center);
+	DrawText(renderdev, 65, 181, mtext[(int)WCShipMText::Credits] + std::to_string(8847), smallFont, GameTextAlignment::Center);
+
+	if (mode == 2)
+		DrawText(renderdev, 63, 150, mtext[(int)WCShipMText::NoRepair], smallFont, GameTextAlignment::Center);
 }
 
 void ShipGarageScreen::OnClickTarget(WCTarget target)
@@ -76,5 +94,41 @@ void ShipGarageScreen::OnClickTarget(WCTarget target)
 	else if (target == WCTarget::SoftwareBooth)
 	{
 		ShowScreen(std::make_unique<ShipSoftwareScreen>(app));
+	}
+	else if (target == WCTarget::GarageSell)
+	{
+		mode = 1;
+	}
+	else if (target == WCTarget::GarageBuy)
+	{
+		mode = 0;
+	}
+	else if (target == WCTarget::GarageRepair)
+	{
+		mode = 2;
+	}
+	else if (target == WCTarget::GarageNextItem)
+	{
+		selectedItem++;
+		if (selectedItem == (int)shipStuff.size())
+			selectedItem = 0;
+	}
+	else if (target == WCTarget::GaragePrevItem)
+	{
+		selectedItem--;
+		if (selectedItem == -1)
+			selectedItem = (int)shipStuff.size() - 1;
+	}
+	else if (target == WCTarget::GarageActivateItem)
+	{
+		if (mode == 0) // Buy item
+		{
+		}
+		else if (mode == 1) // Sell item
+		{
+		}
+		else if (mode == 2) // Repair item
+		{
+		}
 	}
 }

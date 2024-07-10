@@ -10,4 +10,5 @@ public:
 	void OnClickTarget(WCTarget target) override;
 
 	std::unique_ptr<GameTexture> computerscreen;
+	std::vector<std::unique_ptr<GameTexture>> smallFont;
 };

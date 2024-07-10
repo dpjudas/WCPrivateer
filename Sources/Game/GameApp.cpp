@@ -166,7 +166,7 @@ static HCURSOR CreateAlphaCursor(const WCImageFrame& source, const WCPalette* pa
 	return cursor;
 }
 
-#define PLAY_MUSIC
+// #define PLAY_MUSIC
 
 GameApp::GameApp()
 {

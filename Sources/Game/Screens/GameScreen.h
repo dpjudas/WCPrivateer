@@ -9,6 +9,13 @@ class GameTexture;
 class WCImage;
 class WCImageFrame;
 
+enum class GameTextAlignment
+{
+	Left,
+	Center,
+	Right
+};
+
 class GameScreen
 {
 public:
@@ -29,7 +36,7 @@ public:
 	void PopScreen();
 
 	int GetTextWidth(const std::string& text, std::vector<std::unique_ptr<GameTexture>>& font);
-	void DrawText(RenderDevice* renderdev, int x, int y, const std::string& text, std::vector<std::unique_ptr<GameTexture>>& font);
+	void DrawText(RenderDevice* renderdev, int x, int y, const std::string& text, std::vector<std::unique_ptr<GameTexture>>& font, GameTextAlignment alignment = GameTextAlignment::Left);
 
 	std::unique_ptr<WCPalette> LoadSpacePalette();
 	std::unique_ptr<WCPalette> LoadPCMainPalette();
@@ -38,9 +45,10 @@ public:
 	std::unique_ptr<WCPalette> LoadPalette(const std::string& filename);
 	std::unique_ptr<WCPalette> LoadPakPalette(const std::string& pakFilename, int pakindex);
 
+	std::vector<std::unique_ptr<GameTexture>> LoadFontsFont(WCPalette* palette);
 	std::vector<std::unique_ptr<GameTexture>> LoadConvFont(WCPalette* palette);
 	std::vector<std::unique_ptr<GameTexture>> LoadDemoFont(WCPalette* palette);
-	std::vector<std::unique_ptr<GameTexture>> LoadMssgFont(WCPalette* palette);
+	std::vector<std::unique_ptr<GameTexture>> LoadMssgFont(WCPalette* palette, int color = -1);
 	std::vector<std::unique_ptr<GameTexture>> LoadPCFont(WCPalette* palette);
 	std::vector<std::unique_ptr<GameTexture>> LoadPrivFont(WCPalette* palette);
 	std::vector<std::unique_ptr<GameTexture>> LoadOptFont(WCPalette* palette);
