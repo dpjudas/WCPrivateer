@@ -168,6 +168,14 @@ static HCURSOR CreateAlphaCursor(const WCImageFrame& source, const WCPalette* pa
 
 #define PLAY_MUSIC
 
+GameApp::GameApp()
+{
+}
+
+GameApp::~GameApp()
+{
+}
+
 int GameApp::main(std::vector<std::string> args)
 {
 	try
@@ -203,9 +211,9 @@ int GameApp::main(std::vector<std::string> args)
 			audioPlayer = AudioPlayer::Create(AudioSource::CreateZMusic(song));
 #endif
 
-		auto screen = std::make_unique<SceneScreen>(this);
+		PushScreen(std::make_unique<MainMenuScreen>(this));
 
-		while (!exitFlag)
+		while (!exitFlag && !screenStack.empty())
 		{
 			DisplayWindow::ProcessEvents();
 #ifdef PLAY_MUSIC
@@ -221,32 +229,36 @@ int GameApp::main(std::vector<std::string> args)
 				{
 					double mx = (e.pos.x - (width - letterboxwidth) * 0.5) * 320.0 / letterboxwidth;
 					double my = e.pos.y * 200 / window.GetHeight();
-					screen->SetMousePos((int)std::round(mx), (int)std::round(my));
+					screenStack.back()->SetMousePos((int)std::round(mx), (int)std::round(my));
 				}
 				
 				if (e.type == GameInputEvent::mouseDown)
 				{
-					screen->OnKeyDown(e.key);
+					screenStack.back()->OnKeyDown(e.key);
 				}
 				else if (e.type == GameInputEvent::mouseUp)
 				{
-					screen->OnKeyUp(e.key);
+					screenStack.back()->OnKeyUp(e.key);
 				}
 				else if (e.type == GameInputEvent::keyDown)
 				{
-					screen->OnKeyDown(e.key);
+					screenStack.back()->OnKeyDown(e.key);
 				}
 				else if (e.type == GameInputEvent::keyUp)
 				{
-					screen->OnKeyUp(e.key);
+					screenStack.back()->OnKeyUp(e.key);
 				}
+				if (screenStack.empty())
+					break;
 			}
+			if (screenStack.empty())
+				break;
 			gameEvents.clear();
 
 			if (!renderdev->Begin())
 				continue;
 
-			screen->Render(renderdev.get());
+			screenStack.back()->Render(renderdev.get());
 
 			renderdev->End();
 		}
@@ -260,6 +272,23 @@ int GameApp::main(std::vector<std::string> args)
 	}
 
 	return 0;
+}
+
+void GameApp::ShowScreen(std::unique_ptr<GameScreen> screen)
+{
+	screenDeleteList.push_back(std::move(screenStack.back()));
+	screenStack.back() = std::move(screen);
+}
+
+void GameApp::PushScreen(std::unique_ptr<GameScreen> screen)
+{
+	screenStack.push_back(std::move(screen));
+}
+
+void GameApp::PopScreen()
+{
+	screenDeleteList.push_back(std::move(screenStack.back()));
+	screenStack.pop_back();
 }
 
 void VulkanPrintLog(const char* typestr, const std::string& msg)

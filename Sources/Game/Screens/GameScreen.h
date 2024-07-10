@@ -24,6 +24,10 @@ public:
 	virtual void OnKeyUp(InputKey key) { }
 	virtual void Render(RenderDevice* device) { }
 
+	void ShowScreen(std::unique_ptr<GameScreen> screen);
+	void PushScreen(std::unique_ptr<GameScreen> screen);
+	void PopScreen();
+
 	int GetTextWidth(const std::string& text, std::vector<std::unique_ptr<GameTexture>>& font);
 	void DrawText(RenderDevice* renderdev, int x, int y, const std::string& text, std::vector<std::unique_ptr<GameTexture>>& font);
 

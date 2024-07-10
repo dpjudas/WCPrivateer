@@ -10,6 +10,21 @@ GameScreen::GameScreen(GameApp* app) : app(app)
 {
 }
 
+void GameScreen::ShowScreen(std::unique_ptr<GameScreen> screen)
+{
+	app->ShowScreen(std::move(screen));
+}
+
+void GameScreen::PushScreen(std::unique_ptr<GameScreen> screen)
+{
+	app->PushScreen(std::move(screen));
+}
+
+void GameScreen::PopScreen()
+{
+	app->PopScreen();
+}
+
 std::unique_ptr<WCPalette> GameScreen::LoadPakPalette(const std::string& pakFilename, int pakindex)
 {
 	WCPak palpak(pakFilename, app->archive.get());

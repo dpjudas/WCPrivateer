@@ -42,7 +42,7 @@ WCSceneList::WCSceneList(WCArchive* archive)
 			std::string tag = reader.ReadTag();
 			if (tag == "REGN")
 			{
-				scene.regions.push_back(ReadRegion(reader));
+				scene.regions.push_back(ReadRegion(reader, false));
 			}
 			else if (tag == "BACK")
 			{
@@ -62,7 +62,7 @@ WCSceneList::WCSceneList(WCArchive* archive)
 			}
 			else if (tag == "RECT")
 			{
-				// To do: what is in this chunk?
+				scene.regions.push_back(ReadRegion(reader, true));
 			}
 			else
 			{
@@ -77,7 +77,7 @@ WCSceneList::WCSceneList(WCArchive* archive)
 	}
 }
 
-WCRegion WCSceneList::ReadRegion(FileEntryReader& reader)
+WCRegion WCSceneList::ReadRegion(FileEntryReader& reader, bool isRect)
 {
 	WCRegion region;
 	while (!reader.IsEndOfChunk())
@@ -103,12 +103,28 @@ WCRegion WCSceneList::ReadRegion(FileEntryReader& reader)
 		}
 		else if (tag == "CORD")
 		{
-			while (!reader.IsEndOfChunk())
+			if (isRect)
 			{
-				WCRegionPoint p;
-				p.x = reader.ReadInt16();
-				p.y = reader.ReadInt16();
-				region.coords.push_back(p);
+				if (reader.GetChunkSize() != 8)
+					throw std::runtime_error("Unexpected RECT.CORD size");
+				int left = reader.ReadInt16();
+				int top = reader.ReadInt16();
+				int right = reader.ReadInt16();
+				int bottom = reader.ReadInt16();
+				region.coords.push_back({ left, top });
+				region.coords.push_back({ right, top });
+				region.coords.push_back({ right, bottom });
+				region.coords.push_back({ left, bottom });
+			}
+			else
+			{
+				while (!reader.IsEndOfChunk())
+				{
+					WCRegionPoint p;
+					p.x = reader.ReadInt16();
+					p.y = reader.ReadInt16();
+					region.coords.push_back(p);
+				}
 			}
 		}
 		else

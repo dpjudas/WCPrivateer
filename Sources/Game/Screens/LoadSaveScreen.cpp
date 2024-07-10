@@ -1,7 +1,8 @@
 
 #include "LoadSaveScreen.h"
+#include "Scene/HangarScreen.h"
 
-LoadSaveScreen::LoadSaveScreen(GameApp* app) : GameScreen(app)
+LoadSaveScreen::LoadSaveScreen(GameApp* app, LoadSaveScreenState state) : GameScreen(app), state(state)
 {
 }
 
@@ -16,11 +17,11 @@ void LoadSaveScreen::Render(RenderDevice* renderdev)
 
 	renderdev->DrawImage(background[0]->x, background[0]->y, background[0]->width, background[0]->height, background[0].get());
 
-	if (buttonAtMouseDown != 0)
+	ButtonName cursorButton = GetHotButton();
+	if (buttonAtMouseDown == cursorButton && cursorButton != ButtonName::None)
 	{
-		int index = GetHotButton();
-		if (index == buttonAtMouseDown)
-			renderdev->DrawImage(background[index]->x, background[index]->y, background[index]->width, background[index]->height, background[index].get());
+		int index = 2 + (int)cursorButton;
+		renderdev->DrawImage(background[index]->x, background[index]->y, background[index]->width, background[index]->height, background[index].get());
 	}
 
 	/*
@@ -31,12 +32,22 @@ void LoadSaveScreen::Render(RenderDevice* renderdev)
 	DrawText(renderdev, x, y, text, font);
 	*/
 
-	DrawText(renderdev, 30, 40, "Please register your", font);
-	DrawText(renderdev, 30, 40 + 1 * 8, "   new Quine 4000", font);
-	DrawText(renderdev, 30, 40 + 3 * 8, "Enter Name:", font);
-	DrawText(renderdev, 30, 40 + 4 * 8 + 4, " _", font);
-	DrawText(renderdev, 30, 40 + 6 * 8, "Enter Callsign:", font);
-	// DrawText(renderdev, 30, 40 + 7 * 8 + 4, " _", font);
+	if (state == LoadSaveScreenState::New)
+	{
+		DrawText(renderdev, 30, 40, "Please register your", font);
+		DrawText(renderdev, 30, 40 + 1 * 8, "   new Quine 4000", font);
+		DrawText(renderdev, 30, 40 + 3 * 8, "Enter Name:", font);
+		DrawText(renderdev, 30, 40 + 4 * 8 + 4, " _", font);
+		DrawText(renderdev, 30, 40 + 6 * 8, "Enter Callsign:", font);
+		// DrawText(renderdev, 30, 40 + 7 * 8 + 4, " _", font);
+	}
+	else if (state == LoadSaveScreenState::Load)
+	{
+		DrawText(renderdev, 30, 40, "Select game:", font);
+	}
+	else if (state == LoadSaveScreenState::Save)
+	{
+	}
 }
 
 void LoadSaveScreen::OnKeyDown(InputKey key)
@@ -51,18 +62,52 @@ void LoadSaveScreen::OnKeyUp(InputKey key)
 {
 	if (key == InputKey::LeftMouse)
 	{
-		buttonAtMouseDown = 0;
+		buttonAtMouseDown = ButtonName::None;
+
+		ButtonName action = GetHotButton();
+		if (action == ButtonName::Save)
+		{
+		}
+		else if (action == ButtonName::Load)
+		{
+			ShowScreen(std::make_unique<HangarScreen>(app));
+		}
+		else if (action == ButtonName::Missions)
+		{
+		}
+		else if (action == ButtonName::Finances)
+		{
+		}
+		else if (action == ButtonName::Manifest)
+		{
+		}
+		else if (action == ButtonName::UpArrow)
+		{
+		}
+		else if (action == ButtonName::DownArrow)
+		{
+		}
+		else if (action == ButtonName::LeftArrow)
+		{
+		}
+		else if (action == ButtonName::RightArrow)
+		{
+		}
+		else if (action == ButtonName::Power)
+		{
+			PopScreen();
+		}
 	}
 }
 
-int LoadSaveScreen::GetHotButton()
+LoadSaveScreen::ButtonName LoadSaveScreen::GetHotButton()
 {
 	for (int i = 0; i < 10; i++)
 	{
 		if (mouseX >= buttonRects[i * 4 + 0] && mouseY >= buttonRects[i * 4 + 1] && mouseX <= buttonRects[i * 4 + 2] && mouseY <= buttonRects[i * 4 + 3])
 		{
-			return i + 2;
+			return (ButtonName)i;
 		}
 	}
-	return 0;
+	return ButtonName::None;
 }

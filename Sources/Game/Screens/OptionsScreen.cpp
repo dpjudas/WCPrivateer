@@ -1,5 +1,6 @@
 
 #include "OptionsScreen.h"
+#include "JoystickScreen.h"
 #include "FileFormat/WCScene.h"
 #include "Game/GameApp.h"
 
@@ -51,15 +52,16 @@ void OptionsScreen::OnKeyUp(InputKey key)
 		{
 			if (buttonAtMouseDown == 1) // joystick calibration
 			{
-				// To do: go to joystick calibration
+				PushScreen(std::make_unique<JoystickScreen>(app));
 			}
 			else if (buttonAtMouseDown == 8) // resume
 			{
-				// To do: save toggle buttons state and go back
+				// To do: save toggle buttons state
+				PopScreen();
 			}
 			else if (buttonAtMouseDown == 9) // cancel
 			{
-				// To do: go back without saving
+				PopScreen();
 			}
 			else // toggle buttons
 			{

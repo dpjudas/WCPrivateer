@@ -20,6 +20,7 @@ enum class WCTarget : int
 	SelectDisc2 = 3,
 	SelectDisc3 = 4,
 	AcceptMission = 5,
+	SoftwareBooth = 5,
 	Library = 26,
 	ResearchComputers = 27,
 	AdmiralsOffice = 32,
@@ -142,7 +143,7 @@ public:
 	std::vector<WCScene> scenes;
 
 private:
-	WCRegion ReadRegion(FileEntryReader& reader);
+	WCRegion ReadRegion(FileEntryReader& reader, bool isRect);
 	WCSceneBackground ReadBackground(FileEntryReader& reader);
 	WCSceneForeground ReadForeground(FileEntryReader& reader);
 	WCSceneLook ReadLook(FileEntryReader& reader);

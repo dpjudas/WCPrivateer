@@ -1,5 +1,7 @@
 
 #include "MainMenuScreen.h"
+#include "LoadSaveScreen.h"
+#include "OptionsScreen.h"
 #include "FileFormat/WCScene.h"
 #include "Game/GameApp.h"
 
@@ -43,6 +45,23 @@ void MainMenuScreen::OnKeyUp(InputKey key)
 	if (key == InputKey::LeftMouse)
 	{
 		buttonAtMouseDown = 0;
+		int action = GetHotButton();
+		if (action == 1)
+		{
+			ShowScreen(std::make_unique<LoadSaveScreen>(app, LoadSaveScreenState::New));
+		}
+		else if (action == 2)
+		{
+			ShowScreen(std::make_unique<LoadSaveScreen>(app, LoadSaveScreenState::Load));
+		}
+		else if (action == 3)
+		{
+			PushScreen(std::make_unique<OptionsScreen>(app));
+		}
+		else if (action == 4)
+		{
+			PopScreen();
+		}
 	}
 }
 

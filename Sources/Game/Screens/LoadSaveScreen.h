@@ -2,19 +2,44 @@
 
 #include "GameScreen.h"
 
+enum class LoadSaveScreenState
+{
+	New,
+	Load,
+	Save
+};
+
 class LoadSaveScreen : public GameScreen
 {
 public:
-	LoadSaveScreen(GameApp* app);
+	LoadSaveScreen(GameApp* app, LoadSaveScreenState state);
 
 	void OnKeyDown(InputKey key) override;
 	void OnKeyUp(InputKey key) override;
 	void Render(RenderDevice* renderdev) override;
 
-	int GetHotButton();
+	enum ButtonName
+	{
+		None = -1,
+		Save,
+		Load,
+		Missions,
+		Finances,
+		Manifest,
+		UpArrow,
+		DownArrow,
+		LeftArrow,
+		RightArrow,
+		Power
+	};
+
+	ButtonName GetHotButton();
+
+	LoadSaveScreenState state = {};
 
 	std::vector<std::unique_ptr<GameTexture>> background;
 	std::vector<std::unique_ptr<GameTexture>> font;
+
 
 	int buttonAtMouseDown = 0;
 

@@ -7,9 +7,12 @@ JoystickScreen::JoystickScreen(GameApp* app) : GameScreen(app)
 
 void JoystickScreen::OnKeyUp(InputKey key)
 {
-	if ((key == InputKey::Joy1 || key == InputKey::LeftMouse) && calibrationStep < 7)
+	if (key == InputKey::Joy1 || key == InputKey::LeftMouse)
 	{
-		calibrationStep++;
+		if (calibrationStep < 7)
+			calibrationStep++;
+		else
+			PopScreen();
 	}
 }
 

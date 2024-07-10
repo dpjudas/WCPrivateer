@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/Screens/GameScreen.h"
+#include "FileFormat/WCScene.h"
 
 class WCSceneList;
 
@@ -11,9 +12,15 @@ public:
 	~SceneScreen();
 
 	void OnKeyDown(InputKey key) override;
+	void OnKeyUp(InputKey key) override;
 	void Render(RenderDevice* renderdev) override;
 
-	std::unique_ptr<WCSceneList> sceneList;
+	void DrawSprite(RenderDevice* renderdev, int index, int x = 0, int y = 0);
+
+	virtual void OnClickTarget(WCTarget target) { }
+
+	int GetHotRegion();
+
 	std::vector<std::vector<std::unique_ptr<GameTexture>>> backgrounds;
 	std::vector<std::vector<std::unique_ptr<GameTexture>>> sprites;
 	std::vector<std::unique_ptr<GameTexture>> ship;
@@ -21,4 +28,6 @@ public:
 
 	int scene = -1;
 	int nextScene = 0;
+
+	int framecounter = 0;
 };
