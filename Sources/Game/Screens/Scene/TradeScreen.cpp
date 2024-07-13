@@ -37,18 +37,18 @@ void TradeScreen::Render(RenderDevice* renderdev)
 	if (commodity.info0 < items.size())
 		renderdev->DrawImage(62 + items[commodity.info0][0]->x, 40 + items[commodity.info0][0]->y, items[commodity.info0][0]->width, items[commodity.info0][0]->height, items[commodity.info0][0].get());
 
-	DrawText(renderdev, 59, 14, commodity.label, smallFont, GameTextAlignment::Center);
+	DrawText(renderdev, 65, 14, commodity.label, smallFont, GameTextAlignment::Center);
 	if (!commodity.availability.empty())
-		DrawText(renderdev, 58, 20, commText[(int)WCCommodityText::Quantity] + ": " + std::to_string(commodity.availability.front()), smallFont, GameTextAlignment::Center);
+		DrawText(renderdev, 63, 20, commText[(int)WCCommodityText::Quantity] + ": " + std::to_string(commodity.availability.front()), smallFont, GameTextAlignment::Center);
 	if (!commodity.cost.empty())
-		DrawText(renderdev, 57, 66, commText[(int)WCCommodityText::Cost] + ": " + std::to_string(commodity.cost.front()), smallFont, GameTextAlignment::Center);
-	DrawText(renderdev, 57, 72, commText[(int)WCCommodityText::Credits] + ": 8847", smallFont, GameTextAlignment::Center);
+		DrawText(renderdev, 62, 66, commText[(int)WCCommodityText::Cost] + ": " + std::to_string(commodity.cost.front()), smallFont, GameTextAlignment::Center);
+	DrawText(renderdev, 62, 72, commText[(int)WCCommodityText::Credits] + ": 8847", smallFont, GameTextAlignment::Center);
 
-	// DrawText(renderdev, 57, 42, commText[(int)WCCommodityText::Thanks], smallFont, GameTextAlignment::Center);
-	// DrawText(renderdev, 57, 42, commText[(int)WCCommodityText::NoSell], smallFont, GameTextAlignment::Center);
-	// DrawText(renderdev, 57, 42, commText[(int)WCCommodityText::NoBuy], smallFont, GameTextAlignment::Center);
-	// DrawText(renderdev, 57, 42, commText[(int)WCCommodityText::NoCredit], smallFont, GameTextAlignment::Center);
-	// DrawText(renderdev, 57, 42, commText[(int)WCCommodityText::NoRoom], smallFont, GameTextAlignment::Center);
+	// DrawText(renderdev, 62, 42, commText[(int)WCCommodityText::Thanks], smallFont, GameTextAlignment::Center);
+	// DrawText(renderdev, 62, 42, commText[(int)WCCommodityText::NoSell], smallFont, GameTextAlignment::Center);
+	// DrawText(renderdev, 62, 42, commText[(int)WCCommodityText::NoBuy], smallFont, GameTextAlignment::Center);
+	// DrawText(renderdev, 62, 42, commText[(int)WCCommodityText::NoCredit], smallFont, GameTextAlignment::Center);
+	// DrawText(renderdev, 62, 42, commText[(int)WCCommodityText::NoRoom], smallFont, GameTextAlignment::Center);
 }
 
 void TradeScreen::OnClickTarget(WCTarget target)

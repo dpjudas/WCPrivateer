@@ -71,18 +71,18 @@ void ShipGarageScreen::Render(RenderDevice* renderdev)
 	const WCShipStuffItem& itemInfo = app->gamedata->shipStuff[selectedItem];
 	int damage = 50;
 
-	DrawText(renderdev, 65, 121, itemInfo.label, smallFont, GameTextAlignment::Center);
-	DrawText(renderdev, 65, 128, mtext[(int)WCShipMText::Quantity] + std::to_string(2), smallFont, GameTextAlignment::Center);
+	DrawText(renderdev, 72, 121, itemInfo.label, smallFont, GameTextAlignment::Center);
+	DrawText(renderdev, 72, 128, mtext[(int)WCShipMText::Quantity] + std::to_string(2), smallFont, GameTextAlignment::Center);
 	if (mode == 0)
-		DrawText(renderdev, 65, 175, mtext[(int)WCShipMText::Cost] + std::to_string(itemInfo.buyprice), smallFont, GameTextAlignment::Center);
+		DrawText(renderdev, 72, 175, mtext[(int)WCShipMText::Cost] + std::to_string(itemInfo.buyprice), smallFont, GameTextAlignment::Center);
 	else if (mode == 1)
-		DrawText(renderdev, 65, 175, mtext[(int)WCShipMText::Cost] + std::to_string(itemInfo.sellprice), smallFont, GameTextAlignment::Center);
+		DrawText(renderdev, 72, 175, mtext[(int)WCShipMText::Cost] + std::to_string(itemInfo.sellprice), smallFont, GameTextAlignment::Center);
 	else if (mode == 2)
-		DrawText(renderdev, 65, 175, mtext[(int)WCShipMText::Cost] + std::to_string(itemInfo.sellprice * 100 / damage), smallFont, GameTextAlignment::Center);
-	DrawText(renderdev, 65, 181, mtext[(int)WCShipMText::Credits] + std::to_string(8847), smallFont, GameTextAlignment::Center);
+		DrawText(renderdev, 72, 175, mtext[(int)WCShipMText::Cost] + std::to_string(itemInfo.sellprice * (100 - damage) / 200), smallFont, GameTextAlignment::Center);
+	DrawText(renderdev, 72, 181, mtext[(int)WCShipMText::Credits] + std::to_string(8847), smallFont, GameTextAlignment::Center);
 
 	if (mode == 2)
-		DrawText(renderdev, 63, 150, mtext[(int)WCShipMText::NoRepair], smallFont, GameTextAlignment::Center);
+		DrawText(renderdev, 72, 150, mtext[(int)WCShipMText::NoRepair], smallFont, GameTextAlignment::Center);
 }
 
 void ShipGarageScreen::OnClickTarget(WCTarget target)

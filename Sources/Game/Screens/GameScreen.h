@@ -35,7 +35,8 @@ public:
 	void PushScreen(std::unique_ptr<GameScreen> screen);
 	void PopScreen();
 
-	int GetTextWidth(const std::string& text, std::vector<std::unique_ptr<GameTexture>>& font);
+	int GetTextWidth(const std::string_view& text, std::vector<std::unique_ptr<GameTexture>>& font);
+	std::string WordWrap(std::string text, int width, std::vector<std::unique_ptr<GameTexture>>& font);
 	void DrawText(RenderDevice* renderdev, int x, int y, const std::string& text, std::vector<std::unique_ptr<GameTexture>>& font, GameTextAlignment alignment = GameTextAlignment::Left);
 
 	std::unique_ptr<WCPalette> LoadSpacePalette();
@@ -61,4 +62,7 @@ public:
 	GameApp* app = nullptr;
 	int mouseX = 0;
 	int mouseY = 0;
+
+private:
+	void DrawTextImpl(RenderDevice* renderdev, int x, int y, const std::string_view& text, std::vector<std::unique_ptr<GameTexture>>& font, GameTextAlignment alignment = GameTextAlignment::Left);
 };

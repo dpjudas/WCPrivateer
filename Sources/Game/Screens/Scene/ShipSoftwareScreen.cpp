@@ -27,11 +27,11 @@ void ShipSoftwareScreen::Render(RenderDevice* renderdev)
 	const WCShipStuffItem& itemInfo = app->gamedata->softwareStuff[selectedItem];
 	int damage = 50;
 
-	DrawText(renderdev, 60, 89, itemInfo.label, smallFont, GameTextAlignment::Center);
-	DrawText(renderdev, 60, 151, softText[(int)WCSoftwareText::Credits] + std::to_string(8847), smallFont, GameTextAlignment::Center);
+	DrawText(renderdev, 67, 89, itemInfo.label, smallFont, GameTextAlignment::Center);
+	DrawText(renderdev, 67, 151, softText[(int)WCSoftwareText::Credits] + std::to_string(8847), smallFont, GameTextAlignment::Center);
 
 	if (mode == 2)
-		DrawText(renderdev, 58, 120, softText[(int)WCSoftwareText::NoRepair], smallFont, GameTextAlignment::Center);
+		DrawText(renderdev, 67, 120, softText[(int)WCSoftwareText::NoRepair], smallFont, GameTextAlignment::Center);
 
 	if (mode == 0)
 		DrawText(renderdev, 23, 157, softText[(int)WCSoftwareText::Mode] + softText[(int)WCSoftwareText::Buy], smallFont, GameTextAlignment::Left);
@@ -41,11 +41,11 @@ void ShipSoftwareScreen::Render(RenderDevice* renderdev)
 		DrawText(renderdev, 23, 157, softText[(int)WCSoftwareText::Mode] + softText[(int)WCSoftwareText::Repair], smallFont, GameTextAlignment::Left);
 
 	if (mode == 0)
-		DrawText(renderdev, 105, 157, std::to_string(itemInfo.buyprice), smallFont, GameTextAlignment::Right);
+		DrawText(renderdev, 112, 157, std::to_string(itemInfo.buyprice), smallFont, GameTextAlignment::Right);
 	else if (mode == 1)
-		DrawText(renderdev, 105, 157, std::to_string(itemInfo.sellprice), smallFont, GameTextAlignment::Right);
+		DrawText(renderdev, 112, 157, std::to_string(itemInfo.sellprice), smallFont, GameTextAlignment::Right);
 	else if (mode == 2)
-		DrawText(renderdev, 105, 157, std::to_string(itemInfo.sellprice * 100 / damage), smallFont, GameTextAlignment::Right);
+		DrawText(renderdev, 112, 157, std::to_string(itemInfo.sellprice * (100 - damage) / 200), smallFont, GameTextAlignment::Right);
 }
 
 void ShipSoftwareScreen::OnClickTarget(WCTarget target)
