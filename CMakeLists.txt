@@ -109,6 +109,8 @@ set(WCPRIVATEERCOMMON_SOURCES
 	Sources/FileFormat/WCConversation.h
 	Sources/FileFormat/WCGameData.cpp
 	Sources/FileFormat/WCGameData.h
+	Sources/FileFormat/WCCockpit.cpp
+	Sources/FileFormat/WCCockpit.h
 	Sources/FileFormat/FileEntryReader.h
 	Sources/Util/UTF8Reader.cpp
 	Sources/Util/UTF8Reader.h

@@ -26,7 +26,7 @@ void TakeoffScreen::Render(RenderDevice* renderdev)
 	// Background
 	{
 		GameTexture* frame = background[(framecounter / 20) % background.size()].get();
-		renderdev->DrawImage(frame->x + 0, frame->y + 0, frame->width, frame->height, frame);
+		renderdev->DrawImage(frame->x, frame->y, frame->width, frame->height, frame);
 	}
 
 	// Planet / base
