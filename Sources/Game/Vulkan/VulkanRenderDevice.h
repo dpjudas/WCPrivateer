@@ -40,7 +40,7 @@ public:
 	~VulkanRenderDevice();
 
 	bool Begin() override;
-	void DrawImage(int x, int y, int width, int height, GameTexture* gameTexture) override;
+	void DrawImage(int x, int y, int width, int height, GameTexture* gameTexture, float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f) override;
 	void End() override;
 
 	void DestroyCachedTexture(VulkanCachedTexture* cachedTexture);

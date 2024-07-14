@@ -362,7 +362,7 @@ bool VulkanRenderDevice::Begin()
 	return true;
 }
 
-void VulkanRenderDevice::DrawImage(int x, int y, int width, int height, GameTexture* gameTexture)
+void VulkanRenderDevice::DrawImage(int x, int y, int width, int height, GameTexture* gameTexture, float r, float g, float b, float a)
 {
 	ValidateTexture(gameTexture);
 
@@ -376,13 +376,13 @@ void VulkanRenderDevice::DrawImage(int x, int y, int width, int height, GameText
 
 	Vertex* v = vertices + vertexPos;
 
-	v[0] = Vertex(x1, y1, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-	v[1] = Vertex(x2, y1, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-	v[2] = Vertex(x1, y2, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+	v[0] = Vertex(x1, y1, 0.0f, 0.0f, 0.0f, r, g, b, a);
+	v[1] = Vertex(x2, y1, 0.0f, 1.0f, 0.0f, r, g, b, a);
+	v[2] = Vertex(x1, y2, 0.0f, 0.0f, 1.0f, r, g, b, a);
 
-	v[3] = Vertex(x1, y2, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-	v[4] = Vertex(x2, y1, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-	v[5] = Vertex(x2, y2, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+	v[3] = Vertex(x1, y2, 0.0f, 0.0f, 1.0f, r, g, b, a);
+	v[4] = Vertex(x2, y1, 0.0f, 1.0f, 0.0f, r, g, b, a);
+	v[5] = Vertex(x2, y2, 0.0f, 1.0f, 1.0f, r, g, b, a);
 
 	drawcommands->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayoutTextured.get(), 1, static_cast<VulkanCachedTexture*>(gameTexture->CacheEntry.get())->textureSet.get());
 	drawcommands->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineTextured.get());

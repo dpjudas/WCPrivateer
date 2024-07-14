@@ -28,6 +28,6 @@ public:
 	virtual ~RenderDevice() = default;
 
 	virtual bool Begin() = 0;
-	virtual void DrawImage(int x, int y, int width, int height, GameTexture* gameTexture) = 0;
+	virtual void DrawImage(int x, int y, int width, int height, GameTexture* gameTexture, float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f) = 0;
 	virtual void End() = 0;
 };
