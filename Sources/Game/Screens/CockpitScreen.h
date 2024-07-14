@@ -43,4 +43,16 @@ public:
 	std::vector<std::unique_ptr<GameTexture>> front;
 	std::vector<std::vector<std::unique_ptr<GameTexture>>> sprites;
 	int framecounter = 0;
+
+	std::vector<std::unique_ptr<GameTexture>> crosshair;
+	std::vector<std::unique_ptr<GameTexture>> navigationCrosshair;
+	std::vector<std::unique_ptr<GameTexture>> itts;
+	std::vector<std::unique_ptr<GameTexture>> shield;
+	std::vector<std::unique_ptr<GameTexture>> fuel;
+	std::vector<std::unique_ptr<GameTexture>> autopilot;
+	std::vector<std::unique_ptr<GameTexture>> energy;
+
+	std::vector<std::unique_ptr<GameTexture>> font;
+
+	std::unique_ptr<GameTexture> blackTexture;
 };

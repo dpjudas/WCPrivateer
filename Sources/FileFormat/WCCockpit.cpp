@@ -64,10 +64,20 @@ WCCockpit::WCCockpit(std::string name, WCArchive* archive)
 					{
 						reader.ReadTag("AMFD");
 						reader.PushChunk("INFO");
+						cmfd.x0 = reader.ReadInt16();
+						cmfd.y0 = reader.ReadInt16();
+						cmfd.x1 = reader.ReadInt16();
+						cmfd.y1 = reader.ReadInt16();
+						cmfd.unknown[0] = reader.ReadUint8();
+						cmfd.unknown[1] = reader.ReadUint8();
+						cmfd.unknown[2] = reader.ReadUint8();
 						reader.PopChunk();
 					}
 					else if (tag2 == "SOFT")
 					{
+						std::vector<char> buffer(reader.GetChunkSize() + 1);
+						reader.Read(buffer.data(), reader.GetChunkSize());
+						software = buffer.data();
 					}
 					else
 					{
@@ -83,6 +93,8 @@ WCCockpit::WCCockpit(std::string name, WCArchive* archive)
 					std::string tag2 = reader.PushChunk();
 					if (tag2 == "HINF")
 					{
+						chud.hinf.resize(reader.GetChunkSize());
+						reader.Read(chud.hinf.data(), chud.hinf.size());
 					}
 					else if (tag2 == "FORM")
 					{
@@ -92,13 +104,65 @@ WCCockpit::WCCockpit(std::string name, WCArchive* archive)
 							while (!reader.IsEndOfChunk())
 							{
 								std::string tag4 = reader.PushChunk();
-								if (tag4 == "SSPD")
+								if (tag4 == "FORM")
 								{
-									reader.PushChunk("INFO");
-									reader.PopChunk();
-								}
-								else if (tag4 == "FORM")
-								{
+									std::string tag5 = reader.ReadTag();
+									if (tag5 == "SSPD")
+									{
+										reader.PushChunk("INFO");
+										setSpeed.x = reader.ReadInt16();
+										setSpeed.y = reader.ReadInt16();
+										char buffer[6] = {};
+										reader.Read(buffer, 5);
+										setSpeed.text = buffer;
+										reader.PopChunk();
+									}
+									else if (tag5 == "ASPD")
+									{
+										reader.PushChunk("INFO");
+										actualSpeed.x = reader.ReadInt16();
+										actualSpeed.y = reader.ReadInt16();
+										char buffer[6] = {};
+										reader.Read(buffer, 5);
+										actualSpeed.text = buffer;
+										reader.PopChunk();
+									}
+									else if (tag5 == "TRGT")
+									{
+										reader.PushChunk("INFO");
+										chud.trgtinfo.resize(reader.GetChunkSize());
+										reader.Read(chud.trgtinfo.data(), chud.trgtinfo.size());
+										reader.PopChunk();
+
+										reader.PushChunk("FORM");
+										reader.ReadTag("ITTS");
+
+										reader.PushChunk("GUNS");
+										guns.resize(reader.GetChunkSize());
+										reader.Read(guns.data(), guns.size());
+										reader.PopChunk();
+										reader.PushChunk("SHAP");
+										itts = std::make_unique<WCImage>(reader);
+										reader.PopChunk();
+
+										reader.PopChunk();
+									}
+									else if (tag5 == "CRSS")
+									{
+										reader.PushChunk("SHAP");
+										crosshair = std::make_unique<WCImage>(reader);
+										reader.PopChunk();
+									}
+									else if (tag5 == "NAVI")
+									{
+										reader.PushChunk("SHAP");
+										navigationCrosshair = std::make_unique<WCImage>(reader);
+										reader.PopChunk();
+									}
+									else
+									{
+										throw std::runtime_error("Unknown cockpit tag name");
+									}
 								}
 								else
 								{
@@ -109,6 +173,10 @@ WCCockpit::WCCockpit(std::string name, WCArchive* archive)
 						}
 						else if (tag3 == "DAMG")
 						{
+							reader.PushChunk("DAMG");
+							chud.damg.resize(reader.GetChunkSize());
+							reader.Read(chud.damg.data(), chud.damg.size());
+							reader.PopChunk();
 						}
 						else
 						{
@@ -124,17 +192,135 @@ WCCockpit::WCCockpit(std::string name, WCArchive* archive)
 			}
 			else if (tag == "DIAL")
 			{
+				while (!reader.IsEndOfChunk())
+				{
+					reader.PushChunk("FORM");
+					std::string tag2 = reader.ReadTag();
+					if (tag2 == "RADR")
+					{
+						reader.PushChunk("INFO");
+						radarPos.x0 = reader.ReadInt16();
+						radarPos.y0 = reader.ReadInt16();
+						radarPos.x1 = reader.ReadInt16();
+						radarPos.y1 = reader.ReadInt16();
+						reader.PopChunk();
+					}
+					else if (tag2 == "SHLD")
+					{
+						reader.PushChunk("INFO");
+						shieldPos.x0 = reader.ReadInt16();
+						shieldPos.y0 = reader.ReadInt16();
+						shieldPos.x1 = reader.ReadInt16();
+						shieldPos.y1 = reader.ReadInt16();
+						reader.PopChunk();
+
+						reader.PushChunk("DATA");
+						dial.shld.data.resize(reader.GetChunkSize());
+						reader.Read(dial.shld.data.data(), dial.shld.data.size());
+						reader.PopChunk();
+
+						reader.PushChunk("SHAP");
+						shield = std::make_unique<WCImage>(reader);
+						reader.PopChunk();
+					}
+					else if (tag2 == "ENER")
+					{
+						while (!reader.IsEndOfChunk())
+						{
+							reader.PushChunk("FORM");
+							reader.ReadTag("VIEW");
+
+							WCCockpitEnergyView view;
+
+							reader.PushChunk("INFO");
+							view.x0 = reader.ReadInt16();
+							view.y0 = reader.ReadInt16();
+							view.x1 = reader.ReadInt16();
+							view.y1 = reader.ReadInt16();
+							//view.info.resize(reader.GetChunkSize());
+							//reader.Read(view.info.data(), view.info.size());
+							reader.PopChunk();
+
+							reader.PushChunk("DATA");
+							view.data.resize(reader.GetChunkSize());
+							reader.Read(view.data.data(), view.data.size());
+							reader.PopChunk();
+
+							reader.PushChunk("SHAP");
+							view.shape = std::make_unique<WCImage>(reader);
+							reader.PopChunk();
+
+							energy.push_back(std::move(view));
+
+							if (!reader.IsEndOfChunk())
+								throw std::runtime_error("More data in ENER chunk");
+							reader.PopChunk();
+						}
+					}
+					else if (tag2 == "FUEL")
+					{
+						reader.PushChunk("FORM");
+						reader.ReadTag("VIEW");
+
+						reader.PushChunk("INFO");
+						fuelPos.x0 = reader.ReadInt16();
+						fuelPos.y0 = reader.ReadInt16();
+						fuelPos.x1 = reader.ReadInt16();
+						fuelPos.y1 = reader.ReadInt16();
+						reader.PopChunk();
+
+						reader.PushChunk("DATA");
+						dial.fuel.data.resize(reader.GetChunkSize());
+						reader.Read(dial.fuel.data.data(), dial.fuel.data.size());
+						reader.PopChunk();
+
+						reader.PushChunk("SHAP");
+						fuel = std::make_unique<WCImage>(reader);
+						reader.PopChunk();
+
+						if (!reader.IsEndOfChunk())
+							throw std::runtime_error("More data in FUEL chunk");
+						reader.PopChunk();
+					}
+					else if (tag2 == "AUTO")
+					{
+						reader.PushChunk("INFO");
+						autoPos.x0 = reader.ReadInt16();
+						autoPos.y0 = reader.ReadInt16();
+						autoPos.x1 = reader.ReadInt16();
+						autoPos.y1 = reader.ReadInt16();
+						reader.PopChunk();
+
+						reader.PushChunk("SHAP");
+						autopilot = std::make_unique<WCImage>(reader);
+						reader.PopChunk();
+
+						if (!reader.IsEndOfChunk())
+							throw std::runtime_error("More data in AUTO chunk");
+					}
+					else
+					{
+						throw std::runtime_error("Unknown cockpit tag name");
+					}
+					reader.PopChunk();
+				}
 			}
 			else if (tag == "DAMG")
 			{
 				reader.PushChunk("DAMG");
+				damg.resize(reader.GetChunkSize());
+				reader.Read(damg.data(), damg.size());
 				reader.PopChunk();
 			}
 			else if (tag == "CDMG")
 			{
 				reader.PushChunk("EXPL");
+				cdmg.explosion.resize(reader.GetChunkSize());
+				reader.Read(cdmg.explosion.data(), cdmg.explosion.size());
 				reader.PopChunk();
 				reader.PushChunk("SPRT");
+				cdmg.sprite.resize(reader.GetChunkSize());
+				reader.Read(cdmg.sprite.data(), cdmg.sprite.size());
 				reader.PopChunk();
 			}
 			else
