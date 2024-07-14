@@ -2,14 +2,47 @@
 #include "TakeoffScreen.h"
 #include "FileFormat/WCMovie.h"
 #include "Game/GameApp.h"
+#include "Game/Screens/CockpitScreen.h"
 
-TakeoffScreen::TakeoffScreen(GameApp* app) : MovieScreen(app)
+TakeoffScreen::TakeoffScreen(GameApp* app) : GameScreen(app)
 {
 	movie = std::make_unique<WCMovie>("DATA\\MIDGAMES\\TAKEOFFS.IFF", app->archive.get());
-	auto palette = LoadPakPalette("DATA\\MIDGAMES\\TAKEOFFS.PAK", 0);
-	movies.push_back(LoadPakImage("DATA\\MIDGAMES\\TAKEOFFS.PAK", 1, palette.get()));
-	movies.push_back(LoadPakImage("DATA\\MIDGAMES\\LTOBASES.PAK", 0, palette.get()));
-	movies.push_back(LoadPakImage("DATA\\MIDGAMES\\TAKEOFFS.PAK", 2, palette.get()));
-	offsetx = { 0, 70, 100 };
-	offsety = { 0, 60, 60 };
+	palette = LoadPakPalette("DATA\\MIDGAMES\\TAKEOFFS.PAK", 0);
+	background = LoadPakImage("DATA\\MIDGAMES\\TAKEOFFS.PAK", 1, palette.get());
+	base = LoadPakImage("DATA\\MIDGAMES\\LTOBASES.PAK", 0, palette.get());
+	ship = LoadPakImage("DATA\\MIDGAMES\\TAKEOFFS.PAK", 2, palette.get());
+}
+
+TakeoffScreen::~TakeoffScreen()
+{
+}
+
+void TakeoffScreen::Render(RenderDevice* renderdev)
+{
+	framecounter++;
+
+	int planetX = 90 - framecounter / 2;
+
+	// Background
+	{
+		GameTexture* frame = background[(framecounter / 20) % background.size()].get();
+		renderdev->DrawImage(frame->x + 0, frame->y + 0, frame->width, frame->height, frame);
+	}
+
+	// Planet / base
+	{
+		GameTexture* frame = base[(framecounter / 20) % base.size()].get();
+		renderdev->DrawImage(frame->x + planetX, frame->y + 60, frame->width, frame->height, frame);
+	}
+
+	// Ship
+	{
+		GameTexture* frame = ship[std::min(framecounter / 20, (int)ship.size() - 1)].get();
+		renderdev->DrawImage(frame->x + 100, frame->y + 60, frame->width, frame->height, frame);
+	}
+
+	if (framecounter / 20 >= (int)ship.size())
+	{
+		ShowScreen(std::make_unique<CockpitScreen>(app));
+	}
 }

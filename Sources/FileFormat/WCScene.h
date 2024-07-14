@@ -37,6 +37,7 @@ enum class WCTarget : int
 	MercenariesGuild = 203,
 	Bar = 206,
 	LandingPad = 207,
+	Launch = 208,
 	Computer = 225,
 
 	GarageNextItem = 1,

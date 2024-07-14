@@ -1,9 +1,21 @@
 #pragma once
 
-#include "MovieScreen.h"
+#include "Game/Screens/GameScreen.h"
 
-class TakeoffScreen : public MovieScreen
+class WCMovie;
+
+class TakeoffScreen : public GameScreen
 {
 public:
 	TakeoffScreen(GameApp* app);
+	~TakeoffScreen();
+
+	void Render(RenderDevice* renderdev) override;
+
+	std::unique_ptr<WCMovie> movie;
+	std::unique_ptr<WCPalette> palette;
+	std::vector<std::unique_ptr<GameTexture>> background;
+	std::vector<std::unique_ptr<GameTexture>> base;
+	std::vector<std::unique_ptr<GameTexture>> ship;
+	int framecounter = 0;
 };
