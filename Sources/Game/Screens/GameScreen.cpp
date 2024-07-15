@@ -452,7 +452,7 @@ void GameScreen::DrawText(RenderDevice* renderdev, int x, int y, const std::stri
 			if (i == '\n')
 			{
 				DrawTextImpl(renderdev, x, y, std::string_view(linestart, lineend), font, alignment);
-				y += font['x']->height + 2;
+				y += font['X']->height + 2;
 				linestart = ++lineend;
 			}
 			else

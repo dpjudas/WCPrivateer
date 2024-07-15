@@ -7,6 +7,7 @@ class WCCockpitSoftware;
 class WCCockpitMisc;
 class WCCockpitPlaques;
 class WCSpaceSprite;
+class WCSpaceShip;
 
 struct StarLocation
 {
@@ -45,10 +46,15 @@ public:
 	std::unique_ptr<WCSpaceSprite> astroids[2];
 	std::unique_ptr<WCSpaceSprite> starwhite;
 	std::unique_ptr<WCSpaceSprite> moon[3];
+	std::unique_ptr<WCSpaceSprite> refine;
+	std::unique_ptr<WCSpaceShip> frigate;
 
 	std::unique_ptr<WCPalette> palette;
 	std::vector<std::unique_ptr<GameTexture>> front;
 	std::vector<std::vector<std::unique_ptr<GameTexture>>> sprites;
+	std::vector<std::unique_ptr<GameTexture>> refineTex;
+	std::vector<std::vector<std::unique_ptr<GameTexture>>> frigateTex;
+	std::vector<std::unique_ptr<GameTexture>> frigateTarget;
 	int framecounter = 0;
 
 	std::vector<std::unique_ptr<GameTexture>> crosshair;

@@ -6,13 +6,17 @@
 class ConversationScreen : public GameScreen
 {
 public:
-	ConversationScreen(GameApp* app);
+	ConversationScreen(GameApp* app, const std::string& conversationName);
 
 	void OnKeyDown(InputKey key) override;
 	void Render(RenderDevice* renderdev) override;
 
 	std::unique_ptr<WCConvBackgroundList> backgroundList;
 	std::unique_ptr<WCConvFaceList> faceList;
+	std::unique_ptr<WCConversation> conversation;
+
+	std::vector<std::unique_ptr<GameTexture>> font;
+
 	std::vector<std::unique_ptr<GameTexture>> background;
 	std::vector<std::unique_ptr<GameTexture>> head;
 	std::vector<std::unique_ptr<GameTexture>> eyes;

@@ -80,3 +80,23 @@ public:
 	std::vector<WCConvEyesDef> defs;
 	std::vector<uint8_t> medfdata;
 };
+
+class WCConversationStep
+{
+public:
+	std::string actorname;
+	std::string normal; // is this ever any other string than "normal"?
+	std::string location;
+	int16_t unknown0; // 0x9f (159)
+	int16_t unknown1; // 9, 13, 14
+	std::string text;
+	std::vector<uint8_t> unknown2;
+};
+
+class WCConversation
+{
+public:
+	WCConversation(const std::string& name, WCArchive* archive);
+
+	std::vector<WCConversationStep> steps;
+};

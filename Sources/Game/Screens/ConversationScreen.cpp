@@ -3,10 +3,32 @@
 #include "FileFormat/WCConversation.h"
 #include "Game/GameApp.h"
 
-ConversationScreen::ConversationScreen(GameApp* app) : GameScreen(app)
+ConversationScreen::ConversationScreen(GameApp* app, const std::string& conversationName) : GameScreen(app)
 {
 	backgroundList = std::make_unique<WCConvBackgroundList>(app->archive.get());
 	faceList = std::make_unique<WCConvFaceList>(app->archive.get());
+	conversation = std::make_unique<WCConversation>(conversationName, app->archive.get());
+
+	// Find background
+	for (size_t i = 0; i < backgroundList->backgrounds.size(); i++)
+	{
+		if (backgroundList->backgrounds[i].shape == conversation->steps[0].location)
+		{
+			nextBackground = (int)i;
+			break;
+		}
+	}
+
+	// Find character
+	for (size_t i = 0; i < faceList->faces.size(); i++)
+	{
+		if (faceList->faces[i].name == conversation->steps[0].actorname)
+		{
+			nextFace = (int)i;
+			break;
+		}
+	}
+
 }
 
 void ConversationScreen::Render(RenderDevice* renderdev)
@@ -50,13 +72,15 @@ void ConversationScreen::Render(RenderDevice* renderdev)
 			if (face.hand != -1)
 				hand = LoadPakImage("DATA\\OPTIONS\\STATFACE.PAK", face.hand, &palette);
 		}
-		/*else
+		else
 		{
 			head = LoadPakImage("DATA\\OPTIONS\\RANDMALE.PAK", 0, &palette);
 			eyes = LoadPakImage("DATA\\OPTIONS\\RANDMALE.PAK", 1, &palette);
 			mouth = LoadPakImage("DATA\\OPTIONS\\RANDMALE.PAK", 2, &palette);
 			uniform = LoadPakImage("DATA\\OPTIONS\\RANDMALE.PAK", 13, &palette);
-		}*/
+		}
+
+		font = LoadConvFont(&palette);
 	}
 
 	static int framecounter = 0;
@@ -99,6 +123,8 @@ void ConversationScreen::Render(RenderDevice* renderdev)
 		GameTexture* img = hand[(framecounter / 20) % hand.size()].get();
 		renderdev->DrawImage(160 + img->x + face.handX, img->y + offsetY + face.handY, img->width, img->height, img);
 	}
+
+	DrawText(renderdev, 160, 180, WordWrap(conversation->steps[0].text, 300, font), font, GameTextAlignment::Center);
 }
 
 void ConversationScreen::OnKeyDown(InputKey key)

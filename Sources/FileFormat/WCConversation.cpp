@@ -246,3 +246,52 @@ WCConvEyesList::WCConvEyesList(WCArchive* archive)
 	reader.PopChunk();
 	reader.PopChunk();
 }
+
+/////////////////////////////////////////////////////////////////////////////
+
+WCConversation::WCConversation(const std::string& name, WCArchive* archive)
+{
+	FileEntryReader reader = archive->openFile("DATA\\CONV\\" + name + ".PFC");
+
+	if (reader.ReadUint8() != 0) // always zero. Not sure what its purpose is
+		throw std::runtime_error("Unexpected conversation start byte");
+
+	while (reader.Tell() != reader.Size())
+	{
+		char actor[10] = {};
+		char normal[10] = {};
+		char location[10] = {};
+		reader.Read(actor, 9);
+		reader.Read(normal, 9);
+		reader.Read(location, 9);
+
+		WCConversationStep step;
+		step.actorname = actor;
+		step.normal = normal;
+		step.location = location;
+		step.unknown0 = reader.ReadInt16();
+		step.unknown1 = reader.ReadInt16();
+
+		while (reader.Tell() != reader.Size())
+		{
+			char c = reader.ReadUint8();
+			if (c == 0)
+				break;
+			step.text.push_back(c);
+		}
+		
+		// What is this?
+		while (reader.Tell() != reader.Size())
+		{
+			uint8_t c = reader.ReadUint8();
+			if (c == 0)
+				break;
+			step.unknown2.push_back(c);
+		}
+
+		steps.push_back(std::move(step));
+	}
+
+	reader = archive->openFile("DATA\\CONV\\" + name + ".VPK");
+
+}

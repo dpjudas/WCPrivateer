@@ -26,6 +26,10 @@ CockpitScreen::CockpitScreen(GameApp* app) : GameScreen(app)
 	moon[0] = std::make_unique<WCSpaceSprite>("MOON1", app->archive.get());
 	moon[1] = std::make_unique<WCSpaceSprite>("MOON2", app->archive.get());
 	moon[2] = std::make_unique<WCSpaceSprite>("MOON3", app->archive.get());
+	refine = std::make_unique<WCSpaceSprite>("REFINE", app->archive.get());
+	//frigate = std::make_unique<WCSpaceShip>("FRIGATE", app->archive.get());
+	//frigate = std::make_unique<WCSpaceShip>("DEMON", app->archive.get());
+	frigate = std::make_unique<WCSpaceShip>("FIGHTER", app->archive.get());
 }
 
 CockpitScreen::~CockpitScreen()
@@ -56,6 +60,15 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 		{
 			sprites.push_back(LoadWCImage(*t->shape, palette.get()));
 		}
+
+		refineTex = LoadWCImage(*refine->shape, palette.get());
+
+		for (const auto& t : frigate->shapes)
+		{
+			frigateTex.push_back(LoadWCImage(*t, palette.get()));
+		}
+
+		frigateTarget = LoadWCImage(*frigate->target, palette.get());
 
 		/*
 		for (const auto& t : moon)
@@ -130,6 +143,20 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 			tex, fade, fade, fade);
 	}
 
+	// Base
+	for (auto& tex : refineTex)
+	{
+		float scale = 0.4;
+		renderdev->DrawImage(120 + (int)std::round(tex->x * scale), 60 + (int)std::round(tex->y * scale), (int)std::round(tex->width * scale), (int)std::round(tex->height* scale), tex.get());
+	}
+
+	// Spaceship
+	for (auto& tex : frigateTex[(framecounter / 20) % 37]) // 6 yaw * 6 pitch + 1 unknown. Needs mirroring for negative yaw
+	{
+		float scale = 0.8;
+		renderdev->DrawImage(200 + (int)std::round(tex->x * scale), 70 + (int)std::round(tex->y * scale), (int)std::round(tex->width * scale), (int)std::round(tex->height * scale), tex.get());
+	}
+
 	// Draw energy indicator:
 	{
 		auto& e = cockpit->energy.front();
@@ -170,10 +197,16 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 
 	// Draw console: (where does the 5,-20 offset come from?)
 	{
+		int offx = 5;
+		int offy = -20;
+
 		auto& e = cockpit->cmfd;
-		renderdev->DrawImage(e.x0 + 5, e.y0 - 20, e.x1 - e.x0 + 1, e.y1 - e.y0 + 1, blackTexture.get());
+		renderdev->DrawImage(e.x0 + offx, e.y0 + offy, e.x1 - e.x0 + 1, e.y1 - e.y0 + 1, blackTexture.get());
 
 		// To do: draw contents of the console here
+
+		for (auto& tex : frigateTarget)
+			renderdev->DrawImage((e.x0 + e.x1) / 2 + offx + tex->x, (e.y0 + e.y1) / 2 + offy + tex->y, tex->width, tex->height, tex.get());
 
 		// renderdev->DrawImage(e.x0 + 16 + guns[0]->x, e.y0 + 16 + guns[0]->y, guns[0]->width, guns[0]->height, guns[0].get());
 		// renderdev->DrawImage(e.x0 + 32 + weapons[0]->x, e.y0 + 16 + weapons[0]->y, weapons[0]->width, weapons[0]->height, weapons[0].get());
