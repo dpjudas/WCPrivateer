@@ -1,6 +1,7 @@
 
 #include "CockpitScreen.h"
 #include "FileFormat/WCCockpit.h"
+#include "FileFormat/WCSpace.h"
 #include "FileFormat/WCPak.h"
 #include "FileFormat/FileEntryReader.h"
 #include "Game/GameApp.h"
@@ -11,6 +12,10 @@ CockpitScreen::CockpitScreen(GameApp* app) : GameScreen(app)
 	//cockpit = std::make_unique<WCCockpit>("TUGCK", app->archive.get());
 	//cockpit = std::make_unique<WCCockpit>("MERCHCK", app->archive.get());
 	cockpit = std::make_unique<WCCockpit>("FIGHTCK", app->archive.get());
+	software = std::make_unique<WCCockpitSoftware>(cockpit->software, app->archive.get());
+	misc = std::make_unique<WCCockpitMisc>(app->archive.get());
+	plaques = std::make_unique<WCCockpitPlaques>(app->archive.get());
+
 	trash[0] = std::make_unique<WCSpaceSprite>("TRASH1", app->archive.get());
 	trash[1] = std::make_unique<WCSpaceSprite>("TRASH2", app->archive.get());
 	trash[2] = std::make_unique<WCSpaceSprite>("TRASH3", app->archive.get());
@@ -89,6 +94,12 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 
 		font = LoadShpImage("DATA\\FONTS\\" + cockpit->font + ".SHP", palette.get());
 
+		guns = LoadWCImage(*software->guns, palette.get());
+		weapons = LoadWCImage(*software->weapons, palette.get());
+
+		explosion = LoadWCImage(*misc->explosionShape, palette.get());
+		plaquetextures = LoadWCImage(*plaques->shape, palette.get());
+
 		blackTexture = std::make_unique<GameTexture>();
 		blackTexture->x = 0;
 		blackTexture->y = 0;
@@ -163,6 +174,9 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 		renderdev->DrawImage(e.x0 + 5, e.y0 - 20, e.x1 - e.x0 + 1, e.y1 - e.y0 + 1, blackTexture.get());
 
 		// To do: draw contents of the console here
+
+		// renderdev->DrawImage(e.x0 + 16 + guns[0]->x, e.y0 + 16 + guns[0]->y, guns[0]->width, guns[0]->height, guns[0].get());
+		// renderdev->DrawImage(e.x0 + 32 + weapons[0]->x, e.y0 + 16 + weapons[0]->y, weapons[0]->width, weapons[0]->height, weapons[0].get());
 	}
 
 	// Draw the cockpit image:
@@ -175,4 +189,15 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 	// Draw crosshair: (how does it know the location?)
 	renderdev->DrawImage(160 + crosshair[0]->x, 75 + crosshair[0]->y, crosshair[0]->width, crosshair[0]->height, crosshair[0].get());
 
+	// Where is this explosion used? what palette does it map to?
+	/* {
+		GameTexture* tex = explosion[(framecounter / 20) % explosion.size()].get();
+		renderdev->DrawImage(160 + tex->x, 100 + tex->y, tex->width, tex->height, tex);
+	}*/
+
+	// Junk that was never used?
+	/* {
+		GameTexture* tex = plaquetextures[(framecounter / 20) % plaquetextures.size()].get();
+		renderdev->DrawImage(160 + tex->x, 100 + tex->y, tex->width, tex->height, tex);
+	} */
 }

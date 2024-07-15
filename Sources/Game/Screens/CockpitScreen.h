@@ -3,6 +3,9 @@
 #include "GameScreen.h"
 
 class WCCockpit;
+class WCCockpitSoftware;
+class WCCockpitMisc;
+class WCCockpitPlaques;
 class WCSpaceSprite;
 
 struct StarLocation
@@ -34,6 +37,10 @@ public:
 	std::vector<SpriteLocation> spriteLocations;
 
 	std::unique_ptr<WCCockpit> cockpit;
+	std::unique_ptr<WCCockpitSoftware> software;
+	std::unique_ptr<WCCockpitMisc> misc;
+	std::unique_ptr<WCCockpitPlaques> plaques;
+
 	std::unique_ptr<WCSpaceSprite> trash[4];
 	std::unique_ptr<WCSpaceSprite> astroids[2];
 	std::unique_ptr<WCSpaceSprite> starwhite;
@@ -53,6 +60,12 @@ public:
 	std::vector<std::unique_ptr<GameTexture>> energy;
 
 	std::vector<std::unique_ptr<GameTexture>> font;
+
+	std::vector<std::unique_ptr<GameTexture>> guns;
+	std::vector<std::unique_ptr<GameTexture>> weapons;
+
+	std::vector<std::unique_ptr<GameTexture>> explosion;
+	std::vector<std::unique_ptr<GameTexture>> plaquetextures;
 
 	std::unique_ptr<GameTexture> blackTexture;
 };

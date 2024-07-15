@@ -355,65 +355,308 @@ WCCockpit::~WCCockpit()
 
 //////////////////////////////////////////////////////////////////////////////
 
-WCSpaceSprite::WCSpaceSprite(std::string name, WCArchive* archive)
+WCCockpitSoftware::WCCockpitSoftware(std::string name, WCArchive* archive)
 {
-	FileEntryReader reader = archive->openFile("DATA\\APPEARNC\\" + name + ".IFF");
+	FileEntryReader reader = archive->openFile("DATA\\COCKPITS\\" + name + ".IFF");
 	reader.PushChunk("FORM");
-	reader.ReadTag("APPR");
+	reader.ReadTag("SOFT");
+
+	reader.PushChunk("FORM");
+	reader.ReadTag("STND");
 
 	while (!reader.IsEndOfChunk())
 	{
 		reader.PushChunk("FORM");
 		std::string tag = reader.ReadTag();
-		if (tag == "BMAP")
+		if (tag == "COMM")
 		{
-			while (!reader.IsEndOfChunk())
+			reader.PushChunk("INFO");
+			commInfo.resize(reader.GetChunkSize());
+			reader.Read(commInfo.data(), commInfo.size());
+			reader.PopChunk();
+
+			if (!reader.IsEndOfChunk())
+				throw std::runtime_error("More data in COMM chunk");
+		}
+		else if (tag == "RECV")
+		{
+			reader.PushChunk("INFO");
+			recvInfo.resize(reader.GetChunkSize());
+			reader.Read(recvInfo.data(), recvInfo.size());
+			reader.PopChunk();
+
+			if (!reader.IsEndOfChunk())
+				throw std::runtime_error("More data in RECV chunk");
+		}
+		else if (tag == "WEAP")
+		{
+			reader.PushChunk("INFO");
+			weaponInfo.resize(reader.GetChunkSize());
+			reader.Read(weaponInfo.data(), weaponInfo.size());
+			reader.PopChunk();
+
+			reader.PushChunk("GUNS");
+			guns = std::make_unique<WCImage>(reader);
+			reader.PopChunk();
+
+			reader.PushChunk("WEAP");
+			weapons = std::make_unique<WCImage>(reader);
+			reader.PopChunk();
+
+			if (!reader.IsEndOfChunk())
+				throw std::runtime_error("More data in WEAP chunk");
+		}
+		else if (tag == "DMGD")
+		{
+			reader.PushChunk("INFO");
+			damagedInfo.resize(reader.GetChunkSize());
+			reader.Read(damagedInfo.data(), damagedInfo.size());
+			reader.PopChunk();
+
+			reader.PushChunk("FORM");
+			reader.ReadTag("STRG");
+
+			reader.PushChunk("SNUM");
+			reader.PopChunk();
+
+			reader.PushChunk("DATA");
+			std::vector<char> buffer(reader.GetChunkSize());
+			reader.Read(buffer.data(), buffer.size());
+			std::vector<std::string> strings;
+			std::string text;
+			for (char c : buffer)
 			{
-				std::string tag2 = reader.PushChunk();
-				if (tag2 == "INFO")
+				if (c == 0)
 				{
-					// data here
-				}
-				else if (tag2 == "SHAP")
-				{
-					shape = std::make_unique<WCImage>(reader);
-				}
-				else if (tag2 == "SKEL")
-				{
-				}
-				else if (tag2 == "FORM")
-				{
-					reader.ReadTag("MFDS");
+					strings.push_back(text);
+					text.clear();
 				}
 				else
 				{
-					throw std::runtime_error("Unknown sprite tag name");
+					text.push_back(c);
 				}
-				reader.PopChunk();
 			}
+			if (!text.empty())
+				strings.push_back(text);
+			damagedText = std::move(strings);
+			reader.PopChunk();
+
+			if (!reader.IsEndOfChunk())
+				throw std::runtime_error("More data in STRG chunk");
+
+			reader.PopChunk();
+
+			if (!reader.IsEndOfChunk())
+				throw std::runtime_error("More data in DMGD chunk");
 		}
-		else if (tag == "BM3D")
+		else if (tag == "CRGO")
 		{
-			throw std::runtime_error("Implement BM3D loading");
+			reader.PushChunk("INFO");
+			cargoInfo.resize(reader.GetChunkSize());
+			reader.Read(cargoInfo.data(), cargoInfo.size());
+			reader.PopChunk();
+
+			reader.PushChunk("NAME");
+			std::vector<char> buffer(reader.GetChunkSize());
+			reader.Read(buffer.data(), buffer.size());
+			std::vector<std::string> strings;
+			std::string text;
+			for (char c : buffer)
+			{
+				if (c == 0)
+				{
+					strings.push_back(text);
+					text.clear();
+				}
+				else
+				{
+					text.push_back(c);
+				}
+			}
+			if (!text.empty())
+				strings.push_back(text);
+			cargoNames = std::move(strings);
+			reader.PopChunk();
+
+			if (!reader.IsEndOfChunk())
+				throw std::runtime_error("More data in CRGO chunk");
+		}
+		else if (tag == "DEST")
+		{
+			reader.PushChunk("INFO");
+			destInfo.resize(reader.GetChunkSize());
+			reader.Read(destInfo.data(), destInfo.size());
+			reader.PopChunk();
+
+			reader.PushChunk("FORM");
+			reader.ReadTag("STRG");
+
+			reader.PushChunk("SNUM");
+			reader.PopChunk();
+
+			reader.PushChunk("DATA");
+			std::vector<char> buffer(reader.GetChunkSize());
+			reader.Read(buffer.data(), buffer.size());
+			std::vector<std::string> strings;
+			std::string text;
+			for (char c : buffer)
+			{
+				if (c == 0)
+				{
+					strings.push_back(text);
+					text.clear();
+				}
+				else
+				{
+					text.push_back(c);
+				}
+			}
+			if (!text.empty())
+				strings.push_back(text);
+			destText = std::move(strings);
+			reader.PopChunk();
+
+			if (!reader.IsEndOfChunk())
+				throw std::runtime_error("More data in STRG chunk");
+
+			reader.PopChunk();
+
+			if (!reader.IsEndOfChunk())
+				throw std::runtime_error("More data in DEST chunk");
 		}
 		else
 		{
-			throw std::runtime_error("Unknown sprite tag name");
+			throw std::runtime_error("Unknown cockpit software tag name");
 		}
 		reader.PopChunk();
 	}
 
-	/*
-	reader.PushChunk("FORM");
-	reader.ReadTag("PAL ");
-	reader.ReadTag("CMAP");
-	// data here
 	reader.PopChunk();
-	*/
+
+	reader.PushChunk("FORM");
+	reader.ReadTag("OPTN");
+
+	reader.PushChunk("FORM");
+	reader.ReadTag("TRAK");
+	reader.PushChunk("INFO");
+	trackInfo.resize(reader.GetChunkSize());
+	reader.Read(trackInfo.data(), trackInfo.size());
+	reader.PopChunk();
+	reader.PopChunk();
+
+	reader.PushChunk("FORM");
+	reader.ReadTag("CAMS");
+	reader.PushChunk("INFO");
+	camerasInfo.resize(reader.GetChunkSize());
+	reader.Read(camerasInfo.data(), camerasInfo.size());
+	reader.PopChunk();
+	reader.PopChunk();
+
+	reader.PopChunk();
 
 	reader.PopChunk();
 }
 
-WCSpaceSprite::~WCSpaceSprite()
+WCCockpitSoftware::~WCCockpitSoftware()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+WCCockpitMisc::WCCockpitMisc(WCArchive* archive)
+{
+	FileEntryReader reader = archive->openFile("DATA\\COCKPITS\\COCKMISC.IFF");
+	reader.PushChunk("FORM");
+	reader.ReadTag("MISC");
+	reader.PushChunk("TABL");
+	std::vector<uint32_t> table;
+	int count = reader.GetChunkSize() / 4;
+	for (int i = 0; i < count; i++)
+	{
+		table.push_back(reader.ReadUint32());
+	}
+	reader.PopChunk();
+	reader.PopChunk();
+
+	for (uint32_t offset : table)
+	{
+		if (offset == 0)
+			break;
+
+		reader.Seek(offset);
+		reader.ReadUint32BE(); // Chunk size for what follows
+		
+		reader.PushChunk("FORM");
+		reader.ReadTag("EXPL");
+
+		reader.PushChunk("INFO");
+		explosionInfo.resize(reader.GetChunkSize());
+		reader.Read(explosionInfo.data(), explosionInfo.size());
+		reader.PopChunk();
+
+		reader.PushChunk("SHAP");
+		explosionShape = std::make_unique<WCImage>(reader);
+		reader.PopChunk();
+
+		reader.PopChunk();
+	}
+}
+
+WCCockpitMisc::~WCCockpitMisc()
+{
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+WCCockpitPlaques::WCCockpitPlaques(WCArchive* archive)
+{
+	FileEntryReader reader = archive->openFile("DATA\\COCKPITS\\PLAQUES.IFF");
+	reader.PushChunk("FORM");
+	reader.ReadTag("PLAQ");
+
+	while (!reader.IsEndOfChunk())
+	{
+		std::string tag = reader.PushChunk();
+		if (tag == "FORM")
+		{
+			std::string tag2 = reader.ReadTag();
+			if (tag2 == "FONT")
+			{
+				std::string name = reader.ReadTag();
+				reader.ReadUint32(); // all zeros
+
+				reader.PushChunk("SHAP");
+				fonts[name] = std::make_unique<WCImage>(reader);
+				reader.PopChunk();
+
+				if (!reader.IsEndOfChunk())
+					throw std::runtime_error("More data in FONT chunk");
+			}
+			else
+			{
+				throw std::runtime_error("Unknown cockpit plaques tag name");
+			}
+		}
+		else if (tag == "INFO")
+		{
+			info.resize(reader.GetChunkSize());
+			reader.Read(info.data(), info.size());
+		}
+		else if (tag == "SHAP")
+		{
+			shape = std::make_unique<WCImage>(reader);
+		}
+		else
+		{
+			throw std::runtime_error("Unknown cockpit plaques tag name");
+		}
+
+		reader.PopChunk();
+	}
+
+	reader.PopChunk();
+}
+
+WCCockpitPlaques::~WCCockpitPlaques()
 {
 }

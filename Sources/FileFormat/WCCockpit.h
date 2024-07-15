@@ -105,11 +105,49 @@ public:
 	} cdmg;
 };
 
-class WCSpaceSprite
+class WCCockpitSoftware
 {
 public:
-	WCSpaceSprite(std::string name, WCArchive* archive);
-	~WCSpaceSprite();
+	WCCockpitSoftware(std::string name, WCArchive* archive);
+	~WCCockpitSoftware();
 
+	std::unique_ptr<WCImage> guns;
+	std::unique_ptr<WCImage> weapons;
+
+	std::vector<uint8_t> commInfo;
+	std::vector<uint8_t> recvInfo;
+	std::vector<uint8_t> weaponInfo;
+
+	std::vector<uint8_t> damagedInfo;
+	std::vector<std::string> damagedText;
+
+	std::vector<uint8_t> cargoInfo;
+	std::vector<std::string> cargoNames;
+
+	std::vector<uint8_t> destInfo;
+	std::vector<std::string> destText;
+
+	std::vector<uint8_t> trackInfo;
+	std::vector<uint8_t> camerasInfo;
+};
+
+class WCCockpitMisc
+{
+public:
+	WCCockpitMisc(WCArchive* archive);
+	~WCCockpitMisc();
+
+	std::vector<uint8_t> explosionInfo;
+	std::unique_ptr<WCImage> explosionShape;
+};
+
+class WCCockpitPlaques
+{
+public:
+	WCCockpitPlaques(WCArchive* archive);
+	~WCCockpitPlaques();
+
+	std::map<std::string, std::unique_ptr<WCImage>> fonts;
+	std::vector<uint8_t> info;
 	std::unique_ptr<WCImage> shape;
 };
