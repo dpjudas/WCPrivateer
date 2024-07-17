@@ -457,3 +457,59 @@ std::unique_ptr<AudioSource> AudioSource::CreateResampler(int targetFrequency, s
 {
 	return std::make_unique<ResampleAudioSource>(targetFrequency, std::move(source));
 }
+
+class SampleAudioSource : public AudioSource
+{
+public:
+	SampleAudioSource(int frequency, const uint8_t* data, size_t size) : frequency(frequency), data(data, data + size)
+	{
+	}
+
+	int GetFrequency() override
+	{
+		return frequency;
+	}
+
+	int GetChannels() override
+	{
+		return 1;
+	}
+
+	int GetSamples() override
+	{
+		return data.size();
+	}
+
+	void SeekToSample(uint64_t position) override
+	{
+		pos = position;
+	}
+
+	size_t ReadSamples(float* output, size_t samples) override
+	{
+		size_t available = std::min(samples, data.size() - pos);
+		const uint8_t* input = data.data() + pos;
+		for (size_t i = 0; i < available; i++)
+		{
+			output[i] = (input[i] - 128) * (1.0f / 128.0f);
+		}
+		pos += available;
+
+		if (available < samples)
+		{
+			for (size_t i = available; i < samples; i++)
+				output[i] = 0.0f;
+		}
+
+		return samples;
+	}
+
+	uint64_t pos = 0;
+	int frequency = 0;
+	std::vector<uint8_t> data;
+};
+
+std::unique_ptr<AudioSource> AudioSource::CreateSample(int frequency, const uint8_t* data, size_t size)
+{
+	return std::make_unique<SampleAudioSource>(frequency, data, size);
+}

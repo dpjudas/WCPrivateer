@@ -7,10 +7,27 @@
 WCPak::WCPak(const std::string& filename, WCArchive* archive)
 {
 	FileEntryReader reader = archive->openFile(filename);
+	Load(reader);
+}
 
+WCPak::WCPak(FileEntryReader reader)
+{
+	Load(reader);
+}
+
+FileEntryReader WCPak::openFile(int index)
+{
+	return FileEntryReader(files[index]);
+}
+
+void WCPak::Load(FileEntryReader& reader)
+{
 	std::vector<size_t> offsets;
 
-	uint32_t sectionsize = reader.ReadUint32();
+	uint32_t paksize = reader.ReadUint32();
+	if (paksize != reader.Size())
+		return;
+
 	uint32_t firstoffset = reader.ReadUint24();
 	uint8_t unknown = reader.ReadUint8();
 	offsets.push_back(firstoffset);
@@ -20,11 +37,11 @@ WCPak::WCPak(const std::string& filename, WCArchive* archive)
 	{
 		uint32_t offset = reader.ReadUint24();
 		uint8_t unknown = reader.ReadUint8();
-		if (offset < firstoffset || offset >= sectionsize)
+		if (offset < firstoffset || offset >= paksize)
 			break;
 		offsets.push_back(offset);
 	}
-	offsets.push_back(sectionsize);
+	offsets.push_back(paksize);
 
 	int filecount = (int)offsets.size() - 1;
 	for (int index = 0; index < filecount; index++)
@@ -35,9 +52,4 @@ WCPak::WCPak(const std::string& filename, WCArchive* archive)
 		reader.Read(file.data(), file.size());
 		files.push_back(std::move(file));
 	}
-}
-
-FileEntryReader WCPak::openFile(int index)
-{
-	return FileEntryReader(files[index]);
 }

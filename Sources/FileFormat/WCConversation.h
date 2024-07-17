@@ -1,6 +1,7 @@
 #pragma once
 
 #include "WCPalette.h"
+#include "WCSound.h"
 
 class WCArchive;
 
@@ -99,4 +100,5 @@ public:
 	WCConversation(const std::string& name, WCArchive* archive);
 
 	std::vector<WCConversationStep> steps;
+	std::vector<WCVOCSound> sounds;
 };

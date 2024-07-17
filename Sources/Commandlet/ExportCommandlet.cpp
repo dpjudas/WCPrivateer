@@ -10,6 +10,7 @@
 #include "FileFormat/WCMusic.h"
 #include "FileFormat/WCScene.h"
 #include "FileFormat/WCConversation.h"
+#include "FileFormat/WCSound.h"
 #include "FileFormat/FileEntryReader.h"
 #include "Audio/AudioPlayer.h"
 #include "Audio/AudioSource.h"
@@ -61,6 +62,10 @@ void ExportCommandlet::OnCommand(ToolApp* console, const std::string& args)
 	else if (args == "music")
 	{
 		ExportMusic(console);
+	}
+	else if (args == "voc")
+	{
+		ExportVOC(console);
 	}
 	else if (args == "scene")
 	{
@@ -185,6 +190,99 @@ void ExportCommandlet::ExportMusic(ToolApp* console)
 		ZMusic_Stop(song);
 	}
 	ZMusic_Close(song);
+}
+
+void ExportCommandlet::ExportVOC(ToolApp* console)
+{
+	WCArchive archive(mArchiveFilename);
+
+	std::vector<std::string> conversations =
+	{
+		"BUYFIGHT",
+		"BUYMERCH",
+		"BUYTUG",
+		"CARGO",
+		"SAMEMRCH",
+		"SAMEFGHT",
+		"SAMETUG",
+		"TOOPOOR"
+	};
+
+	for (const std::string& name : conversations)
+	{
+		console->WriteOutput(name + NewLine());
+
+		WCConversation conv(name, &archive);
+
+		for (const WCVOCSound& sound : conv.sounds)
+		{
+			auto player = AudioPlayer::Create(AudioSource::CreateSample(sound.samplerate, sound.samples.data(), sound.samples.size()));
+			Sleep(sound.samples.size() * 1000 / sound.samplerate + 250);
+		}
+	}
+
+	std::vector<std::string> files =
+	{
+		"DATA\\SPEECH\\MID01\\PC_1MG1.VOC",
+		"DATA\\SPEECH\\MID01\\PC_1MG2.VOC",
+		"DATA\\SPEECH\\MID01\\PC_1MG3.VOC",
+		"DATA\\SPEECH\\MID01\\PC_1MG4.VOC",
+		"DATA\\SPEECH\\MID01\\PC_1MG5.VOC",
+		"DATA\\SPEECH\\MID01\\PC_1MG6.VOC",
+		"DATA\\SPEECH\\MID01\\PC_1MG7.VOC",
+		"DATA\\SPEECH\\MID01\\PC_1MG8.VOC",
+		"DATA\\SPEECH\\MID01\\PIR1MG1.VOC",
+		"DATA\\SPEECH\\MID01\\PIR1MG2.VOC",
+		"DATA\\SPEECH\\MID01\\PIR1MG3.VOC",
+		"DATA\\SPEECH\\MID01\\PIR1MG4.VOC",
+		"DATA\\SPEECH\\MID01\\PIR1MG5.VOC",
+		"DATA\\SPEECH\\MID01\\PIR1MG6.VOC",
+		"DATA\\SPEECH\\MID01\\PIR1MG7.VOC",
+		"DATA\\SPEECH\\MID01\\PIR1MG8.VOC",
+		"DATA\\SPEECH\\MID01\\PIR1MG9.VOC",
+	};
+
+	for (const std::string& filename : files)
+	{
+		console->WriteOutput(filename + NewLine());
+		WCVOCSound sound(filename, &archive);
+		auto player = AudioPlayer::Create(AudioSource::CreateSample(sound.samplerate, sound.samples.data(), sound.samples.size()));
+		Sleep(sound.samples.size() * 1000 / sound.samplerate + 250);
+	}
+
+	WCPak pak("SPEECH.PAK", &archive);
+	int count = (int)pak.files.size();
+	for (int i = 0; i < count; i++)
+	{
+		FileEntryReader reader = pak.openFile(i);
+		if (reader.Size() == 0)
+			continue;
+
+		console->WriteOutput("SPEECH.PAK #" + ColorEscape(96) + std::to_string(i) + ResetEscape() + NewLine());
+
+		WCPak slots(reader);
+		int numSlots = (int)slots.files.size();
+		for (int j = 0; j < numSlots; j++)
+		{
+			try
+			{
+				FileEntryReader slotreader = slots.openFile(j);
+				if (slotreader.Size() == 0)
+					continue;
+
+				WCVOCSound sound(slotreader);
+
+				console->WriteOutput("SPEECH.PAK #" + ColorEscape(96) + std::to_string(i) + ResetEscape() + " Entry #" + ColorEscape(96) + std::to_string(j) + ResetEscape() + NewLine());
+
+				auto player = AudioPlayer::Create(AudioSource::CreateSample(sound.samplerate, sound.samples.data(), sound.samples.size()));
+				Sleep(sound.samples.size() * 1000 / sound.samplerate + 250);
+			}
+			catch (...)
+			{
+				console->WriteOutput("SPEECH.PAK #" + ColorEscape(96) + std::to_string(i) + ResetEscape() + " Entry #" + ColorEscape(96) + std::to_string(j) + ResetEscape() + " Not a VOC sound" + NewLine());
+			}
+		}
+	}
 }
 
 void ExportCommandlet::PrintForm(ToolApp* console, FileEntryReader& reader, int depth)

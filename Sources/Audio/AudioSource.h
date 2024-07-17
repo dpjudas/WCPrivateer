@@ -12,6 +12,7 @@ public:
 	static ZMusic_MusicStream OpenSong(std::vector<uint8_t> filedata);
 	static std::unique_ptr<AudioSource> CreateZMusic(ZMusic_MusicStream song);
 	static std::unique_ptr<AudioSource> CreateResampler(int targetFrequency, std::unique_ptr<AudioSource> source);
+	static std::unique_ptr<AudioSource> CreateSample(int frequency, const uint8_t* data, size_t size);
 
 	virtual ~AudioSource() = default;
 	virtual int GetFrequency() = 0;

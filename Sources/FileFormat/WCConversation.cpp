@@ -3,7 +3,9 @@
 #include "WCConversation.h"
 #include "WCArchive.h"
 #include "WCPak.h"
+#include "WCSound.h"
 #include "FileEntryReader.h"
+#include <lzw/lzw.h>
 
 WCConvBackgroundList::WCConvBackgroundList(WCArchive* archive)
 {
@@ -294,4 +296,46 @@ WCConversation::WCConversation(const std::string& name, WCArchive* archive)
 
 	reader = archive->openFile("DATA\\CONV\\" + name + ".VPK");
 
+	uint32_t paksize = reader.ReadUint32();
+	if (paksize != reader.Size())
+		return;
+
+	std::vector<size_t> offsets;
+	uint32_t firstoffset = reader.ReadUint24();
+	uint8_t unknown = reader.ReadUint8();
+	offsets.push_back(firstoffset);
+
+	uint32_t count = (firstoffset - 4) / 4;
+	for (uint32_t i = 1; i < count; i++)
+	{
+		uint32_t offset = reader.ReadUint24();
+		uint8_t unknown = reader.ReadUint8();
+		if (offset < firstoffset || offset >= paksize)
+			break;
+		offsets.push_back(offset);
+	}
+	offsets.push_back(paksize);
+
+	int filecount = (int)offsets.size() - 1;
+	for (int index = 0; index < filecount; index++)
+	{
+		size_t entrysize = offsets[index + 1] - offsets[index];
+		if (entrysize == 0)
+			continue;
+
+		reader.Seek(offsets[index]);
+		uint32_t uncompressedsize = reader.ReadUint32();
+
+		std::vector<uint8_t> input(entrysize);
+		reader.Read(input.data(), input.size());
+
+		std::vector<uint8_t> output(uncompressedsize);
+
+		lzw_state state = {};
+		int64_t result = lzw_decompress(&state, input.data(), input.size(), output.data(), output.size());
+		if (result < 0)
+			continue;
+
+		sounds.emplace_back(FileEntryReader(std::move(output)));
+	}
 }
