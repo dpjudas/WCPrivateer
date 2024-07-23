@@ -16,286 +16,292 @@ IntroScreen::~IntroScreen()
 {
 }
 
+void IntroScreen::AddScene(int start, int count, int palindex, std::string imagepak)
+{
+	auto palette = LoadPakPalette(imagepak, palindex);
+	IntroScene scene;
+	for (int i = 0; i < count; i++)
+	{
+		scene.images.push_back(LoadPakImage(imagepak, start + i, palette.get()));
+		scene.x.push_back(0);
+		scene.y.push_back(0);
+	}
+	scenes.push_back(std::move(scene));
+}
+
+void IntroScreen::AddText(int start, int count, std::string textpak)
+{
+	WCPak pak(textpak, app->archive.get());
+	for (size_t i = 0; i < count; i++)
+	{
+		std::vector<uint8_t> buf = pak.files[start + i];
+		buf.push_back(0);
+		scenetext.push_back((const char*)buf.data());
+	}
+}
+
+void IntroScreen::AddPirateScene(std::string imagepak, std::string fontname)
+{
+	auto facepal = LoadPakPalette(imagepak, 15);
+	auto bgpal = LoadPakPalette(imagepak, 19);
+	WCPalette palette;
+	for (WCPalette* p : { facepal.get(), bgpal.get() })
+	{
+		for (int i = p->start, end = p->start + p->count; i < end; i++)
+		{
+			palette.palette[i] = p->palette[i];
+		}
+	}
+
+	font = LoadShpImage(fontname, &palette); // slot 6
+	background = LoadPakImage(imagepak, 20, &palette);
+	face = LoadPakImage(imagepak, 16, &palette);
+
+	faceX = 40;
+	faceY = 38;
+}
+
+void IntroScreen::AddProtagonistScene(std::string imagepak, std::string fontname)
+{
+	auto facepal = LoadPakPalette(imagepak, 13);
+	auto bgpal = LoadPakPalette(imagepak, 17);
+	WCPalette palette;
+	for (WCPalette* p : { facepal.get(), bgpal.get() })
+	{
+		for (int i = p->start, end = p->start + p->count; i < end; i++)
+		{
+			palette.palette[i] = p->palette[i];
+		}
+	}
+
+	font = LoadShpImage(fontname, &palette); // slot 6
+	background = LoadPakImage(imagepak, 18, &palette);
+	face = LoadPakImage(imagepak, 14, &palette);
+
+	faceX = 0;
+	faceY = 37;
+}
+
 void IntroScreen::SetScene(int index)
 {
 	currentScene = index;
 	currentSound = -1;
+	scenetext.clear();
+	font.clear();
+	sounds.clear();
+	scenes.clear();
 
 	if (currentScene == 0) // Planet panning scene
 	{
 		movie = std::make_unique<WCMovie>("DATA\\MIDGAMES\\MID1A.IFF", app->archive.get());
-
 		std::string imagepak = movie->files[0].filename; // slot 0
 		std::string textpak = movie->files[1].filename; // slot 1
 
-		WCPak pak(textpak, app->archive.get());
-		for (size_t i = 0; i < 4; i++)
-		{
-			std::vector<uint8_t> buf = pak.files[i];
-			buf.push_back(0);
-			scenetext.push_back((const char*)buf.data());
-		}
-
-		palette = LoadPakPalette(imagepak, 0);
-		scene.clear();
-		scene.push_back(LoadPakImage(imagepak, 1, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 2, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 3, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 4, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 5, palette.get()));
-
-		font = LoadShpImage(movie->files[2].filename, palette.get()); // slot 2
+		AddText(0, 4, textpak);
+		AddScene(1, 5, 0, imagepak);
+		font = LoadShpImage(movie->files[2].filename, LoadPakPalette(imagepak, 0).get()); // slot 2
 		PlayMusic(movie->files[3].filename + ".GEN", 0); // slot 4
 	}
 	else if (currentScene == 1) // cockpit + ship chase scene
 	{
 		movie = std::make_unique<WCMovie>("DATA\\MIDGAMES\\MID1B.IFF", app->archive.get());
-
 		std::string imagepak = movie->files[0].filename; // slot 0
-		palette = LoadPakPalette(imagepak, 6);
-		scene.clear();
-		scene.push_back(LoadPakImage(imagepak, 7, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 8, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 9, palette.get()));
-		palette = LoadPakPalette(imagepak, 10);
-		scene.push_back(LoadPakImage(imagepak, 11, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 12, palette.get()));
+
+		AddScene(7, 3, 6, imagepak);
+		AddScene(11, 2, 10, imagepak);
+
+		scenes[0].y[2] = 91;
+		scenes[1].y[0] = 32;
+		scenes[1].y[1] = 32;
 	}
 	else if (currentScene == 2) // pirate conversation
 	{
 		movie = std::make_unique<WCMovie>("DATA\\MIDGAMES\\MID1C1.IFF", app->archive.get());
-
 		std::string imagepak = movie->files[0].filename; // slot 0
 		std::string textpak = movie->files[1].filename; // slot 1
 
-		WCPak pak(textpak, app->archive.get());
-		scenetext.clear();
-		for (size_t i = 4; i < 7; i++)
-		{
-			std::vector<uint8_t> buf = pak.files[i];
-			buf.push_back(0);
-			scenetext.push_back((const char*)buf.data());
-		}
-
-		palette = LoadPakPalette(imagepak, 10);
-		font = LoadShpImage(movie->files[2].filename, palette.get()); // slot 6
-
-		sounds.clear();
+		AddPirateScene(imagepak, movie->files[2].filename);
+		AddText(4, 3, textpak);
 		sounds.push_back(std::make_unique<WCVOCSound>(movie->files[3].filename, app->archive.get())); // slot 61
 		sounds.push_back(std::make_unique<WCVOCSound>(movie->files[4].filename, app->archive.get())); // slot 62
 		sounds.push_back(std::make_unique<WCVOCSound>(movie->files[5].filename, app->archive.get())); // slot 63
-
-		scene.clear();
 	}
 	else if (currentScene == 3) // protagonist replying back conversation
 	{
 		movie = std::make_unique<WCMovie>("DATA\\MIDGAMES\\MID1C2.IFF", app->archive.get());
-
 		std::string imagepak = movie->files[0].filename; // slot 0
 		std::string textpak = movie->files[1].filename; // slot 1
 
-		WCPak pak(textpak, app->archive.get());
-		scenetext.clear();
-		for (size_t i = 7; i < 9; i++)
-		{
-			std::vector<uint8_t> buf = pak.files[i];
-			buf.push_back(0);
-			scenetext.push_back((const char*)buf.data());
-		}
-
-		palette = LoadPakPalette(imagepak, 10);
-		font = LoadShpImage(movie->files[2].filename, palette.get()); // slot 6
-
-		sounds.clear();
+		AddProtagonistScene(imagepak, movie->files[2].filename);
+		AddText(7, 2, textpak);
 		sounds.push_back(std::make_unique<WCVOCSound>(movie->files[3].filename, app->archive.get())); // slot 94
 		sounds.push_back(std::make_unique<WCVOCSound>(movie->files[4].filename, app->archive.get())); // slot 95
-
-		scene.clear();
 	}
 	else if (currentScene == 4) // pirate conv 2
 	{
 		movie = std::make_unique<WCMovie>("DATA\\MIDGAMES\\MID1C3.IFF", app->archive.get());
-
 		std::string imagepak = movie->files[0].filename; // slot 0
 		std::string textpak = movie->files[1].filename; // slot 1
 
-		WCPak pak(textpak, app->archive.get());
-		scenetext.clear();
-		for (size_t i = 9; i < 11; i++)
-		{
-			std::vector<uint8_t> buf = pak.files[i];
-			buf.push_back(0);
-			scenetext.push_back((const char*)buf.data());
-		}
-
-		palette = LoadPakPalette(imagepak, 10);
-		font = LoadShpImage(movie->files[2].filename, palette.get()); // slot 6
-
-		sounds.clear();
+		AddPirateScene(imagepak, movie->files[2].filename);
+		AddText(9, 2, textpak);
 		sounds.push_back(std::make_unique<WCVOCSound>(movie->files[3].filename, app->archive.get())); // slot 116
 		sounds.push_back(std::make_unique<WCVOCSound>(movie->files[4].filename, app->archive.get())); // slot 117
-
-		scene.clear();
 	}
 	else if (currentScene == 5) // protagonist conv 2
 	{
 		movie = std::make_unique<WCMovie>("DATA\\MIDGAMES\\MID1C4.IFF", app->archive.get());
-
 		std::string imagepak = movie->files[0].filename; // slot 0
 		std::string textpak = movie->files[1].filename; // slot 1
 
-		WCPak pak(textpak, app->archive.get());
-		scenetext.clear();
-		for (size_t i = 11; i < 13; i++)
-		{
-			std::vector<uint8_t> buf = pak.files[i];
-			buf.push_back(0);
-			scenetext.push_back((const char*)buf.data());
-		}
-
-		palette = LoadPakPalette(imagepak, 10);
-		font = LoadShpImage(movie->files[2].filename, palette.get()); // slot 6
-
-		sounds.clear();
+		AddProtagonistScene(imagepak, movie->files[2].filename);
+		AddText(11, 2, textpak);
 		sounds.push_back(std::make_unique<WCVOCSound>(movie->files[3].filename, app->archive.get())); // slot 138
 		sounds.push_back(std::make_unique<WCVOCSound>(movie->files[4].filename, app->archive.get())); // slot 139
-
-		scene.clear();
 	}
 	else if (currentScene == 6) // Ship turning around to fight + a lot of fighting scenes
 	{
 		movie = std::make_unique<WCMovie>("DATA\\MIDGAMES\\MID1D.IFF", app->archive.get());
-
 		std::string imagepak = movie->files[0].filename; // slot 0
 
-		scenetext.clear();
-		font.clear();
-		sounds.clear();
+		AddScene(23, 2, 22, imagepak);
+		AddScene(26, 2, 25, imagepak);
+		AddScene(29, 3, 28, imagepak);
+		AddScene(33, 5, 32, imagepak);
+		AddScene(39, 4, 38, imagepak);
+		AddScene(44, 4, 43, imagepak);
+		AddScene(49, 4, 48, imagepak);
+		AddScene(54, 6, 53, imagepak);
+		AddScene(61, 4, 60, imagepak);
 
-		scene.clear();
-
-		palette = LoadPakPalette(imagepak, 22);
-		scene.push_back(LoadPakImage(imagepak, 23, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 24, palette.get()));
-
-		palette = LoadPakPalette(imagepak, 25);
-		scene.push_back(LoadPakImage(imagepak, 26, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 27, palette.get()));
-
-		palette = LoadPakPalette(imagepak, 28);
-		scene.push_back(LoadPakImage(imagepak, 29, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 30, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 31, palette.get()));
-
-		palette = LoadPakPalette(imagepak, 32);
-		scene.push_back(LoadPakImage(imagepak, 33, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 34, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 35, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 36, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 37, palette.get()));
-
-		palette = LoadPakPalette(imagepak, 38);
-		scene.push_back(LoadPakImage(imagepak, 39, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 40, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 41, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 42, palette.get()));
-
-		palette = LoadPakPalette(imagepak, 43);
-		scene.push_back(LoadPakImage(imagepak, 44, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 45, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 46, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 47, palette.get()));
-
-		palette = LoadPakPalette(imagepak, 48);
-		scene.push_back(LoadPakImage(imagepak, 49, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 50, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 51, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 52, palette.get()));
-
-		palette = LoadPakPalette(imagepak, 53);
-		scene.push_back(LoadPakImage(imagepak, 54, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 55, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 56, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 57, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 58, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 59, palette.get()));
-
-		palette = LoadPakPalette(imagepak, 60);
-		scene.push_back(LoadPakImage(imagepak, 61, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 62, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 63, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 64, palette.get()));
+		for (auto& scene : scenes)
+		{
+			for (auto& y : scene.y)
+				y = 32;
+		}
 	}
 	else if (currentScene == 7) // pirate conv 3
 	{
 		movie = std::make_unique<WCMovie>("DATA\\MIDGAMES\\MID1E1.IFF", app->archive.get());
-
 		std::string imagepak = movie->files[0].filename; // slot 0
 		std::string textpak = movie->files[1].filename; // slot 1
 
-		WCPak pak(textpak, app->archive.get());
-		scenetext.clear();
-		for (size_t i = 13; i < 16; i++)
-		{
-			std::vector<uint8_t> buf = pak.files[i];
-			buf.push_back(0);
-			scenetext.push_back((const char*)buf.data());
-		}
-
-		palette = LoadPakPalette(imagepak, 10);
-		font = LoadShpImage(movie->files[2].filename, palette.get()); // slot 6
-
-		sounds.clear();
+		AddPirateScene(imagepak, movie->files[2].filename);
+		AddText(13, 2, textpak);
 		sounds.push_back(std::make_unique<WCVOCSound>(movie->files[3].filename, app->archive.get())); // slot 94
 		sounds.push_back(std::make_unique<WCVOCSound>(movie->files[4].filename, app->archive.get())); // slot 95
-
-		scene.clear();
 	}
 	else if (currentScene == 8) // protagonist conv 3
 	{
 		movie = std::make_unique<WCMovie>("DATA\\MIDGAMES\\MID1E2.IFF", app->archive.get());
+		std::string imagepak = movie->files[0].filename; // slot 0
+		std::string textpak = movie->files[1].filename; // slot 1
+
+		AddProtagonistScene(imagepak, movie->files[2].filename);
+		AddText(15, 1, textpak);
+		sounds.push_back(std::make_unique<WCVOCSound>(movie->files[3].filename, app->archive.get())); // slot 94
 	}
 	else if (currentScene == 9) // pirate conv 4
 	{
 		movie = std::make_unique<WCMovie>("DATA\\MIDGAMES\\MID1E3.IFF", app->archive.get());
+		std::string imagepak = movie->files[0].filename; // slot 0
+		std::string textpak = movie->files[1].filename; // slot 1
+
+		AddPirateScene(imagepak, movie->files[2].filename);
+		AddText(16, 2, textpak);
+		sounds.push_back(std::make_unique<WCVOCSound>(movie->files[3].filename, app->archive.get())); // slot 95
+		sounds.push_back(std::make_unique<WCVOCSound>(movie->files[4].filename, app->archive.get())); // slot 96
 	}
 	else if (currentScene == 10) // protagonist conv 4
 	{
 		movie = std::make_unique<WCMovie>("DATA\\MIDGAMES\\MID1E4.IFF", app->archive.get());
+		std::string imagepak = movie->files[0].filename; // slot 0
+		std::string textpak = movie->files[1].filename; // slot 1
+
+		AddProtagonistScene(imagepak, movie->files[2].filename);
+		AddText(18, 3, textpak);
+		sounds.push_back(std::make_unique<WCVOCSound>(movie->files[3].filename, app->archive.get())); // slot 94
+		sounds.push_back(std::make_unique<WCVOCSound>(movie->files[4].filename, app->archive.get())); // slot 95
+		sounds.push_back(std::make_unique<WCVOCSound>(movie->files[5].filename, app->archive.get())); // slot 96
 	}
 	else if (currentScene == 11) // alien aircraft gets hit by missile
 	{
 		movie = std::make_unique<WCMovie>("DATA\\MIDGAMES\\MID1F.IFF", app->archive.get());
-
 		std::string imagepak = movie->files[0].filename; // slot 0
 
-		scenetext.clear();
-		font.clear();
-		sounds.clear();
+		AddScene(66, 4, 65, imagepak);
+		AddScene(71, 3, 70, imagepak);
+		AddScene(75, 5, 74, imagepak);
 
-		WCPak pak2(imagepak, app->archive.get());
-		scene.clear();
-
-		palette = LoadPakPalette(imagepak, 65);
-		scene.push_back(LoadPakImage(imagepak, 66, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 67, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 68, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 69, palette.get()));
-
-		palette = LoadPakPalette(imagepak, 70);
-		scene.push_back(LoadPakImage(imagepak, 71, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 72, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 73, palette.get()));
-
-		palette = LoadPakPalette(imagepak, 74);
-		scene.push_back(LoadPakImage(imagepak, 75, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 76, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 77, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 78, palette.get()));
-		scene.push_back(LoadPakImage(imagepak, 79, palette.get()));
+		for (auto& scene : scenes)
+		{
+			for (auto& y : scene.y)
+				y = 32;
+		}
 	}
 
 	SetStartTime();
+}
+
+void IntroScreen::RenderConversationScene(RenderDevice* renderdev, int nextScene)
+{
+	int64_t time = GetMovieTime();
+
+	renderdev->DrawImage(0, 0, background[0].get());
+	renderdev->DrawImage(faceX, faceY, face[0].get()); // head
+	renderdev->DrawImage(faceX, faceY, face[1].get()); // ?
+	renderdev->DrawImage(faceX, faceY, face[2].get()); // eyes (2-6)
+	renderdev->DrawImage(faceX, faceY, face[7].get()); // ? (7-15)
+	renderdev->DrawImage(faceX, faceY, face[17].get()); // mouth (16-27)
+	renderdev->DrawImage(faceX, faceY, face[28].get()); // body
+
+	int i = 0;
+	for (auto& sound : sounds)
+	{
+		int soundEnd = sound->samples.size() * 1000 / sound->samplerate + 250;
+		if (time < soundEnd)
+		{
+			DrawText(renderdev, 160, 172, scenetext[i], font, GameTextAlignment::Center);
+
+			if (currentSound != i)
+			{
+				currentSound = i;
+				PlaySound(sounds[currentSound].get());
+			}
+			return;
+		}
+		time -= soundEnd;
+		i++;
+	}
+
+	SetScene(nextScene);
+}
+
+void IntroScreen::RenderMovieScenes(RenderDevice* renderdev, int nextScene)
+{
+	int64_t time = GetMovieTime();
+	for (auto& scene : scenes)
+	{
+		size_t index = (size_t)(time / 35);
+		size_t endindex = 0;
+		for (auto& image : scene.images)
+			endindex = std::max(endindex, image.size());
+
+		if (index < endindex)
+		{
+			int i = 0;
+			for (auto& image : scene.images)
+			{
+				size_t frame = std::min(index, image.size() - 1);
+				renderdev->DrawImage(scene.x[i], scene.y[i], scene.images[i][frame].get());
+				i++;
+			}
+			return;
+		}
+		time -= endindex * 35;
+	}
+
+	SetScene(nextScene);
 }
 
 void IntroScreen::Render(RenderDevice* renderdev)
@@ -324,159 +330,67 @@ void IntroScreen::Render(RenderDevice* renderdev)
 			// To do: play sound effect here - where does it come from?
 		}
 
-		renderdev->DrawImage(0 - cameraX, 32, scene[0][0].get());
-		renderdev->DrawImage(320 - cameraX, 32, scene[1][0].get());
-		renderdev->DrawImage(400 - cameraX, 32, scene[2][0].get());
-		renderdev->DrawImage(480 - cameraX, 32, scene[3][0].get());
+		auto& scene = scenes[0];
+		renderdev->DrawImage(0 - cameraX, 32, scene.images[0][0].get());
+		renderdev->DrawImage(320 - cameraX, 32, scene.images[1][0].get());
+		renderdev->DrawImage(400 - cameraX, 32, scene.images[2][0].get());
+		renderdev->DrawImage(480 - cameraX, 32, scene.images[3][0].get());
 
 		if (time >= scrollend)
 		{
-			size_t frame = std::min((size_t)((time - scrollend) / 35), scene[4].size() - 1);
-			renderdev->DrawImage(480 - cameraX, 32, scene[4][frame].get());
+			size_t frame = std::min((size_t)((time - scrollend) / 35), scene.images[4].size() - 1);
+			renderdev->DrawImage(480 - cameraX, 32, scene.images[4][frame].get());
 
-			if ((size_t)((time - scrollend) / 35) >= scene[4].size())
+			if ((size_t)((time - scrollend) / 35) >= scene.images[4].size())
 				SetScene(1);
 		}
 	}
 	else if (currentScene == 1)
 	{
-		// To do: play sample when frame1 changes from 0 to 1 - where does it come from?
-
-		size_t index = (size_t)(time / 35);
-		if (index < scene[2].size())
-		{
-			size_t frame0 = std::min(index, scene[0].size() - 1);
-			size_t frame1 = std::min(index, scene[1].size() - 1);
-			size_t frame2 = std::min(index, scene[2].size() - 1);
-			renderdev->DrawImage(0, 0, scene[0][frame0].get());
-			renderdev->DrawImage(0, 0, scene[1][frame1].get());
-			renderdev->DrawImage(0, 91, scene[2][frame2].get());
-		}
-		else
-		{
-			index -= scene[2].size();
-			size_t frame3 = std::min(index, scene[3].size() - 1);
-			size_t frame4 = std::min(index, scene[4].size() - 1);
-			renderdev->DrawImage(0, 32, scene[3][frame3].get());
-			renderdev->DrawImage(0, 32, scene[4][frame4].get());
-			if (index >= scene[4].size())
-				SetScene(2);
-		}
-
+		RenderMovieScenes(renderdev, 2);
 	}
 	else if (currentScene == 2)
 	{
-		int soundEnd0 = sounds[0]->samples.size() * 1000 / sounds[0]->samplerate + 250;
-		int soundEnd1 = soundEnd0 + sounds[1]->samples.size() * 1000 / sounds[1]->samplerate + 250;
-		int soundEnd2 = soundEnd1 + sounds[2]->samples.size() * 1000 / sounds[2]->samplerate + 250;
-		if (time < soundEnd0)
-		{
-			DrawText(renderdev, 160, 172, scenetext[0], font, GameTextAlignment::Center);
-
-			if (currentSound != 0)
-			{
-				currentSound = 0;
-				PlaySound(sounds[currentSound].get());
-			}
-		}
-		else if (time < soundEnd1)
-		{
-			DrawText(renderdev, 160, 172, scenetext[1], font, GameTextAlignment::Center);
-
-			if (currentSound != 1)
-			{
-				currentSound = 1;
-				PlaySound(sounds[currentSound].get());
-			}
-		}
-		else if (time < soundEnd2)
-		{
-			DrawText(renderdev, 160, 172, scenetext[2], font, GameTextAlignment::Center);
-
-			if (currentSound != 2)
-			{
-				currentSound = 2;
-				PlaySound(sounds[currentSound].get());
-			}
-		}
-		else
-		{
-			SetScene(3);
-		}
+		RenderConversationScene(renderdev, 3);
 	}
 	else if (currentScene == 3)
 	{
-		int soundEnd0 = sounds[0]->samples.size() * 1000 / sounds[0]->samplerate + 250;
-		int soundEnd1 = soundEnd0 + sounds[1]->samples.size() * 1000 / sounds[1]->samplerate + 250;
-		if (time < soundEnd0)
-		{
-			DrawText(renderdev, 160, 172, scenetext[0], font, GameTextAlignment::Center);
-
-			if (currentSound != 0)
-			{
-				currentSound = 0;
-				PlaySound(sounds[currentSound].get());
-			}
-		}
-		else if (time < soundEnd1)
-		{
-			DrawText(renderdev, 160, 172, scenetext[1], font, GameTextAlignment::Center);
-
-			if (currentSound != 1)
-			{
-				currentSound = 1;
-				PlaySound(sounds[currentSound].get());
-			}
-		}
-		else
-		{
-			SetScene(4);
-		}
+		RenderConversationScene(renderdev, 4);
 	}
 	else if (currentScene == 4)
 	{
-		SetScene(5);
+		RenderConversationScene(renderdev, 5);
 	}
 	else if (currentScene == 5)
 	{
-		SetScene(6);
+		RenderConversationScene(renderdev, 6);
 	}
 	else if (currentScene == 6)
 	{
-		size_t frame0 = std::min((size_t)(time / 35), scene[0].size() - 1);
-		size_t frame1 = std::min((size_t)(time / 35), scene[1].size() - 1);
-		renderdev->DrawImage(0, 32, scene[0][frame0].get());
-		renderdev->DrawImage(0, 32, scene[1][frame1].get());
-		if ((size_t)(time / 35) >= scene[1].size())
-			SetScene(7);
+		RenderMovieScenes(renderdev, 7);
 	}
 	else if (currentScene == 7)
 	{
-		SetScene(8);
+		RenderConversationScene(renderdev, 8);
 	}
 	else if (currentScene == 8)
 	{
-		SetScene(9);
+		RenderConversationScene(renderdev, 9);
 	}
 	else if (currentScene == 9)
 	{
-		SetScene(10);
+		RenderConversationScene(renderdev, 10);
 	}
 	else if (currentScene == 10)
 	{
-		SetScene(11);
+		RenderConversationScene(renderdev, 11);
 	}
 	else if (currentScene == 11)
 	{
-		size_t frame0 = std::min((size_t)(time / 35), scene[0].size() - 1);
-		size_t frame1 = std::min((size_t)(time / 35), scene[1].size() - 1);
-		size_t frame2 = std::min((size_t)(time / 35), scene[2].size() - 1);
-		size_t frame3 = std::min((size_t)(time / 35), scene[3].size() - 1);
-		renderdev->DrawImage(0, 32, scene[0][frame0].get());
-		renderdev->DrawImage(0, 32, scene[1][frame1].get());
-		renderdev->DrawImage(0, 32, scene[2][frame1].get());
-		renderdev->DrawImage(0, 32, scene[3][frame1].get());
-
+		RenderMovieScenes(renderdev, 12);
+	}
+	else if (currentScene == 12)
+	{
 		ShowScreen(std::make_unique<MainMenuScreen>(app));
 	}
 }
