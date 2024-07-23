@@ -21,7 +21,7 @@ void ShipSoftwareScreen::Render(RenderDevice* renderdev)
 		smallFont = LoadMssgFont(palette.get(), 15); // The color of this font doesn't match the game. Is it actually the wrong font?
 	}
 
-	renderdev->DrawImage(65 + softwareStuff[selectedItem][0]->x, 120 + softwareStuff[selectedItem][0]->y, softwareStuff[selectedItem][0]->width, softwareStuff[selectedItem][0]->height, softwareStuff[selectedItem][0].get());
+	renderdev->DrawImage(65, 120, softwareStuff[selectedItem][0].get());
 
 	const std::vector<std::string>& softText = app->gamedata->softText;
 	const WCShipStuffItem& itemInfo = app->gamedata->softwareStuff[selectedItem];

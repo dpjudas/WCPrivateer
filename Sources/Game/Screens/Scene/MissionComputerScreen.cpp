@@ -78,7 +78,7 @@ void MissionComputerScreen::Render(RenderDevice* renderdev)
 		smallFont = LoadMssgFont(palette.get(), 46);
 	}
 
-	renderdev->DrawImage(computerscreen->x, computerscreen->y, computerscreen->width, computerscreen->height, computerscreen.get());
+	renderdev->DrawImage(0, 0, computerscreen.get());
 
 	if (screenAlign == GameTextAlignment::Left)
 		DrawText(renderdev, 56, 35, WordWrap(screenText, 156, smallFont), smallFont, screenAlign);

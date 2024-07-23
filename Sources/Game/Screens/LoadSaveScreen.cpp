@@ -15,13 +15,13 @@ void LoadSaveScreen::Render(RenderDevice* renderdev)
 		font = LoadPCFont(palette.get());
 	}
 
-	renderdev->DrawImage(background[0]->x, background[0]->y, background[0]->width, background[0]->height, background[0].get());
+	renderdev->DrawImage(0, 0, background[0].get());
 
 	ButtonName cursorButton = GetHotButton();
 	if (buttonAtMouseDown == cursorButton && cursorButton != ButtonName::None)
 	{
 		int index = 2 + (int)cursorButton;
-		renderdev->DrawImage(background[index]->x, background[index]->y, background[index]->width, background[index]->height, background[index].get());
+		renderdev->DrawImage(0, 0, background[index].get());
 	}
 
 	/*

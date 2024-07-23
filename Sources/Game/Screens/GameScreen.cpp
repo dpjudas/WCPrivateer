@@ -10,6 +10,16 @@ GameScreen::GameScreen(GameApp* app) : app(app)
 {
 }
 
+void GameScreen::PlayMusic(std::string filename, int song)
+{
+	app->PlayMusic(filename, song);
+}
+
+void GameScreen::PlaySound(WCVOCSound* sound)
+{
+	app->PlaySound(sound);
+}
+
 void GameScreen::ShowScreen(std::unique_ptr<GameScreen> screen)
 {
 	app->ShowScreen(std::move(screen));
@@ -495,7 +505,7 @@ void GameScreen::DrawTextImpl(RenderDevice* renderdev, int x, int y, const std::
 		}
 		else if (i < font.size() && !font[i]->pixels.empty())
 		{
-			renderdev->DrawImage(font[i]->x + x, font[i]->y + y, font[i]->width, font[i]->height, font[i].get());
+			renderdev->DrawImage(x, y, font[i].get());
 			x += font[i]->width - font[i]->x + 2;
 		}
 	}

@@ -8,6 +8,7 @@ class GameApp;
 class GameTexture;
 class WCImage;
 class WCImageFrame;
+class WCVOCSound;
 
 enum class GameTextAlignment
 {
@@ -34,6 +35,9 @@ public:
 	void ShowScreen(std::unique_ptr<GameScreen> screen);
 	void PushScreen(std::unique_ptr<GameScreen> screen);
 	void PopScreen();
+
+	void PlayMusic(std::string filename, int song);
+	void PlaySound(WCVOCSound* sound);
 
 	int GetTextWidth(const std::string_view& text, std::vector<std::unique_ptr<GameTexture>>& font);
 	std::string WordWrap(std::string text, int width, std::vector<std::unique_ptr<GameTexture>>& font);

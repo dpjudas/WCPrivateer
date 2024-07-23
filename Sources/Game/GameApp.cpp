@@ -166,14 +166,34 @@ static HCURSOR CreateAlphaCursor(const WCImageFrame& source, const WCPalette* pa
 	return cursor;
 }
 
-// #define PLAY_MUSIC
-
 GameApp::GameApp()
 {
 }
 
 GameApp::~GameApp()
 {
+}
+
+void GameApp::PlayMusic(std::string filename, int song)
+{
+	WCMusic music(filename, archive.get());
+
+	musicStream = AudioSource::OpenSong(music.songs[song]);
+	int subsong = 0;
+	bool loop = true;
+	bool result = ZMusic_Start(musicStream, subsong, loop);
+	if (result)
+	{
+		SoundStreamInfo fmt;
+		ZMusic_GetStreamInfo(musicStream, &fmt);
+		if (fmt.mBufferSize != 0)
+			musicPlayer = AudioPlayer::Create(AudioSource::CreateZMusic(musicStream));
+	}
+}
+
+void GameApp::PlaySound(WCVOCSound* sound)
+{
+	soundPlayer = AudioPlayer::Create(AudioSource::CreateSample(sound->samplerate, sound->samples.data(), sound->samples.size()));
 }
 
 int GameApp::main(std::vector<std::string> args)
@@ -196,29 +216,17 @@ int GameApp::main(std::vector<std::string> args)
 		WCImage cursor(cursorShp);
 		HCURSOR win32cursor = CreateAlphaCursor(cursor.frames[0], palette.get());
 
-#ifdef PLAY_MUSIC
-		WCMusic music("DATA\\SOUND\\BASETUNE.GEN", archive.get());
+		//PlayMusic("DATA\\SOUND\\BASETUNE.GEN", 3);
 
-		ZMusic_MusicStream song = AudioSource::OpenSong(music.songs[3]);
-		int subsong = 0;
-		bool loop = true;
-		bool result = ZMusic_Start(song, subsong, loop);
-
-		std::unique_ptr<AudioPlayer> audioPlayer;
-		SoundStreamInfo fmt;
-		ZMusic_GetStreamInfo(song, &fmt);
-		if (fmt.mBufferSize != 0)
-			audioPlayer = AudioPlayer::Create(AudioSource::CreateZMusic(song));
-#endif
-
-		PushScreen(std::make_unique<MainMenuScreen>(this));
+		PushScreen(std::make_unique<IntroScreen>(this));
 
 		while (!exitFlag && !screenStack.empty())
 		{
 			DisplayWindow::ProcessEvents();
-#ifdef PLAY_MUSIC
-			ZMusic_Update(song);
-#endif
+
+			if (musicPlayer)
+				ZMusic_Update(musicStream);
+
 			SetCursor(win32cursor);
 
 			double letterboxwidth = 320 * window.GetHeight() / 240;

@@ -46,12 +46,12 @@ void SceneScreen::Render(RenderDevice* renderdev)
 		{
 			GameTexture* bgimage = backgrounds[i][(framecounter / 20) % backgrounds[i].size()].get();
 			const auto& shape = app->gamedata->sceneList->scenes[scene].background.shapes[i];
-			renderdev->DrawImage(bgimage->x + shape.offsetX, bgimage->y + shape.offsetY, bgimage->width, bgimage->height, bgimage);
+			renderdev->DrawImage(shape.offsetX, shape.offsetY, bgimage);
 		}
 	}
 
 	if (!ship.empty())
-		renderdev->DrawImage(ship[0]->x, ship[0]->y, ship[0]->width, ship[0]->height, ship[0].get());
+		renderdev->DrawImage(0, 0, ship[0].get());
 
 	int hotRegion = GetHotRegion();
 	if (hotRegion != -1)
@@ -75,7 +75,7 @@ void SceneScreen::DrawSprite(RenderDevice* renderdev, int i, int x, int y)
 	const auto& sprite = app->gamedata->sceneList->scenes[scene].foreground.sprites[i];
 	int frame = sprite.sequence.empty() ? (framecounter / 20) % sprites[i].size() : sprite.sequence[(framecounter / 20) % sprite.sequence.size()];
 	GameTexture* fgimage = sprites[i][frame].get();
-	renderdev->DrawImage(x + fgimage->x + sprite.x1, y + fgimage->y + sprite.y1, fgimage->width, fgimage->height, fgimage);
+	renderdev->DrawImage(x + sprite.x1, y + sprite.y1, fgimage);
 }
 
 int SceneScreen::GetHotRegion()

@@ -40,14 +40,14 @@ void ShipGarageScreen::Render(RenderDevice* renderdev)
 	}
 
 	// Draw the ship
-	renderdev->DrawImage(shipShape[0]->x, shipShape[0]->y, shipShape[0]->width, shipShape[0]->height, shipShape[0].get());
+	renderdev->DrawImage(0, 0, shipShape[0].get());
 
 	// Draw guns
 	{
 		int item = 5;
 		for (int slot = 0; slot < 4; slot++)
 		{
-			renderdev->DrawImage(guns[item][slot]->x, guns[item][slot]->y, guns[item][slot]->width, guns[item][slot]->height, guns[item][slot].get());
+			renderdev->DrawImage(0, 0, guns[item][slot].get());
 		}
 	}
 
@@ -55,17 +55,17 @@ void ShipGarageScreen::Render(RenderDevice* renderdev)
 	{
 		int item = 2;
 		int subitem = 2;
-		renderdev->DrawImage(misc[item][subitem]->x, misc[item][subitem]->y, misc[item][subitem]->width, misc[item][subitem]->height, misc[item][subitem].get());
+		renderdev->DrawImage(0, 0, misc[item][subitem].get());
 	}
 
 	// Panel
-	renderdev->DrawImage(panel[0]->x, 199 - panel[0]->y - panel[0]->height, panel[0]->width, panel[0]->height, panel[0].get());
+	renderdev->DrawImage(0, 199 - panel[0]->height, panel[0].get());
 
 	// Active mode
-	renderdev->DrawImage(buttons[mode]->x, 199 - buttons[mode]->y - buttons[mode]->height, buttons[mode]->width, buttons[mode]->height, buttons[mode].get());
+	renderdev->DrawImage(0, 199 - buttons[mode]->height, buttons[mode].get());
 
 	// Draw the current item
-	renderdev->DrawImage(75 + shipStuff[selectedItem][0]->x, 150 + shipStuff[selectedItem][0]->y, shipStuff[selectedItem][0]->width, shipStuff[selectedItem][0]->height, shipStuff[selectedItem][0].get());
+	renderdev->DrawImage(75, 150, shipStuff[selectedItem][0].get());
 
 	const std::vector<std::string>& mtext = app->gamedata->shipMText;
 	const WCShipStuffItem& itemInfo = app->gamedata->shipStuff[selectedItem];

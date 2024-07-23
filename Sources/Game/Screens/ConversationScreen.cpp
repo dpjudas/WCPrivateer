@@ -87,7 +87,7 @@ void ConversationScreen::Render(RenderDevice* renderdev)
 	framecounter++;
 
 	GameTexture* bgimage = background[(framecounter / 20) % background.size()].get();
-	renderdev->DrawImage(bgimage->x + 160 - bgimage->width / 2, bgimage->y + 100 - bgimage->height / 2, bgimage->width, bgimage->height, bgimage);
+	renderdev->DrawImage(bgimage->x + 160 - bgimage->width / 2, bgimage->y + 100 - bgimage->height / 2, bgimage);
 
 	const WCConvFace& face = faceList->faces[curFace];
 
@@ -101,27 +101,27 @@ void ConversationScreen::Render(RenderDevice* renderdev)
 	if (!head.empty())
 	{
 		GameTexture* img = head[(framecounter / 20) % head.size()].get();
-		renderdev->DrawImage(160 + img->x, img->y + offsetY, img->width, img->height, img);
+		renderdev->DrawImage(160, offsetY, img);
 	}
 	if (!eyes.empty())
 	{
 		GameTexture* img = eyes[(framecounter / 20) % eyes.size()].get();
-		renderdev->DrawImage(160 + img->x + face.eyesX, img->y + offsetY + face.eyesY, img->width, img->height, img);
+		renderdev->DrawImage(160 + face.eyesX, offsetY + face.eyesY, img);
 	}
 	if (!mouth.empty())
 	{
 		GameTexture* img = mouth[(framecounter / 20) % mouth.size()].get();
-		renderdev->DrawImage(160 + img->x + face.mouthX, img->y + offsetY + face.mouthY, img->width, img->height, img);
+		renderdev->DrawImage(160 + face.mouthX, offsetY + face.mouthY, img);
 	}
 	if (!uniform.empty())
 	{
 		GameTexture* img = uniform[(framecounter / 20) % uniform.size()].get();
-		renderdev->DrawImage(160 + img->x + face.uniformX, img->y + offsetY + face.uniformY, img->width, img->height, img);
+		renderdev->DrawImage(160 + face.uniformX, offsetY + face.uniformY, img);
 	}
 	if (!hand.empty())
 	{
 		GameTexture* img = hand[(framecounter / 20) % hand.size()].get();
-		renderdev->DrawImage(160 + img->x + face.handX, img->y + offsetY + face.handY, img->width, img->height, img);
+		renderdev->DrawImage(160 + face.handX, offsetY + face.handY, img);
 	}
 
 	DrawText(renderdev, 160, 180, WordWrap(conversation->steps[0].text, 300, font), font, GameTextAlignment::Center);

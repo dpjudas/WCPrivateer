@@ -81,6 +81,15 @@ WCArchive::~WCArchive()
 
 FileEntryReader WCArchive::openFile(std::string name)
 {
+	if (name.size() >= 6 && name.substr(0, 6) == "..\\..\\")
+		name = name.substr(6);
+
+	for (char& c : name)
+	{
+		if (c >= 'a' && c <= 'z')
+			c = c - 'a' + 'A';
+	}
+
 	auto it = filenameToIndex.find(name);
 	if (it == filenameToIndex.end())
 		throw std::runtime_error("Could not find '" + name + "'");

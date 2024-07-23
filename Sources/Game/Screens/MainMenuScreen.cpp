@@ -22,13 +22,13 @@ void MainMenuScreen::Render(RenderDevice* renderdev)
 		buttons = LoadPakImage("DATA\\OPTIONS\\OPTSHPS.PAK", 182, palette.get());
 	}
 
-	renderdev->DrawImage(background[0]->x, background[0]->y, background[0]->width, background[0]->height, background[0].get());
+	renderdev->DrawImage(0, 0, background[0].get());
 
 	if (buttonAtMouseDown != 0)
 	{
 		int index = GetHotButton();
 		if (index == buttonAtMouseDown)
-			renderdev->DrawImage(buttons[index]->x, buttons[index]->y, buttons[index]->width, buttons[index]->height, buttons[index].get());
+			renderdev->DrawImage(0, 0, buttons[index].get());
 	}
 }
 

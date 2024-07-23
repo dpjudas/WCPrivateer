@@ -128,54 +128,47 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 	for (const StarLocation& location : starLocations)
 	{
 		GameTexture* tex = stars[location.index][0].get();
-		renderdev->DrawImage(location.x + tex->x, location.y + tex->y, tex->width, tex->height, tex);
+		renderdev->DrawImage(location.x, location.y, tex);
 	}
 
 	for (const SpriteLocation& location : spriteLocations)
 	{
 		GameTexture* tex = sprites[location.index][(framecounter / 20) % sprites[location.index].size()].get();
 		float fade = location.scale * 4.0f;
-		renderdev->DrawImage(
-			location.x + (int)std::round(tex->x * location.scale),
-			location.y + (int)std::round(tex->y * location.scale),
-			(int)std::round(tex->width * location.scale),
-			(int)std::round(tex->height * location.scale),
-			tex, fade, fade, fade);
+		renderdev->Draw3DImage(location.x, location.y, location.scale, 0.0f, tex, fade, fade, fade);
 	}
 
 	// Base
 	for (auto& tex : refineTex)
 	{
-		float scale = 0.4;
-		renderdev->DrawImage(120 + (int)std::round(tex->x * scale), 60 + (int)std::round(tex->y * scale), (int)std::round(tex->width * scale), (int)std::round(tex->height* scale), tex.get());
+		renderdev->Draw3DImage(120.0f, 60.0f, 0.4f, 30.0f, tex.get());
 	}
 
 	// Spaceship
 	for (auto& tex : frigateTex[(framecounter / 20) % 37]) // 6 yaw * 6 pitch + 1 unknown. Needs mirroring for negative yaw
 	{
-		float scale = 0.8;
-		renderdev->DrawImage(200 + (int)std::round(tex->x * scale), 70 + (int)std::round(tex->y * scale), (int)std::round(tex->width * scale), (int)std::round(tex->height * scale), tex.get());
+		renderdev->Draw3DImage(200.0f, 70.0f, 0.8f, 55.0f, tex.get());
 	}
 
 	// Draw energy indicator:
 	{
 		auto& e = cockpit->energy.front();
 		renderdev->DrawImage(e.x0, e.y0, e.x1 - e.x0 + 1, e.y1 - e.y0 + 1, blackTexture.get());
-		renderdev->DrawImage((e.x0 + e.x1) / 2 + energy[0]->x, (e.y0 + e.y1) / 2 + energy[0]->y, energy[0]->width, energy[0]->height, energy[0].get());
+		renderdev->DrawImage((e.x0 + e.x1) / 2, (e.y0 + e.y1) / 2, energy[0].get());
 	}
 
 	// Draw fuel indicator:
 	{
 		auto& e = cockpit->fuelPos;
 		renderdev->DrawImage(e.x0, e.y0, e.x1 - e.x0 + 1, e.y1 - e.y0 + 1, blackTexture.get());
-		renderdev->DrawImage((e.x0 + e.x1) / 2 + fuel[0]->x, (e.y0 + e.y1) / 2 + fuel[0]->y, fuel[0]->width, fuel[0]->height, fuel[0].get());
+		renderdev->DrawImage((e.x0 + e.x1) / 2, (e.y0 + e.y1) / 2, fuel[0].get());
 	}
 
 	// Draw autopilot indicator:
 	{
 		auto& e = cockpit->autoPos;
 		renderdev->DrawImage(e.x0, e.y0, e.x1 - e.x0 + 1, e.y1 - e.y0 + 1, blackTexture.get());
-		renderdev->DrawImage((e.x0 + e.x1) / 2 + autopilot[1]->x, (e.y0 + e.y1) / 2 + autopilot[1]->y, autopilot[1]->width, autopilot[1]->height, autopilot[1].get());
+		renderdev->DrawImage((e.x0 + e.x1) / 2, (e.y0 + e.y1) / 2, autopilot[1].get());
 	}
 
 	// Draw shield indicator:
@@ -184,7 +177,7 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 		renderdev->DrawImage(e.x0, e.y0, e.x1 - e.x0 + 1, e.y1 - e.y0 + 1, blackTexture.get());
 		for (auto& image : shield)
 		{
-			renderdev->DrawImage((e.x0 + e.x1) / 2 + image->x, (e.y0 + e.y1) / 2 + image->y, image->width, image->height, image.get());
+			renderdev->DrawImage((e.x0 + e.x1) / 2, (e.y0 + e.y1) / 2, image.get());
 		}
 	}
 
@@ -192,7 +185,7 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 	{
 		auto& e = cockpit->radarPos;
 		renderdev->DrawImage(e.x0, e.y0, e.x1 - e.x0 + 1, e.y1 - e.y0 + 1, blackTexture.get());
-		// renderdev->DrawImage((e.x0 + e.x1) / 2 + radar[0]->x, (e.y0 + e.y1) / 2 + radar[0]->y, radar[0]->width, radar[0]->height, radar[0].get());
+		// renderdev->DrawImage((e.x0 + e.x1) / 2, (e.y0 + e.y1) / 2, radar[0].get());
 	}
 
 	// Draw console: (where does the 5,-20 offset come from?)
@@ -206,31 +199,31 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 		// To do: draw contents of the console here
 
 		for (auto& tex : frigateTarget)
-			renderdev->DrawImage((e.x0 + e.x1) / 2 + offx + tex->x, (e.y0 + e.y1) / 2 + offy + tex->y, tex->width, tex->height, tex.get());
+			renderdev->DrawImage((e.x0 + e.x1) / 2 + offx, (e.y0 + e.y1) / 2 + offy, tex.get());
 
-		// renderdev->DrawImage(e.x0 + 16 + guns[0]->x, e.y0 + 16 + guns[0]->y, guns[0]->width, guns[0]->height, guns[0].get());
-		// renderdev->DrawImage(e.x0 + 32 + weapons[0]->x, e.y0 + 16 + weapons[0]->y, weapons[0]->width, weapons[0]->height, weapons[0].get());
+		// renderdev->DrawImage(e.x0 + 16, e.y0 + 16, guns[0].get());
+		// renderdev->DrawImage(e.x0 + 32, e.y0 + 16, weapons[0].get());
 	}
 
 	// Draw the cockpit image:
-	renderdev->DrawImage(front[0]->x, front[0]->y, front[0]->width, front[0]->height, front[0].get());
+	renderdev->DrawImage(0, 0, front[0].get());
 
 	// Draw speed: (where does the 60,38 offset come from?)
 	DrawText(renderdev, 60 + cockpit->setSpeed.x, 38 + cockpit->setSpeed.y, cockpit->setSpeed.text + std::to_string(250), font);
 	DrawText(renderdev, 60 + cockpit->actualSpeed.x, 38 + cockpit->actualSpeed.y, cockpit->actualSpeed.text + std::to_string(998), font);
 
 	// Draw crosshair: (how does it know the location?)
-	renderdev->DrawImage(160 + crosshair[0]->x, 75 + crosshair[0]->y, crosshair[0]->width, crosshair[0]->height, crosshair[0].get());
+	renderdev->DrawImage(160, 75, crosshair[0].get());
 
 	// Where is this explosion used? what palette does it map to?
 	/* {
 		GameTexture* tex = explosion[(framecounter / 20) % explosion.size()].get();
-		renderdev->DrawImage(160 + tex->x, 100 + tex->y, tex->width, tex->height, tex);
+		renderdev->DrawImage(160, 100, tex);
 	}*/
 
 	// Junk that was never used?
 	/* {
 		GameTexture* tex = plaquetextures[(framecounter / 20) % plaquetextures.size()].get();
-		renderdev->DrawImage(160 + tex->x, 100 + tex->y, tex->width, tex->height, tex);
+		renderdev->DrawImage(160, 100, tex);
 	} */
 }

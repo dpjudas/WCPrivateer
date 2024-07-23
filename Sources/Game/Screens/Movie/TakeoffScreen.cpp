@@ -26,19 +26,19 @@ void TakeoffScreen::Render(RenderDevice* renderdev)
 	// Background
 	{
 		GameTexture* frame = background[(framecounter / 20) % background.size()].get();
-		renderdev->DrawImage(frame->x, frame->y, frame->width, frame->height, frame);
+		renderdev->DrawImage(0, 0, frame);
 	}
 
 	// Planet / base
 	{
 		GameTexture* frame = base[(framecounter / 20) % base.size()].get();
-		renderdev->DrawImage(frame->x + planetX, frame->y + 60, frame->width, frame->height, frame);
+		renderdev->DrawImage(planetX, 60, frame);
 	}
 
 	// Ship
 	{
 		GameTexture* frame = ship[std::min(framecounter / 20, (int)ship.size() - 1)].get();
-		renderdev->DrawImage(frame->x + 100, frame->y + 60, frame->width, frame->height, frame);
+		renderdev->DrawImage(100, 60, frame);
 	}
 
 	if (framecounter / 20 >= (int)ship.size())

@@ -21,7 +21,7 @@ void OptionsScreen::Render(RenderDevice* renderdev)
 		buttons = LoadShpImage("DATA\\OPTIONS\\PREFBUTT.SHP", palette.get());
 	}
 
-	renderdev->DrawImage(background[0]->x, background[0]->y, background[0]->width, background[0]->height, background[0].get());
+	renderdev->DrawImage(0, 0, background[0].get());
 
 	for (int i = 0; i < 10; i++)
 	{
@@ -32,7 +32,7 @@ void OptionsScreen::Render(RenderDevice* renderdev)
 		}
 
 		int index = i * 2 + (state ? 1 : 0);
-		renderdev->DrawImage(buttons[index]->x, buttons[index]->y, buttons[index]->width, buttons[index]->height, buttons[index].get());
+		renderdev->DrawImage(0, 0, buttons[index].get());
 	}
 }
 

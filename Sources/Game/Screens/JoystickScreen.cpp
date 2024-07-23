@@ -24,6 +24,6 @@ void JoystickScreen::Render(RenderDevice* renderdev)
 		background = LoadShpImage("DATA\\OPTIONS\\JOYCALIB.SHP", palette.get());
 	}
 
-	renderdev->DrawImage(3, 195 - background[0]->height, background[0]->width, background[0]->height, background[0].get());
-	renderdev->DrawImage((320 - background[calibrationStep]->width) / 2 - 2, 195 - 33, background[calibrationStep]->width, background[calibrationStep]->height, background[calibrationStep].get());
+	renderdev->DrawImage(3, 195 - background[0]->height, background[0].get());
+	renderdev->DrawImage((320 - background[calibrationStep]->width) / 2 - 2, 195 - 33, background[calibrationStep].get());
 }

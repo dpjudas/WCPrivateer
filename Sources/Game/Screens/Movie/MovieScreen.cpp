@@ -21,7 +21,7 @@ void MovieScreen::Render(RenderDevice* renderdev)
 	for (auto& f : movies)
 	{
 		GameTexture* frame = f[(framecounter / 20) % f.size()].get();
-		renderdev->DrawImage(frame->x + offsetx[i], frame->y + offsety[i], frame->width, frame->height, frame);
+		renderdev->DrawImage(offsetx[i], offsety[i], frame);
 		i++;
 	}
 }

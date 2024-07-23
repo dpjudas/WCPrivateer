@@ -30,12 +30,12 @@ void TradeScreen::Render(RenderDevice* renderdev)
 	const std::vector<std::string>& commText = app->gamedata->commText;
 
 	// Panel
-	renderdev->DrawImage(panel[0]->x, panel[0]->y, panel[0]->width, panel[0]->height, panel[0].get());
-	renderdev->DrawImage(buttons[mode]->x, buttons[mode]->y, buttons[mode]->width, buttons[mode]->height, buttons[mode].get());
+	renderdev->DrawImage(0, 0, panel[0].get());
+	renderdev->DrawImage(0, 0, buttons[mode].get());
 
 	// Draw the current item
 	if (commodity.info0 < items.size())
-		renderdev->DrawImage(62 + items[commodity.info0][0]->x, 40 + items[commodity.info0][0]->y, items[commodity.info0][0]->width, items[commodity.info0][0]->height, items[commodity.info0][0].get());
+		renderdev->DrawImage(62, 40, items[commodity.info0][0].get());
 
 	DrawText(renderdev, 65, 14, commodity.label, smallFont, GameTextAlignment::Center);
 	if (!commodity.availability.empty())
