@@ -22,7 +22,7 @@ WCSceneList::WCSceneList(WCArchive* archive)
 		table.push_back(reader.ReadUint32());
 	}
 	reader.PopChunk();
-	reader.PopChunk();
+	reader.PopChunk(false);
 
 	for (uint32_t offset : table)
 	{

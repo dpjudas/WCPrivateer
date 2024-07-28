@@ -11,7 +11,7 @@ class WCPalette
 public:
 	WCPalette();
 	WCPalette(const std::string& filename, WCArchive* archive);
-	WCPalette(FileEntryReader reader);
+	WCPalette(FileEntryReader& reader);
 
 	uint32_t palette[256];
 	int start = 0;

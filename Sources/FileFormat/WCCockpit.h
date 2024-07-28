@@ -36,11 +36,7 @@ public:
 	WCCockpitViewpoint turret1;
 	WCCockpitViewpoint turret2;
 
-	struct
-	{
-		int unknown0 = 0;
-		int unknown1 = 0;
-	} trrt;
+	std::vector<uint8_t> trrt;
 
 	int offset[2] = {};
 	

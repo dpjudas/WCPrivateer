@@ -38,7 +38,8 @@ void GameScreen::PopScreen()
 std::unique_ptr<WCPalette> GameScreen::LoadPakPalette(const std::string& pakFilename, int pakindex)
 {
 	WCPak palpak(pakFilename, app->archive.get());
-	return std::make_unique<WCPalette>(palpak.openFile(pakindex));
+	FileEntryReader reader = palpak.openFile(pakindex);
+	return std::make_unique<WCPalette>(reader);
 }
 
 std::unique_ptr<WCPalette> GameScreen::LoadSpacePalette()

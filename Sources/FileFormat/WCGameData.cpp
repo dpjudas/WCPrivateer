@@ -100,7 +100,7 @@ void WCGameData::LoadApprCock()
 		table.push_back(reader.ReadUint32());
 	}
 	reader.PopChunk();
-	reader.PopChunk();
+	reader.PopChunk(false);
 
 	for (uint32_t offset : table)
 	{
@@ -327,9 +327,9 @@ void WCGameData::LoadFonts()
 	reader.ReadTag("FILE");
 
 	reader.PushChunk("FONT");
-	reader.PushChunk("conv");
+	reader.ReadTag("conv");
+	uint32_t unknownzero = reader.ReadUint32();
 	convFont = std::make_unique<WCImage>(reader);
-	reader.PopChunk();
 	reader.PopChunk();
 
 	reader.PushChunk("FONT");
@@ -732,8 +732,8 @@ void WCGameData::LoadShipStuf()
 			WCShipStuffItem item;
 
 			reader.PushChunk("INFO");
-			item.info[0] = reader.ReadUint8();
-			item.info[1] = reader.ReadUint8();
+			item.info.resize(reader.GetChunkSize());
+			reader.Read(item.info.data(), item.info.size());
 			reader.PopChunk();
 
 			reader.PushChunk("LABL");
@@ -802,7 +802,7 @@ void WCGameData::LoadGuns()
 		table.push_back(reader.ReadUint32());
 	}
 	reader.PopChunk();
-	reader.PopChunk();
+	reader.PopChunk(false);
 
 	for (uint32_t offset : table)
 	{
@@ -828,8 +828,8 @@ void WCGameData::LoadGuns()
 		gun.refirerate = reader.ReadUint32(); // fixed point 24:8
 		gun.energy = reader.ReadUint16();
 		gun.damage = reader.ReadInt16(); // divide by 10 to get gigajoule value
-		gun.unknown0 = reader.ReadUint8();
-		gun.unknown1 = reader.ReadUint32();
+		//gun.unknown0 = reader.ReadUint8();
+		//gun.unknown1 = reader.ReadUint32();
 		guns.push_back(std::move(gun));
 
 		reader.PopChunk();
@@ -853,6 +853,8 @@ void WCGameData::LoadWeapons()
 		weapon.lifetime = reader.ReadUint16();
 		weapon.unknown = reader.ReadUint16();
 		weapon.damage = reader.ReadUint8();
+		weapon.unknown2.resize(reader.GetChunkSize() - 7);
+		reader.Read(weapon.unknown2.data(), weapon.unknown2.size());
 		launchWeapons.push_back(weapon);
 
 		reader.PopChunk();
@@ -880,7 +882,8 @@ void WCGameData::LoadWeapons()
 		weapon.lifetime = reader.ReadUint16();
 		weapon.unknown0 = reader.ReadUint16();
 		weapon.damage = reader.ReadUint8();
-		reader.Read(weapon.unknown1, 4);
+		weapon.unknown1.resize(reader.GetChunkSize() - 1 - 8 - 16 - 7);
+		reader.Read(weapon.unknown1.data(), weapon.unknown1.size());
 		missileWeapons.push_back(weapon);
 
 		reader.PopChunk();

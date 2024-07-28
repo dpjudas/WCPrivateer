@@ -123,6 +123,8 @@ WCImage::WCImage(FileEntryReader& reader)
 		frame.mask = std::move(mask);
 		frames.push_back(std::move(frame));
 	}
+
+	reader.Seek(baseoffset + sectionsize);
 }
 
 std::vector<uint32_t> WCImageFrame::ToBgra8(const WCPalette* palette) const

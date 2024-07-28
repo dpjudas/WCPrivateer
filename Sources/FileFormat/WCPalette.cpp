@@ -19,7 +19,7 @@ WCPalette::WCPalette(const std::string& filename, WCArchive* archive)
 	ReadPalette(reader);
 }
 
-WCPalette::WCPalette(FileEntryReader reader)
+WCPalette::WCPalette(FileEntryReader& reader)
 {
 	ReadPalette(reader);
 }

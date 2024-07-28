@@ -31,8 +31,11 @@ public:
 		return Tell() - chunks.back().first == chunks.back().second;
 	}
 
-	void PopChunk()
+	void PopChunk(bool mustReadAll = true)
 	{
+		if (mustReadAll && !IsEndOfChunk())
+			throw std::runtime_error("Unexpected end of chunk");
+
 		// Chunks always 16 bit align
 		Seek(chunks.back().first + chunks.back().second + (chunks.back().second & 1));
 		chunks.pop_back();

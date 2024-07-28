@@ -3,6 +3,7 @@
 #include "WCSpace.h"
 #include "WCArchive.h"
 #include "WCPak.h"
+#include "WCPalette.h"
 #include "FileEntryReader.h"
 
 WCSpaceSprite::WCSpaceSprite(std::string name, WCArchive* archive)
@@ -28,6 +29,28 @@ WCSpaceSprite::WCSpaceSprite(std::string name, WCArchive* archive)
 				else if (tag2 == "SHAP")
 				{
 					shape = std::make_unique<WCImage>(reader);
+					/* wtf, this seems totally random
+					reader.PushChunk("FORM");
+					reader.ReadTag("PAL ");
+					reader.ReadTag("CMAP");
+					uint16_t a = reader.ReadUint16();
+					uint16_t b = reader.ReadUint16();
+					std::vector<uint32_t> colors(256);
+					for (int i = b, end = 256; i < end; i++)
+					{
+						uint32_t red = reader.ReadUint8() << 2;
+						uint32_t green = reader.ReadUint8() << 2;
+						uint32_t blue = reader.ReadUint8() << 2;
+						uint32_t alpha = 255;
+						uint32_t rgbacolor = (alpha << 24) | (blue << 16) | (green << 8) | red;
+						colors[i] = rgbacolor;
+					}
+					uint8_t c = reader.ReadUint8();
+					reader.PopChunk();
+					std::vector<uint8_t> unknown;
+					while (!reader.IsEndOfChunk())
+						unknown.push_back(reader.ReadUint8());
+					*/
 				}
 				else if (tag2 == "SKEL")
 				{
@@ -45,7 +68,7 @@ WCSpaceSprite::WCSpaceSprite(std::string name, WCArchive* archive)
 				{
 					throw std::runtime_error("Unknown sprite tag name");
 				}
-				reader.PopChunk();
+				reader.PopChunk(tag2 != "SHAP");
 			}
 		}
 		else if (tag == "BM3D")
@@ -85,7 +108,8 @@ WCSpaceShip::WCSpaceShip(std::string name, WCArchive* archive)
 				std::string tag2 = reader.PushChunk();
 				if (tag2 == "INFO")
 				{
-					// data here
+					std::vector<uint8_t> info(reader.GetChunkSize());
+					reader.Read(info.data(), info.size());
 				}
 				else if (tag2 == "VSHP")
 				{
@@ -119,6 +143,9 @@ WCSpaceShip::WCSpaceShip(std::string name, WCArchive* archive)
 					reader.ReadTag("MFDS");
 					reader.PushChunk("TARG");
 					target = std::make_unique<WCImage>(reader);
+					reader.PopChunk();
+					reader.PushChunk("WEAP");
+					weapon = std::make_unique<WCImage>(reader);
 					reader.PopChunk();
 				}
 				else if (tag2 == "BURN")

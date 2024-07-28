@@ -51,8 +51,8 @@ WCCockpit::WCCockpit(std::string name, WCArchive* archive)
 			else if (tag == "TRRT")
 			{
 				reader.PushChunk("INFO");
-				trrt.unknown0 = reader.ReadUint32();
-				trrt.unknown1 = reader.ReadUint32();
+				trrt.resize(reader.GetChunkSize());
+				reader.Read(trrt.data(), trrt.size());
 				reader.PopChunk();
 			}
 			else if (tag == "CMFD")
@@ -417,6 +417,7 @@ WCCockpitSoftware::WCCockpitSoftware(std::string name, WCArchive* archive)
 			reader.ReadTag("STRG");
 
 			reader.PushChunk("SNUM");
+			uint16_t snum = reader.ReadUint16();
 			reader.PopChunk();
 
 			reader.PushChunk("DATA");
@@ -492,6 +493,7 @@ WCCockpitSoftware::WCCockpitSoftware(std::string name, WCArchive* archive)
 			reader.ReadTag("STRG");
 
 			reader.PushChunk("SNUM");
+			uint16_t snum = reader.ReadUint16();
 			reader.PopChunk();
 
 			reader.PushChunk("DATA");
@@ -576,7 +578,7 @@ WCCockpitMisc::WCCockpitMisc(WCArchive* archive)
 		table.push_back(reader.ReadUint32());
 	}
 	reader.PopChunk();
-	reader.PopChunk();
+	reader.PopChunk(false);
 
 	for (uint32_t offset : table)
 	{

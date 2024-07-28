@@ -929,7 +929,8 @@ void ExportCommandlet::ExportPakImages(ToolApp* console)
 			if (isOptshps)
 			{
 				WCPak palpak("DATA\\OPTIONS\\OPTPALS.PAK", &archive);
-				palette = std::make_unique<WCPalette>(palpak.openFile(i % palpak.files.size()));
+				FileEntryReader reader = palpak.openFile(i % palpak.files.size());
+				palette = std::make_unique<WCPalette>(reader);
 			}
 
 			FileEntryReader reader = pak.openFile(i);

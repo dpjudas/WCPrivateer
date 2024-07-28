@@ -76,7 +76,7 @@ enum class WCShipMText
 class WCShipStuffItem
 {
 public:
-	uint8_t info[2] = {};
+	std::vector<uint8_t> info;
 	std::string label;
 	uint32_t buyprice = 0;
 	uint32_t sellprice = 0;
@@ -132,6 +132,7 @@ public:
 	uint16_t lifetime = 0; // in seconds
 	uint16_t unknown = 0;
 	uint8_t damage = 0;
+	std::vector<uint8_t> unknown2;
 };
 
 class WCMissileWeapon
@@ -144,7 +145,7 @@ public:
 	uint16_t lifetime = 0; // in seconds
 	uint16_t unknown0 = 0;
 	uint8_t damage = 0;
-	uint8_t unknown1[4] = {};
+	std::vector<uint8_t> unknown1;
 };
 
 class WCMissionText
