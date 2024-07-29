@@ -2,6 +2,7 @@
 
 #include "FileFormat/WCArchive.h"
 #include "FileFormat/WCGameData.h"
+#include "FileFormat/WCSector.h"
 #include "Audio/AudioSource.h"
 
 class GameScreen;
@@ -25,6 +26,7 @@ public:
 
 	std::unique_ptr<WCArchive> archive;
 	std::unique_ptr<WCGameData> gamedata;
+	std::unique_ptr<WCSectorData> sectordata;
 	std::vector<std::unique_ptr<GameScreen>> screenStack;
 	std::vector<std::unique_ptr<GameScreen>> screenDeleteList;
 

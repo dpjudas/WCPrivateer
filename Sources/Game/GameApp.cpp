@@ -204,6 +204,7 @@ int GameApp::main(std::vector<std::string> args)
 
 		archive = std::make_unique<WCArchive>("PRIV.TRE");
 		gamedata = std::make_unique<WCGameData>(archive.get());
+		sectordata = std::make_unique<WCSectorData>(archive.get());
 
 		GameWindow window;
 		window.SetFocus();

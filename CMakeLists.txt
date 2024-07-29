@@ -115,6 +115,8 @@ set(WCPRIVATEERCOMMON_SOURCES
 	Sources/FileFormat/WCSpace.h
 	Sources/FileFormat/WCSound.cpp
 	Sources/FileFormat/WCSound.h
+	Sources/FileFormat/WCSector.cpp
+	Sources/FileFormat/WCSector.h
 	Sources/FileFormat/FileEntryReader.h
 	Sources/Util/UTF8Reader.cpp
 	Sources/Util/UTF8Reader.h
