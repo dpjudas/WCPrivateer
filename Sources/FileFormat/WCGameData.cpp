@@ -209,15 +209,27 @@ void WCGameData::LoadComodtyp()
 			}
 			else if (tag == "COST")
 			{
-				std::vector<int16_t> buffer(reader.GetChunkSize() / 2);
-				reader.Read(buffer.data(), buffer.size() * 2);
-				commodity.cost = std::move(buffer);
+				commodity.baseCost = reader.ReadInt16();
+				for (int i = 0; i < 9; i++)
+				{
+					WCCommoditySet set;
+					set.location = (WCCommodityLocation)i;
+					set.unused = reader.ReadInt16();
+					set.modifier = reader.ReadInt16();
+					commodity.cost.push_back(set);
+				}
 			}
 			else if (tag == "AVAL")
 			{
-				std::vector<int16_t> buffer(reader.GetChunkSize() / 2);
-				reader.Read(buffer.data(), buffer.size() * 2);
-				commodity.availability = std::move(buffer);
+				commodity.baseAvailability = reader.ReadInt16();
+				for (int i = 0; i < 9; i++)
+				{
+					WCCommoditySet set;
+					set.location = (WCCommodityLocation)i;
+					set.unused = reader.ReadInt16();
+					set.modifier = reader.ReadInt16();
+					commodity.availability.push_back(set);
+				}
 			}
 			else
 			{

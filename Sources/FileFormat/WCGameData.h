@@ -6,14 +6,37 @@
 
 class WCArchive;
 
+enum class WCCommodityLocation
+{
+	agricultural,
+	mining,
+	newconstantinople,
+	newdetroit,
+	oxford,
+	perry,
+	pirate,
+	pleasure,
+	refinery
+};
+
+class WCCommoditySet
+{
+public:
+	WCCommodityLocation location = {};
+	int unused = 0;
+	int modifier = -1; // -1 = not available at this location. Otherwise range is [base, base - modifier + 1]
+};
+
 class WCCommodity
 {
 public:
 	std::string label;
 	int info0 = -1;
 	int info1 = -1;
-	std::vector<int16_t> cost;
-	std::vector<int16_t> availability;
+	int baseCost = 0; // price of item
+	int baseAvailability = 0; // number of items
+	std::vector<WCCommoditySet> cost;
+	std::vector<WCCommoditySet> availability;
 };
 
 class WCCommodityList

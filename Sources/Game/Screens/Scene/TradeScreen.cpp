@@ -39,9 +39,9 @@ void TradeScreen::Render(RenderDevice* renderdev)
 
 	DrawText(renderdev, 65, 14, commodity.label, smallFont, GameTextAlignment::Center);
 	if (!commodity.availability.empty())
-		DrawText(renderdev, 63, 20, commText[(int)WCCommodityText::Quantity] + ": " + std::to_string(commodity.availability.front()), smallFont, GameTextAlignment::Center);
+		DrawText(renderdev, 63, 20, commText[(int)WCCommodityText::Quantity] + ": " + std::to_string(commodity.baseAvailability), smallFont, GameTextAlignment::Center);
 	if (!commodity.cost.empty())
-		DrawText(renderdev, 62, 66, commText[(int)WCCommodityText::Cost] + ": " + std::to_string(commodity.cost.front()), smallFont, GameTextAlignment::Center);
+		DrawText(renderdev, 62, 66, commText[(int)WCCommodityText::Cost] + ": " + std::to_string(commodity.baseCost), smallFont, GameTextAlignment::Center);
 	DrawText(renderdev, 62, 72, commText[(int)WCCommodityText::Credits] + ": 8847", smallFont, GameTextAlignment::Center);
 
 	// DrawText(renderdev, 62, 42, commText[(int)WCCommodityText::Thanks], smallFont, GameTextAlignment::Center);
