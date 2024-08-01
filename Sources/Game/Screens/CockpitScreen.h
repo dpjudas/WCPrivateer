@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameScreen.h"
+#include "FileFormat/WCTypes.h"
 
 class WCCockpit;
 class WCCockpitSoftware;
@@ -33,6 +34,8 @@ public:
 	void Render(RenderDevice* renderdev) override;
 	void OnKeyDown(InputKey key) override;
 	void OnKeyUp(InputKey key) override;
+
+	std::unique_ptr<WCTargetingType> targeting;
 
 	std::vector<std::vector<std::unique_ptr<GameTexture>>> stars;
 
@@ -74,6 +77,8 @@ public:
 
 	std::vector<std::unique_ptr<GameTexture>> explosion;
 	std::vector<std::unique_ptr<GameTexture>> plaquetextures;
+
+	std::vector<std::unique_ptr<GameTexture>> radar;
 
 	std::unique_ptr<GameTexture> blackTexture;
 };

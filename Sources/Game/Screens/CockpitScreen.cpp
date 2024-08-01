@@ -31,6 +31,8 @@ CockpitScreen::CockpitScreen(GameApp* app) : GameScreen(app)
 	//frigate = std::make_unique<WCSpaceShip>("FRIGATE", app->archive.get());
 	//frigate = std::make_unique<WCSpaceShip>("DEMON", app->archive.get());
 	frigate = std::make_unique<WCSpaceShip>("FIGHTER", app->archive.get());
+
+	targeting = std::make_unique<WCTargetingType>(app->archive.get());
 }
 
 CockpitScreen::~CockpitScreen()
@@ -120,6 +122,8 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 		blackTexture->width = 1;
 		blackTexture->height = 1;
 		blackTexture->pixels.resize(1, 0xff000000);
+
+		radar = LoadWCImage(*targeting->targets.front().radarShape, palette.get());
 	}
 
 	framecounter++;
@@ -186,7 +190,7 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 	{
 		auto& e = cockpit->radarPos;
 		renderdev->DrawImage(e.x0, e.y0, e.x1 - e.x0 + 1, e.y1 - e.y0 + 1, blackTexture.get());
-		// renderdev->DrawImage((e.x0 + e.x1) / 2, (e.y0 + e.y1) / 2, radar[0].get());
+		renderdev->DrawImage((e.x0 + e.x1) / 2, (e.y0 + e.y1) / 2, radar[0].get());
 	}
 
 	// Draw console: (where does the 5,-20 offset come from?)

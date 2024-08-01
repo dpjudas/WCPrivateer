@@ -31,3 +31,22 @@ public:
 	uint8_t color[8] = {};
 	std::vector<std::string> obje, basn, bass;
 };
+
+class WCTargetingTarget
+{
+public:
+	int name = 0;
+	std::vector<int16_t> radarInfo;
+	std::unique_ptr<WCImage> radarShape;
+	int16_t damage0 = 0;
+	int16_t damage1 = 0;
+	std::vector<uint8_t> info;
+};
+
+class WCTargetingType
+{
+public:
+	WCTargetingType(WCArchive* archive);
+
+	std::vector<WCTargetingTarget> targets;
+};

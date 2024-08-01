@@ -157,3 +157,58 @@ WCNavMapType::WCNavMapType(WCArchive* archive)
 
 	reader.PopChunk();
 }
+
+/////////////////////////////////////////////////////////////////////////////
+
+WCTargetingType::WCTargetingType(WCArchive* archive)
+{
+	FileEntryReader reader = archive->openFile("DATA\\TYPES\\TARGETNG.IFF");
+
+	reader.PushChunk("FORM");
+	reader.ReadTag("SYST");
+
+	while (!reader.IsEndOfChunk())
+	{
+		WCTargetingTarget trgt;
+
+		reader.PushChunk("FORM");
+		reader.ReadTag("TRGT");
+
+		reader.PushChunk("NAME");
+		trgt.name = reader.ReadUint8();
+		reader.PopChunk();
+
+		reader.PushChunk("FORM");
+		reader.ReadTag("RADR");
+
+		reader.PushChunk("INFO");
+		trgt.radarInfo.resize(reader.GetChunkSize() / 2);
+		reader.Read(trgt.radarInfo.data(), trgt.radarInfo.size() * 2);
+		reader.PopChunk();
+
+		reader.PushChunk("SHAP");
+		trgt.radarShape = std::make_unique<WCImage>(reader);
+		reader.PopChunk();
+
+		reader.PopChunk(); // RADR
+
+		reader.PushChunk("FORM");
+		reader.ReadTag("DAMG");
+		reader.PushChunk("DAMG");
+		trgt.damage0 = reader.ReadInt16();
+		trgt.damage1 = reader.ReadInt16();
+		reader.PopChunk();
+		reader.PopChunk(); // DAMG
+
+		reader.PushChunk("INFO");
+		trgt.info.resize(reader.GetChunkSize());
+		reader.Read(trgt.info.data(), trgt.info.size());
+		reader.PopChunk();
+
+		reader.PopChunk(); // TRGT
+
+		targets.push_back(std::move(trgt));
+	}
+
+	reader.PopChunk();
+}
