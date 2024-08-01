@@ -1,5 +1,6 @@
 
 #include "CockpitScreen.h"
+#include "NavScreen.h"
 #include "FileFormat/WCCockpit.h"
 #include "FileFormat/WCSpace.h"
 #include "FileFormat/WCPak.h"
@@ -226,4 +227,16 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 		GameTexture* tex = plaquetextures[(framecounter / 20) % plaquetextures.size()].get();
 		renderdev->DrawImage(160, 100, tex);
 	} */
+}
+
+void CockpitScreen::OnKeyDown(InputKey key)
+{
+	if (key == InputKey::M)
+	{
+		PushScreen(std::make_unique<NavScreen>(app));
+	}
+}
+
+void CockpitScreen::OnKeyUp(InputKey key)
+{
 }

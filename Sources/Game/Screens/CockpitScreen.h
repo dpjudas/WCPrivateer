@@ -31,6 +31,8 @@ public:
 	~CockpitScreen();
 
 	void Render(RenderDevice* renderdev) override;
+	void OnKeyDown(InputKey key) override;
+	void OnKeyUp(InputKey key) override;
 
 	std::vector<std::vector<std::unique_ptr<GameTexture>>> stars;
 
