@@ -62,6 +62,29 @@ public:
 			throw std::runtime_error("Expected " + tagname);
 	}
 
+	std::string ReadString(uint32_t count)
+	{
+		std::string s;
+		for (uint32_t i = 0; i < count; i++)
+			s.push_back(ReadUint8());
+		for (size_t j = 0; j < s.size(); j++)
+		{
+			if (s[j] == 0)
+			{
+				s.resize(j);
+				break;
+			}
+		}
+		return s;
+	}
+
+	std::vector<uint8_t> ReadArray8(uint32_t count)
+	{
+		std::vector<uint8_t> buffer(count);
+		Read(buffer.data(), buffer.size());
+		return buffer;
+	}
+
 	std::string ReadTag()
 	{
 		char tag[4];
