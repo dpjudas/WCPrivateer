@@ -28,7 +28,7 @@ void WCSectorData::LoadBases(WCArchive* archive)
 		reader.PushChunk("INFO");
 		WCSectorBase base;
 		base.index = reader.ReadUint8();
-		base.type = reader.ReadUint8();
+		base.type = (WCBaseType)reader.ReadUint8();
 		std::vector<char> buffer(reader.GetChunkSize() - 2 + 1);
 		reader.Read(buffer.data(), reader.GetChunkSize() - 2);
 		base.name = buffer.data();
@@ -83,8 +83,11 @@ void WCSectorData::LoadQuadrant(WCArchive* archive)
 			if (!reader.IsEndOfChunk())
 			{
 				reader.PushChunk("BASE");
-				system.base.resize(reader.GetChunkSize());
-				reader.Read(system.base.data(), system.base.size());
+				std::vector<uint8_t> data(reader.GetChunkSize());
+				reader.Read(data.data(), data.size());
+				system.baseIndexes.resize(data.size());
+				for (size_t i = 0, count = data.size(); i < count; i++)
+					system.baseIndexes[i] = data[i];
 				reader.PopChunk();
 			}
 
@@ -149,9 +152,24 @@ void WCSectorData::LoadSectors(WCArchive* archive)
 			}
 			else if (tag == "SPHR")
 			{
-				// image?
-				sector.sphr.resize(reader.GetChunkSize());
-				reader.Read(sector.sphr.data(), sector.sphr.size());
+				int count = reader.GetChunkSize() / 19;
+				for (int i = 0; i < count; i++)
+				{
+					WCSectorSphere sphere;
+					sphere.sphereIndex = reader.ReadUint8();
+					sphere.sectorIndex = reader.ReadInt16();
+					sphere.x = reader.ReadInt24();
+					reader.ReadUint8();
+					sphere.y = reader.ReadInt24();
+					reader.ReadUint8();
+					sphere.z = reader.ReadInt24();
+					reader.ReadUint8();
+					reader.Read(sphere.unknown4, 4);
+					sector.spheres.push_back(sphere);
+				}
+
+				//sector.sphr.resize(reader.GetChunkSize());
+				//reader.Read(sector.sphr.data(), sector.sphr.size());
 			}
 			else if (tag == "FORM")
 			{
@@ -176,8 +194,8 @@ void WCSectorData::LoadSectors(WCArchive* archive)
 						}
 						else if (tag3 == "PROG")
 						{
-							sector.prog.resize(reader.GetChunkSize());
-							reader.Read(sector.prog.data(), sector.prog.size());
+							sector.prog.resize(reader.GetChunkSize() / 2);
+							reader.Read(sector.prog.data(), sector.prog.size() * 2);
 						}
 						else if (tag3 == "FORM")
 						{
@@ -194,18 +212,64 @@ void WCSectorData::LoadSectors(WCArchive* archive)
 									}
 									else if (tag5 == "WAND")
 									{
-										sector.wand.resize(reader.GetChunkSize());
-										reader.Read(sector.wand.data(), sector.wand.size());
+										int count = reader.GetChunkSize() / 46;
+										for (int i = 0; i < count; i++)
+										{
+											WCSectorEncounterItem item;
+											item.chance = reader.ReadUint8();
+											item.index = reader.ReadUint16();
+											char buffer[9] = {};
+											reader.Read(buffer, 8);
+											item.type = buffer;
+											reader.Read(buffer, 8);
+											item.name = buffer;
+											reader.Read(item.unknown2, 2);
+											item.sphereIndex = reader.ReadUint8();
+											reader.Read(item.unknown24, 24);
+											sector.encounters.push_back(std::move(item));
+										}
 									}
 									else if (tag5 == "JUMP")
 									{
-										sector.jump.resize(reader.GetChunkSize());
-										reader.Read(sector.jump.data(), sector.jump.size());
+										int count = reader.GetChunkSize() / 46;
+										for (int i = 0; i < count; i++)
+										{
+											WCSectorJumpItem item;
+											item.index = reader.ReadUint16();
+											char buffer[9] = {};
+											reader.Read(buffer, 8);
+											item.type = buffer;
+											reader.Read(buffer, 8);
+											item.name = buffer;
+											reader.Read(item.unknown2, 2);
+											item.sphereIndex = reader.ReadUint8();
+											reader.Read(item.unknown25, 25);
+											sector.jumps.push_back(std::move(item));
+										}
 									}
 									else if (tag5 == "BASE")
 									{
-										sector.base.resize(reader.GetChunkSize());
-										reader.Read(sector.base.data(), sector.base.size());
+										int count = reader.GetChunkSize() / 46;
+										for (int i = 0; i < count; i++)
+										{
+											WCSectorBaseItem item;
+											item.a = reader.ReadUint8();
+											item.b = reader.ReadUint8();
+											char buffer[9] = {};
+											reader.Read(buffer, 8);
+											item.type = buffer;
+											reader.Read(buffer, 8);
+											item.name = buffer;
+											reader.Read(item.unknown5, 5);
+											item.x = reader.ReadInt24();
+											reader.ReadUint8();
+											item.y = reader.ReadInt24();
+											reader.ReadUint8();
+											item.z = reader.ReadInt24();
+											reader.ReadUint8();
+											reader.Read(item.unknown11, 11);
+											sector.bases.push_back(std::move(item));
+										}
 									}
 									else if (tag5 == "OJMP")
 									{

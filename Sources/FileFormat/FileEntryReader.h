@@ -122,6 +122,11 @@ public:
 		return (v2 << 16) | (v1 << 8) | v0;
 	}
 
+	int32_t ReadInt24()
+	{
+		return ((int32_t)(ReadUint24() << 8)) >> 8;
+	}
+
 	uint32_t ReadUint32()
 	{
 		uint32_t v0 = ReadUint8();

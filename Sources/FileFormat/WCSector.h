@@ -8,11 +8,22 @@ struct WCSectorTableEntry
 	uint8_t data[68] = {};
 };
 
+enum class WCBaseType
+{
+	unknown,
+	pleasure,
+	refinery,
+	mining,
+	agricultural,
+	pirate,
+	special
+};
+
 struct WCSectorBase
 {
 	std::string name;
 	int index = 0;
-	int type = 0;
+	WCBaseType type = {};
 };
 
 struct WCSystem
@@ -21,7 +32,7 @@ struct WCSystem
 	int a = 0;
 	int b = 0;
 	int c = 0;
-	std::vector<uint8_t> base;
+	std::vector<int> baseIndexes; // Index into WCSectorData.bases for the base in the system
 };
 
 struct WCQuadrant
@@ -46,20 +57,64 @@ struct WCSectorSun
 	int d = 0;
 };
 
+struct WCSectorJumpItem
+{
+	std::string name;
+	std::string type;
+	int index = 0;
+	uint8_t unknown2[2] = {};
+	int sphereIndex = 0;
+	uint8_t unknown25[25] = {};
+};
+
+struct WCSectorBaseItem
+{
+	std::string name;
+	std::string type;
+	int a = 0;
+	int b = 0;
+	uint8_t unknown5[5] = {};
+	int x = 0;
+	int y = 0;
+	int z = 0;
+	uint8_t unknown11[11] = {};
+};
+
+struct WCSectorEncounterItem
+{
+	std::string name;
+	std::string type;
+	int chance = 0; // In a roll 0-100, the bracket closest to the number will spawn for a given scene
+	int index = 0;
+	uint8_t unknown2[2] = {};
+	int sphereIndex = 0;
+	uint8_t unknown24[24] = {};
+};
+
+struct WCSectorSphere
+{
+	int sphereIndex = 0;
+	int sectorIndex = 0;
+	int x = 0;
+	int y = 0;
+	int z = 0;
+	uint8_t unknown4[4];
+};
+
 struct WCSector
 {
 	std::string label;
 	int name = 0;
 	int race[2] = {};
-	std::vector<uint8_t> sphr;
+	std::vector<WCSectorSphere> spheres;
 
 	std::vector<std::string> cast;
-	uint32_t flag = 0;
-	std::vector<uint8_t> prog;
+	int flag = -1;
+	std::vector<int16_t> prog;
 	std::vector<uint8_t> cnst;
-	std::vector<uint8_t> wand;
-	std::vector<uint8_t> jump;
-	std::vector<uint8_t> base;
+	std::vector<WCSectorEncounterItem> encounters;
+	std::vector<WCSectorJumpItem> jumps;
+	std::vector<WCSectorBaseItem> bases;
 	std::vector<uint8_t> ojmp;
 	std::vector<std::vector<uint8_t>> scenes;
 	std::vector<std::string> objtypes;
