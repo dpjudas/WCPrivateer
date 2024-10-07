@@ -2,6 +2,7 @@
 
 #include "GameScreen.h"
 #include "FileFormat/WCTypes.h"
+#include "Math/Vec.h"
 
 class WCCockpit;
 class WCCockpitSoftware;
@@ -12,17 +13,8 @@ class WCSpaceShip;
 
 struct StarLocation
 {
-	int x = 0;
-	int y = 0;
+	vec3 position = vec3(0.0f);
 	int index = 0;
-};
-
-struct SpriteLocation
-{
-	int x = 0;
-	int y = 0;
-	int index = 0;
-	float scale = 1.0f;
 };
 
 class CockpitScreen : public GameScreen
@@ -40,27 +32,39 @@ public:
 	std::vector<std::vector<std::unique_ptr<GameTexture>>> stars;
 
 	std::vector<StarLocation> starLocations;
-	std::vector<SpriteLocation> spriteLocations;
 
 	std::unique_ptr<WCCockpit> cockpit;
 	std::unique_ptr<WCCockpitSoftware> software;
 	std::unique_ptr<WCCockpitMisc> misc;
 	std::unique_ptr<WCCockpitPlaques> plaques;
 
-	std::unique_ptr<WCSpaceSprite> trash[4];
-	std::unique_ptr<WCSpaceSprite> astroids[2];
+	struct Sprite
+	{
+		std::unique_ptr<WCSpaceSprite> sprite;
+		std::vector<std::unique_ptr<GameTexture>> shape;
+		std::vector<std::unique_ptr<GameTexture>> target;
+	};
+
+	struct Ship
+	{
+		std::unique_ptr<WCSpaceShip> ship;
+		std::vector<std::vector<std::unique_ptr<GameTexture>>> shapes;
+		std::vector<std::unique_ptr<GameTexture>> target;
+		std::vector<std::unique_ptr<GameTexture>> weapon;
+		std::vector<std::unique_ptr<GameTexture>> burn;
+	};
+
+	std::map<std::string, Sprite> spaceSprites;
+	std::map<std::string, Ship> spaceShips;
+
+	Sprite* getSprite(const std::string& name);
+	Ship* getShip(const std::string& name);
+
 	std::unique_ptr<WCSpaceSprite> starwhite;
 	std::unique_ptr<WCSpaceSprite> moon[3];
-	std::unique_ptr<WCSpaceSprite> refine;
-	std::unique_ptr<WCSpaceShip> frigate;
 
 	std::unique_ptr<WCPalette> palette;
 	std::vector<std::unique_ptr<GameTexture>> front;
-	std::vector<std::vector<std::unique_ptr<GameTexture>>> sprites;
-	std::vector<std::unique_ptr<GameTexture>> refineTex;
-	std::vector<std::vector<std::unique_ptr<GameTexture>>> frigateTex;
-	std::vector<std::unique_ptr<GameTexture>> frigateTarget;
-	int framecounter = 0;
 
 	std::vector<std::unique_ptr<GameTexture>> crosshair;
 	std::vector<std::unique_ptr<GameTexture>> navigationCrosshair;

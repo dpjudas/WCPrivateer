@@ -8,7 +8,7 @@ struct WCSectorTableEntry
 	uint8_t data[68] = {};
 };
 
-enum class WCBaseType
+enum class WCSectorBaseType
 {
 	unknown,
 	pleasure,
@@ -23,7 +23,7 @@ struct WCSectorBase
 {
 	std::string name;
 	int index = 0;
-	WCBaseType type = {};
+	WCSectorBaseType type = {};
 };
 
 struct WCSystem

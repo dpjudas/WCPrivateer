@@ -29,6 +29,8 @@ set(WCPRIVATEERCOMMON_SOURCES
 	Sources/Precomp.h
 	Sources/Game/GameApp.cpp
 	Sources/Game/GameApp.h
+	Sources/Game/GameObjects/GameObject.cpp
+	Sources/Game/GameObjects/GameObject.h
 	Sources/Game/Screens/GameScreen.cpp
 	Sources/Game/Screens/GameScreen.h
 	Sources/Game/Screens/AutopilotScreen.cpp
@@ -130,6 +132,12 @@ set(WCPRIVATEERCOMMON_SOURCES
 	Sources/Commandlet/ExportCommandlet.h
 	Sources/Commandlet/QuitCommandlet.cpp
 	Sources/Commandlet/QuitCommandlet.h
+	Sources/Math/HalfFloat.cpp
+	Sources/Math/HalfFloat.h
+	Sources/Math/Mat.cpp
+	Sources/Math/Mat.h
+	Sources/Math/Quaternion.h
+	Sources/Math/Vec.h
 )
 
 set(WCPRIVATEERCOMMON_LIBS
@@ -180,6 +188,7 @@ set(LIBRARY_UNIX_SOURCES
 
 source_group("Sources" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/.+")
 source_group("Sources\\Game" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/Game/.+")
+source_group("Sources\\Game\\GameObjects" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/Game/GameObjects/.+")
 source_group("Sources\\Game\\Screens" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/Game/Screens/.+")
 source_group("Sources\\Game\\Screens\\Scene" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/Game/Screens/Scene/.+")
 source_group("Sources\\Game\\Screens\\Movie" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/Game/Screens/Movie/.+")
@@ -189,6 +198,7 @@ source_group("Sources\\FileFormat" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DI
 source_group("Sources\\Util" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/Util/.+")
 source_group("Sources\\Commandlet" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/Commandlet/.+")
 source_group("Sources\\Audio" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/Audio/.+")
+source_group("Sources\\Math" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Sources/Math/.+")
 source_group("Libraries" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/.+")
 source_group("Libraries\\miniz" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/miniz/.+")
 source_group("Libraries\\lzw" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/lzw/.+")

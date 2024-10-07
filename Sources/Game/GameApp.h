@@ -4,8 +4,11 @@
 #include "FileFormat/WCGameData.h"
 #include "FileFormat/WCSector.h"
 #include "Audio/AudioSource.h"
+#include <cmath>
 
 class GameScreen;
+class GameObject;
+class PlayerPawn;
 class AudioPlayer;
 class WCVOCSound;
 
@@ -23,6 +26,18 @@ public:
 
 	void PlayMusic(std::string filename, int song);
 	void PlaySound(WCVOCSound* sound);
+
+	float Random(float minval, float maxval) { return minval + (maxval - minval) * rand() / RAND_MAX; }
+	int Random(int minval, int maxval) { return (int)std::round(Random((float)minval, (float)maxval)); }
+
+	std::vector<std::unique_ptr<GameObject>> gameObjects;
+	PlayerPawn* player = nullptr;
+
+	int64_t GetGameTime();
+	int64_t StartTimeNS = 0;
+
+	int64_t FrameStartTime = 0;
+	float TimeElapsed = 0.0f;
 
 	std::unique_ptr<WCArchive> archive;
 	std::unique_ptr<WCGameData> gamedata;

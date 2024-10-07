@@ -144,9 +144,12 @@ WCSpaceShip::WCSpaceShip(std::string name, WCArchive* archive)
 					reader.PushChunk("TARG");
 					target = std::make_unique<WCImage>(reader);
 					reader.PopChunk();
-					reader.PushChunk("WEAP");
-					weapon = std::make_unique<WCImage>(reader);
-					reader.PopChunk();
+					if (!reader.IsEndOfChunk())
+					{
+						reader.PushChunk("WEAP");
+						weapon = std::make_unique<WCImage>(reader);
+						reader.PopChunk();
+					}
 				}
 				else if (tag2 == "BURN")
 				{

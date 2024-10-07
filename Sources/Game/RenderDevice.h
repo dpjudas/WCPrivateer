@@ -55,8 +55,8 @@ public:
 	{
 		float dirXx = std::cos(rotation * (3.14159265359f / 180.0f));
 		float dirXy = std::sin(rotation * (3.14159265359f / 180.0f));
-		float dirYy = -dirXx;
-		float dirYx = dirXy;
+		float dirYy = dirXx;
+		float dirYx = -dirXy;
 
 		float x0 = gameTexture->x * scale;
 		float y0 = gameTexture->y * scale;

@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "GameApp.h"
 #include "RenderDevice.h"
+#include "Game/GameObjects/GameObject.h"
 #include "Game/Screens/GameScreen.h"
 #include "Game/Screens/MainMenuScreen.h"
 #include "Game/Screens/LoadSaveScreen.h"
@@ -30,6 +31,7 @@
 #include <zwidget/core/widget.h>
 #include <zwidget/window/window.h>
 #include <zwidget/core/resourcedata.h>
+#include <chrono>
 
 struct GameInputEvent
 {
@@ -64,6 +66,14 @@ public:
 	{
 		GameInputEvent e;
 		e.type = GameInputEvent::keyDown;
+		e.key = key;
+		gameEvents.push_back(e);
+	}
+
+	void OnKeyUp(InputKey key) override
+	{
+		GameInputEvent e;
+		e.type = GameInputEvent::keyUp;
 		e.key = key;
 		gameEvents.push_back(e);
 	}
@@ -221,6 +231,8 @@ int GameApp::main(std::vector<std::string> args)
 
 		PushScreen(std::make_unique<IntroScreen>(this));
 
+		FrameStartTime = GetGameTime();
+
 		while (!exitFlag && !screenStack.empty())
 		{
 			DisplayWindow::ProcessEvents();
@@ -229,6 +241,10 @@ int GameApp::main(std::vector<std::string> args)
 				ZMusic_Update(musicStream);
 
 			SetCursor(win32cursor);
+
+			int64_t curTime = GetGameTime();
+			TimeElapsed = (curTime - FrameStartTime) / 1000.0f;
+			FrameStartTime = curTime;
 
 			double letterboxwidth = 320 * window.GetHeight() / 240;
 			double width = window.GetWidth();
@@ -298,6 +314,21 @@ void GameApp::PopScreen()
 {
 	screenDeleteList.push_back(std::move(screenStack.back()));
 	screenStack.pop_back();
+}
+
+static int64_t GetTimePoint()
+{
+	using namespace std::chrono;
+	return (uint64_t)(duration_cast<nanoseconds>(steady_clock::now().time_since_epoch()).count());
+}
+
+int64_t GameApp::GetGameTime()
+{
+	if (StartTimeNS == 0)
+		StartTimeNS = GetTimePoint();
+
+	uint64_t curTime = GetTimePoint();
+	return (curTime - StartTimeNS) / 1'000'000;
 }
 
 void VulkanPrintLog(const char* typestr, const std::string& msg)

@@ -28,7 +28,7 @@ void WCSectorData::LoadBases(WCArchive* archive)
 		reader.PushChunk("INFO");
 		WCSectorBase base;
 		base.index = reader.ReadUint8();
-		base.type = (WCBaseType)reader.ReadUint8();
+		base.type = (WCSectorBaseType)reader.ReadUint8();
 		std::vector<char> buffer(reader.GetChunkSize() - 2 + 1);
 		reader.Read(buffer.data(), reader.GetChunkSize() - 2);
 		base.name = buffer.data();
