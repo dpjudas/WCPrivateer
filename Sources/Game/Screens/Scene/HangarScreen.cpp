@@ -5,6 +5,13 @@
 
 HangarScreen::HangarScreen(GameApp* app) : SceneScreen(app)
 {
+	static bool firstcall = true;
+	if (firstcall)
+	{
+		PlayMusic("DATA\\SOUND\\BASETUNE.GEN", 8);
+		firstcall = false;
+	}
+
 	nextScene = 44;
 }
 

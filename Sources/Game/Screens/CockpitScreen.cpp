@@ -10,7 +10,9 @@
 
 CockpitScreen::CockpitScreen(GameApp* app) : GameScreen(app)
 {
-	for (int i = 0; i < 100; i++)
+	PlayMusic("DATA\\SOUND\\COMBAT.GEN", 4);
+
+	for (int i = 0; i < 1000; i++)
 	{
 		Spawn<SpaceDebris>(app);
 	}
@@ -94,19 +96,32 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 			stars.push_back(LoadWCImage(image, palette.get()));
 		}
 
-		for (const auto& t : moon)
-		{
-			stars.push_back(LoadWCImage(*t->shape, palette.get()));
-		}
-		stars.push_back(LoadWCImage(*starwhite->shape, palette.get()));
-
-		for (int i = 0; i < 25; i++)
+		for (int i = 0; i < 500; i++)
 		{
 			quaternion rotation = quaternion::euler(radians(app->Random(0.0f, 360.0f)), radians(app->Random(0.0f, 360.0f)), 0.0f);
 			StarLocation location;
 			location.position = rotation * vec3(0.0f, 0.0f, 10000.0f);
 			location.index = app->Random(0, (int)stars.size() - 1);
 			starLocations.push_back(location);
+		}
+
+		for (const auto& t : moon)
+		{
+			quaternion rotation = quaternion::euler(radians(app->Random(0.0f, 360.0f)), radians(app->Random(0.0f, 360.0f)), 0.0f);
+			StarLocation location;
+			location.position = rotation * vec3(0.0f, 0.0f, 10000.0f);
+			location.index = (int)stars.size();
+			starLocations.push_back(location);
+			stars.push_back(LoadWCImage(*t->shape, palette.get()));
+		}
+
+		{
+			quaternion rotation = quaternion::euler(radians(app->Random(0.0f, 360.0f)), radians(app->Random(0.0f, 360.0f)), 0.0f);
+			StarLocation location;
+			location.position = rotation * vec3(0.0f, 0.0f, 10000.0f);
+			location.index = (int)stars.size();
+			starLocations.push_back(location);
+			stars.push_back(LoadWCImage(*starwhite->shape, palette.get()));
 		}
 
 		crosshair = LoadWCImage(*cockpit->crosshair, palette.get());
@@ -141,7 +156,7 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 	// Setup 3D viewport
 
 	float viewportX = 0.0f;
-	float viewportY = -20.0f;
+	float viewportY = -25.0f;
 	float viewportWidth = 320.0;
 	float viewportHeight = 200.0;
 	float halfViewportWidth = viewportWidth * 0.5f;
@@ -168,7 +183,7 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 		vec3 screenpos = { viewportX + (1.0f + clippos.x) * halfViewportWidth, viewportY + (1.0f - clippos.y) * halfViewportHeight, clippos.w };
 
 		GameTexture* tex = stars[location.index][0].get();
-		renderdev->DrawImage(screenpos.x, screenpos.y, tex);
+		renderdev->Draw3DImage(screenpos.x, screenpos.y, 1.0f, 1.0f, 0.0f, tex);
 	}
 
 	// Game objects
@@ -204,18 +219,49 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 
 		if (Sprite* sprite = getSprite(obj->sprite))
 		{
-			for (auto& tex : sprite->shape)
+			if (obj->spriteIndex == -1)
 			{
+				for (auto& tex : sprite->shape)
+				{
+					float rotation = 0.0f;
+					float scale = screenpos.z * obj->size;
+					renderdev->Draw3DImage(screenpos.x, screenpos.y, scale, scale, rotation, tex.get(), fade, fade, fade);
+				}
+			}
+			else
+			{
+				int index = obj->spriteIndex % sprite->shape.size();
 				float rotation = 0.0f;
-				renderdev->Draw3DImage(screenpos.x, screenpos.y, screenpos.z * obj->size, rotation, tex.get(), fade, fade, fade);
+				float scale = screenpos.z * obj->size;
+				renderdev->Draw3DImage(screenpos.x, screenpos.y, scale, scale, rotation, sprite->shape[index].get(), fade, fade, fade);
 			}
 		}
 
 		if (Ship* ship = getShip(obj->ship))
 		{
+			vec3 p = normalize(inverse(obj->rotation) * (viewPos - obj->position));
+			float latitude = degrees(std::acos(p.y)) - 90.0f;
+			float longitude = degrees(std::atan2(p.x, p.z));
+
+			while (longitude < 0.0f) longitude += 360.0f;
+			while (longitude >= 360.0f) longitude -= 360.0f;
+
+			// 0 to 6 range, mirrored for other side
+			int yawindex = clamp((int)std::round(longitude * 6.0f / 180.0f), 0, 12);
+			float mirror = 1.0f;
+			if (yawindex > 6)
+			{
+				yawindex = 12 - yawindex;
+				mirror = -1.0f;
+			}
+
+			// 0 to 4 range
+			int pitchindex = clamp(2 + (int)std::round(latitude * 2.0f / 90.0f), 0, 4);
+
 			float rotation = 0.0f;
-			int direction = 0; // 6 yaw * 6 pitch + 1 unknown. Needs mirroring for negative yaw
-			renderdev->Draw3DImage(screenpos.x, screenpos.y, screenpos.z * obj->size, rotation, ship->shapes[direction].front().get(), fade, fade, fade);
+			int direction = 1 + yawindex + pitchindex * 7;
+			float scale = screenpos.z * obj->size;
+			renderdev->Draw3DImage(screenpos.x, screenpos.y, scale * mirror, scale, rotation, ship->shapes[direction].front().get(), fade, fade, fade);
 		}
 	}
 

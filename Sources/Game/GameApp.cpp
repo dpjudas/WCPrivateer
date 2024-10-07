@@ -227,8 +227,6 @@ int GameApp::main(std::vector<std::string> args)
 		WCImage cursor(cursorShp);
 		HCURSOR win32cursor = CreateAlphaCursor(cursor.frames[0], palette.get());
 
-		//PlayMusic("DATA\\SOUND\\BASETUNE.GEN", 3);
-
 		PushScreen(std::make_unique<IntroScreen>(this));
 
 		FrameStartTime = GetGameTime();

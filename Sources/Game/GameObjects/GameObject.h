@@ -17,6 +17,7 @@ public:
 	int Random(int minval, int maxval) { return (int)std::round(Random((float)minval, (float)maxval)); }
 
 	std::string sprite;
+	int spriteIndex = -1;
 	std::string cockpit;
 	std::string ship;
 
@@ -65,6 +66,7 @@ class SpaceDebris : public GameObject
 {
 public:
 	void Init() override;
+	void Tick(float timeElapsed) override;
 };
 
 class Asteroid : public GameObject

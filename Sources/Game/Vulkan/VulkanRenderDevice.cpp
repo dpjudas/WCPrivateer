@@ -324,12 +324,6 @@ bool VulkanRenderDevice::Begin()
 	viewport.maxDepth = 1.0f;
 	drawcommands->setViewport(0, 1, &viewport);
 
-	// Set the scissor box
-	VkRect2D scissor = {};
-	scissor.extent.width = width;
-	scissor.extent.height = height;
-	drawcommands->setScissor(0, 1, &scissor);
-
 	// Bind the vertex buffer
 	VkDeviceSize offset = 0;
 	drawcommands->bindVertexBuffers(0, 1, &vertexBuffer->buffer, &offset);
@@ -356,6 +350,13 @@ bool VulkanRenderDevice::Begin()
 
 	memcpy(uniforms->ProjectionMatrix, projMatrix, sizeof(float) * 16);
 	memcpy(uniforms->ViewMatrix, viewMatrix, sizeof(float) * 16);
+
+	// Set the scissor box
+	VkRect2D scissor = {};
+	scissor.offset.x = (int)std::round((width - letterboxwidth) * 0.5f);
+	scissor.extent.width = letterboxwidth;
+	scissor.extent.height = height;
+	drawcommands->setScissor(0, 1, &scissor);
 
 	vertexPos = 0;
 

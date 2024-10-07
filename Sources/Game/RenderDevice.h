@@ -51,17 +51,17 @@ public:
 		DrawImage(x, y, gameTexture->width, gameTexture->height, gameTexture, r, g, b, a);
 	}
 
-	void Draw3DImage(float x, float y, float scale, float rotation, GameTexture* gameTexture, float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f)
+	void Draw3DImage(float x, float y, float scaleX, float scaleY, float rotation, GameTexture* gameTexture, float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f)
 	{
 		float dirXx = std::cos(rotation * (3.14159265359f / 180.0f));
 		float dirXy = std::sin(rotation * (3.14159265359f / 180.0f));
 		float dirYy = dirXx;
 		float dirYx = -dirXy;
 
-		float x0 = gameTexture->x * scale;
-		float y0 = gameTexture->y * scale;
-		float x1 = (gameTexture->x + gameTexture->width) * scale;
-		float y1 = (gameTexture->y + gameTexture->height) * scale;
+		float x0 = gameTexture->x * scaleX;
+		float y0 = gameTexture->y * scaleY;
+		float x1 = (gameTexture->x + gameTexture->width) * scaleX;
+		float y1 = (gameTexture->y + gameTexture->height) * scaleY;
 
 		DrawImageBox(
 			x + dirXx * x0 + dirYx * y0,
