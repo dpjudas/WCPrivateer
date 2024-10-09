@@ -17,7 +17,6 @@ void PlayerPawn::Tick(float timeElapsed)
 	float pitch = 0.0f;
 	float bank = 0.0f;
 	float rotspeed = 40.0f * timeElapsed;
-	float movspeed = 10.0f * timeElapsed;
 
 	if (input.turnLeftPressed)
 		yaw -= rotspeed;
@@ -37,20 +36,37 @@ void PlayerPawn::Tick(float timeElapsed)
 	rotation = normalize(rotation * quaternion::euler(radians(pitch), radians(yaw), radians(bank)));
 
 	if (input.forwardPressed)
-		position += rotation * vec3(0.0f, 0.0f, movspeed);
-	if (input.backwardPressed)
-		position -= rotation * vec3(0.0f, 0.0f, movspeed);
+		setSpeed = std::min(setSpeed + 100.0f * timeElapsed, maxSpeed);
+	else if (input.backwardPressed)
+		setSpeed = std::max(setSpeed - 100.0f * timeElapsed, 0.0f);
+
+	// We don't have wind resistance in space, but we do in this game!
+	float stopAccel = 75.0f * timeElapsed;
+	float enginePower = (input.afterburnerPressed ? 400.0f : 150.0f) * timeElapsed;
+
+	float curSpeed = length(velocity);
+	if (curSpeed > 0.0f)
+	{
+		curSpeed = std::max(curSpeed - stopAccel, 0.0f);
+		velocity = normalize(velocity) * curSpeed;
+	}
+
+	float targetSpeed = input.afterburnerPressed ? afterburnerSpeed : setSpeed;
+	float targetThrust = targetSpeed - curSpeed;
+	targetThrust = std::max(std::min(targetThrust, enginePower), 0.0f);
+	velocity += rotation * vec3(0.0f, 0.0f, targetThrust);
+
+	position += velocity * (0.1f * timeElapsed);
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
 void SpaceShip::Init()
 {
-	// ship = "FIGHTER";
-	// ship = "FRIGATE";
 	ship = "DEMON";
-	position = { 0.0f, 0.0f, 100.0f };
-	size = 10.0;
+	position = { 0.0f, -2.5f, 100.0f };
+	size = 10.0f;
+	radar = RadarVisibility::neutral;
 }
 
 void SpaceShip::Tick(float timeElapsed)
@@ -100,4 +116,5 @@ void StarBase::Init()
 	sprite = "REFINE";
 	position = { 500.0f, 500.0f, 2000.0f };
 	size = 1000.0;
+	radar = RadarVisibility::friendly;
 }

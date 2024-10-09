@@ -39,9 +39,9 @@ public:
 	void PlayMusic(std::string filename, int song);
 	void PlaySound(WCVOCSound* sound);
 
-	int GetTextWidth(const std::string_view& text, std::vector<std::unique_ptr<GameTexture>>& font);
-	std::string WordWrap(std::string text, int width, std::vector<std::unique_ptr<GameTexture>>& font);
-	void DrawText(RenderDevice* renderdev, int x, int y, const std::string& text, std::vector<std::unique_ptr<GameTexture>>& font, GameTextAlignment alignment = GameTextAlignment::Left);
+	int GetTextWidth(const std::string_view& text, std::vector<std::unique_ptr<GameTexture>>& font, int spacing = 2);
+	std::string WordWrap(std::string text, int width, std::vector<std::unique_ptr<GameTexture>>& font, int spacing = 2);
+	void DrawText(RenderDevice* renderdev, int x, int y, const std::string& text, std::vector<std::unique_ptr<GameTexture>>& font, GameTextAlignment alignment = GameTextAlignment::Left, int spacing = 2);
 
 	std::unique_ptr<WCPalette> LoadSpacePalette();
 	std::unique_ptr<WCPalette> LoadPCMainPalette();
@@ -63,10 +63,14 @@ public:
 	std::unique_ptr<GameTexture> LoadIffImage(const std::string& filename, int index, const WCPalette* palette);
 	std::vector<std::unique_ptr<GameTexture>> LoadWCImage(const WCImage& image, const WCPalette* palette);
 
+	std::vector<std::unique_ptr<GameTexture>> LoadDotImage(int red, int green, int blue, int alpha = 255);
+	std::vector<std::unique_ptr<GameTexture>> LoadNavCircleImage(int red, int green, int blue, int alpha = 255);
+	std::vector<std::unique_ptr<GameTexture>> LoadNavSquareImage(int red, int green, int blue, int alpha = 255);
+
 	GameApp* app = nullptr;
 	int mouseX = 0;
 	int mouseY = 0;
 
 private:
-	void DrawTextImpl(RenderDevice* renderdev, int x, int y, const std::string_view& text, std::vector<std::unique_ptr<GameTexture>>& font, GameTextAlignment alignment = GameTextAlignment::Left);
+	void DrawTextImpl(RenderDevice* renderdev, int x, int y, const std::string_view& text, std::vector<std::unique_ptr<GameTexture>>& font, GameTextAlignment alignment = GameTextAlignment::Left, int spacing = 2);
 };

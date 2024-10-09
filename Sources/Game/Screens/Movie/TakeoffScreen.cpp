@@ -11,6 +11,8 @@ TakeoffScreen::TakeoffScreen(GameApp* app) : GameScreen(app)
 	background = LoadPakImage("DATA\\MIDGAMES\\TAKEOFFS.PAK", 1, palette.get());
 	base = LoadPakImage("DATA\\MIDGAMES\\LTOBASES.PAK", 0, palette.get());
 	ship = LoadPakImage("DATA\\MIDGAMES\\TAKEOFFS.PAK", 2, palette.get());
+
+	PlayMusic("DATA\\SOUND\\COMBAT.GEN", 4);
 }
 
 TakeoffScreen::~TakeoffScreen()

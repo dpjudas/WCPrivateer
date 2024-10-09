@@ -29,17 +29,17 @@ struct WCSectorBase
 struct WCSystem
 {
 	std::string name;
-	int a = 0;
-	int b = 0;
-	int c = 0;
+	int sectorIndex = 0;
+	int x = 0;
+	int y = 0;
 	std::vector<int> baseIndexes; // Index into WCSectorData.bases for the base in the system
 };
 
 struct WCQuadrant
 {
 	std::string name;
-	int a = 0;
-	int b = 0;
+	int x = 0;
+	int y = 0;
 	std::vector<WCSystem> systems;
 };
 
@@ -61,7 +61,7 @@ struct WCSectorJumpItem
 {
 	std::string name;
 	std::string type;
-	int index = 0;
+	int encounterIndex = 0;
 	uint8_t unknown2[2] = {};
 	int sphereIndex = 0;
 	uint8_t unknown25[25] = {};
@@ -77,7 +77,8 @@ struct WCSectorBaseItem
 	int x = 0;
 	int y = 0;
 	int z = 0;
-	uint8_t unknown11[11] = {};
+	uint8_t unknown10[10] = {};
+	int baseIndex = 0;
 };
 
 struct WCSectorEncounterItem
@@ -85,7 +86,7 @@ struct WCSectorEncounterItem
 	std::string name;
 	std::string type;
 	int chance = 0; // In a roll 0-100, the bracket closest to the number will spawn for a given scene
-	int index = 0;
+	int encounterIndex = 0;
 	uint8_t unknown2[2] = {};
 	int sphereIndex = 0;
 	uint8_t unknown24[24] = {};
@@ -98,7 +99,21 @@ struct WCSectorSphere
 	int x = 0;
 	int y = 0;
 	int z = 0;
-	uint8_t unknown4[4];
+	int argtype = 0; // 7 is navigation points, 46, 66, 86 also seen
+	int arg0 = 0; // for nav points, 0 is nothing, 1 is a base, 2 is a jump point
+	int arg1 = 0; // for nav points, base index or sector index
+	int arg2 = 0; // for nav points, the nav point number
+};
+
+struct WCSectorScene
+{
+	int a = 0;
+	int index = 0;
+	int sectorIndex = 0;
+	int b = 0;
+	int c = 0;
+	int d = 0;
+	std::vector<int16_t> encounters;
 };
 
 struct WCSector
@@ -116,7 +131,7 @@ struct WCSector
 	std::vector<WCSectorJumpItem> jumps;
 	std::vector<WCSectorBaseItem> bases;
 	std::vector<uint8_t> ojmp;
-	std::vector<std::vector<uint8_t>> scenes;
+	std::vector<WCSectorScene> scenes;
 	std::vector<std::string> objtypes;
 	std::vector<std::string> appr;
 

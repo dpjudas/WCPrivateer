@@ -83,6 +83,7 @@ public:
 	std::vector<std::unique_ptr<GameTexture>> plaquetextures;
 
 	std::vector<std::unique_ptr<GameTexture>> radar;
+	std::vector<std::unique_ptr<GameTexture>> dots[3];
 
 	std::unique_ptr<GameTexture> blackTexture;
 };

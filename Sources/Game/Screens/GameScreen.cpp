@@ -124,6 +124,60 @@ std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadOptFont(WCPalette* pal
 	return LoadShpImage("DATA\\FONTS\\OPTFONT.SHP", palette);
 }
 
+std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadDotImage(int red, int green, int blue, int alpha)
+{
+	std::vector<std::unique_ptr<GameTexture>> frames;
+	auto gameTexture = std::make_unique<GameTexture>();
+	gameTexture->x = 0;
+	gameTexture->y = 0;
+	gameTexture->width = 1;
+	gameTexture->height = 1;
+	gameTexture->pixels.resize(1);
+	gameTexture->pixels.front() = (alpha << 24) | (blue << 16) | (green << 8) | red;
+	frames.push_back(std::move(gameTexture));
+	return frames;
+}
+
+std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadNavCircleImage(int red, int green, int blue, int alpha)
+{
+	uint32_t color = (alpha << 24) | (blue << 16) | (green << 8) | red;
+	std::vector<std::unique_ptr<GameTexture>> frames;
+	auto gameTexture = std::make_unique<GameTexture>();
+	gameTexture->x = -3;
+	gameTexture->y = -3;
+	gameTexture->width = 7;
+	gameTexture->height = 7;
+	gameTexture->pixels.resize(7 * 7);
+	for (int index : { 2, 3, 4, 8, 12, 14, 20, 21, 27, 28, 34, 36, 40, 44, 45, 46 })
+		gameTexture->pixels[index] = color;
+	frames.push_back(std::move(gameTexture));
+	return frames;
+}
+
+std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadNavSquareImage(int red, int green, int blue, int alpha)
+{
+	uint32_t color = (alpha << 24) | (blue << 16) | (green << 8) | red;
+	std::vector<std::unique_ptr<GameTexture>> frames;
+	auto gameTexture = std::make_unique<GameTexture>();
+	gameTexture->x = -3;
+	gameTexture->y = -3;
+	gameTexture->width = 7;
+	gameTexture->height = 7;
+	gameTexture->pixels.resize(7 * 7);
+	for (int x = 0; x < 7; x++)
+	{
+		gameTexture->pixels[x] = color;
+		gameTexture->pixels[6 * 7 + x] = color;
+	}
+	for (int y = 1; y < 6; y++)
+	{
+		gameTexture->pixels[y * 7] = color;
+		gameTexture->pixels[y * 7 + 6] = color;
+	}
+	frames.push_back(std::move(gameTexture));
+	return frames;
+}
+
 std::vector<std::unique_ptr<GameTexture>> GameScreen::LoadWCImage(const WCImage& image, const WCPalette* palette)
 {
 	std::vector<std::unique_ptr<GameTexture>> frames;
@@ -367,7 +421,7 @@ std::unique_ptr<GameTexture> GameScreen::LoadIffImage(const std::string& filenam
 	throw std::runtime_error("No IFF image found");
 }
 
-int GameScreen::GetTextWidth(const std::string_view& text, std::vector<std::unique_ptr<GameTexture>>& font)
+int GameScreen::GetTextWidth(const std::string_view& text, std::vector<std::unique_ptr<GameTexture>>& font, int spacing)
 {
 	int textwidth = 0;
 	int linewidth = 0;
@@ -381,18 +435,18 @@ int GameScreen::GetTextWidth(const std::string_view& text, std::vector<std::uniq
 		}
 		else if (i == 32 && font.size() > 'x')
 		{
-			linewidth += font['x']->width + 2;
+			linewidth += font['x']->width + spacing;
 		}
 		else if (i < font.size() && !font[i]->pixels.empty())
 		{
-			linewidth += font[i]->width - font[i]->x + 2;
+			linewidth += font[i]->width - font[i]->x + spacing;
 		}
 	}
 	textwidth = std::max(textwidth, linewidth);
 	return textwidth;
 }
 
-std::string GameScreen::WordWrap(std::string text, int width, std::vector<std::unique_ptr<GameTexture>>& font)
+std::string GameScreen::WordWrap(std::string text, int width, std::vector<std::unique_ptr<GameTexture>>& font, int spacing)
 {
 	std::string result;
 	std::string line;
@@ -409,12 +463,12 @@ std::string GameScreen::WordWrap(std::string text, int width, std::vector<std::u
 		}
 		else if (i == 32 && font.size() > 'x')
 		{
-			x += font['x']->width + 2;
+			x += font['x']->width + spacing;
 			line.push_back(' ');
 		}
 		else if (i < font.size() && !font[i]->pixels.empty())
 		{
-			x += font[i]->width - font[i]->x + 2;
+			x += font[i]->width - font[i]->x + spacing;
 			if (x > width)
 			{
 				x = 0;
@@ -434,7 +488,7 @@ std::string GameScreen::WordWrap(std::string text, int width, std::vector<std::u
 					line = line.substr(wordend + 1);
 				}
 				line.push_back(c);
-				x = GetTextWidth(line, font);
+				x = GetTextWidth(line, font, spacing);
 			}
 			else
 			{
@@ -447,11 +501,11 @@ std::string GameScreen::WordWrap(std::string text, int width, std::vector<std::u
 	return result;
 }
 
-void GameScreen::DrawText(RenderDevice* renderdev, int x, int y, const std::string& text, std::vector<std::unique_ptr<GameTexture>>& font, GameTextAlignment alignment)
+void GameScreen::DrawText(RenderDevice* renderdev, int x, int y, const std::string& text, std::vector<std::unique_ptr<GameTexture>>& font, GameTextAlignment alignment, int spacing)
 {
 	if (alignment == GameTextAlignment::Left)
 	{
-		DrawTextImpl(renderdev, x, y, std::string_view(text), font, alignment);
+		DrawTextImpl(renderdev, x, y, std::string_view(text), font, alignment, spacing);
 	}
 	else
 	{
@@ -462,8 +516,8 @@ void GameScreen::DrawText(RenderDevice* renderdev, int x, int y, const std::stri
 			uint8_t i = *lineend;
 			if (i == '\n')
 			{
-				DrawTextImpl(renderdev, x, y, std::string_view(linestart, lineend), font, alignment);
-				y += font['X']->height + 2;
+				DrawTextImpl(renderdev, x, y, std::string_view(linestart, lineend), font, alignment, spacing);
+				y += font['X']->height + spacing;
 				linestart = ++lineend;
 			}
 			else
@@ -473,21 +527,21 @@ void GameScreen::DrawText(RenderDevice* renderdev, int x, int y, const std::stri
 		}
 		if (linestart != lineend)
 		{
-			DrawTextImpl(renderdev, x, y, std::string_view(linestart, lineend), font, alignment);
+			DrawTextImpl(renderdev, x, y, std::string_view(linestart, lineend), font, alignment, spacing);
 		}
 	}
 }
 
-void GameScreen::DrawTextImpl(RenderDevice* renderdev, int x, int y, const std::string_view& text, std::vector<std::unique_ptr<GameTexture>>& font, GameTextAlignment alignment)
+void GameScreen::DrawTextImpl(RenderDevice* renderdev, int x, int y, const std::string_view& text, std::vector<std::unique_ptr<GameTexture>>& font, GameTextAlignment alignment, int spacing)
 {
 	if (alignment == GameTextAlignment::Center)
 	{
-		int textwidth = GetTextWidth(text, font);
+		int textwidth = GetTextWidth(text, font, spacing);
 		x -= textwidth / 2;
 	}
 	else if (alignment == GameTextAlignment::Right)
 	{
-		int textwidth = GetTextWidth(text, font);
+		int textwidth = GetTextWidth(text, font, spacing);
 		x -= textwidth;
 	}
 
@@ -498,16 +552,16 @@ void GameScreen::DrawTextImpl(RenderDevice* renderdev, int x, int y, const std::
 		if (i == '\n')
 		{
 			x = startx;
-			y += font['x']->height + 2;
+			y += font['x']->height + spacing;
 		}
 		else if (i == 32 && font.size() > 'x')
 		{
-			x += font['x']->width + 2;
+			x += font['x']->width + spacing;
 		}
 		else if (i < font.size() && !font[i]->pixels.empty())
 		{
 			renderdev->DrawImage(x, y, font[i].get());
-			x += font[i]->width - font[i]->x + 2;
+			x += font[i]->width - font[i]->x + spacing;
 		}
 	}
 }

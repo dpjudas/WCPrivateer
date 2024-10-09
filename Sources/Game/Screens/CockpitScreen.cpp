@@ -10,8 +10,6 @@
 
 CockpitScreen::CockpitScreen(GameApp* app) : GameScreen(app)
 {
-	PlayMusic("DATA\\SOUND\\COMBAT.GEN", 4);
-
 	for (int i = 0; i < 1000; i++)
 	{
 		Spawn<SpaceDebris>(app);
@@ -25,6 +23,18 @@ CockpitScreen::CockpitScreen(GameApp* app) : GameScreen(app)
 
 	app->player = Spawn<PlayerPawn>(app);
 	app->player->target = Spawn<SpaceShip>(app);
+
+	auto ship2 = Spawn<SpaceShip>(app);
+	ship2->ship = "FRIGATE";
+	ship2->position = { 4.0f, -2.5f, 120.0f };
+	ship2->size = 30.0f;
+	ship2->rotation = quaternion::euler(30.0f, 10.0f, 0.0f);
+	ship2->radar = RadarVisibility::friendly;
+
+	auto ship3 = Spawn<SpaceShip>(app);
+	ship3->ship = "FIGHTER";
+	ship3->position = { -4.0f, 1.5f, 95.0f };
+	ship2->radar = RadarVisibility::hostile;
 
 	cockpit = std::make_unique<WCCockpit>(app->player->cockpit, app->archive.get());
 	software = std::make_unique<WCCockpitSoftware>(cockpit->software, app->archive.get());
@@ -96,7 +106,7 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 			stars.push_back(LoadWCImage(image, palette.get()));
 		}
 
-		for (int i = 0; i < 500; i++)
+		for (int i = 0; i < 250; i++)
 		{
 			quaternion rotation = quaternion::euler(radians(app->Random(0.0f, 360.0f)), radians(app->Random(0.0f, 360.0f)), 0.0f);
 			StarLocation location;
@@ -148,6 +158,9 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 		blackTexture->pixels.resize(1, 0xff000000);
 
 		radar = LoadWCImage(*targeting->targets.front().radarShape, palette.get());
+		dots[0] = LoadDotImage(174, 174, 174);
+		dots[1] = LoadDotImage(255, 103, 0);
+		dots[2] = LoadDotImage(31, 51, 222);
 	}
 
 	for (auto& obj : app->gameObjects)
@@ -172,7 +185,7 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 
 	for (const StarLocation& location : starLocations)
 	{
-		vec4 clippos = projMatrix * worldToView * vec4(location.position, 1.0f);
+		vec4 clippos = projMatrix * worldToView * vec4(viewPos + location.position, 1.0f);
 		if (clippos.w <= 0.0f)
 			continue;
 
@@ -300,23 +313,93 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 	{
 		auto& e = cockpit->radarPos;
 		renderdev->DrawImage(e.x0, e.y0, e.x1 - e.x0 + 1, e.y1 - e.y0 + 1, blackTexture.get());
-		renderdev->DrawImage((e.x0 + e.x1) / 2, (e.y0 + e.y1) / 2, radar[0].get());
+
+		int radarX = (e.x0 + e.x1) / 2;
+		int radarY = (e.y0 + e.y1) / 2;
+		int radarSize = 15;
+
+		renderdev->DrawImage(radarX, radarY, radar[0].get());
+
+		for (auto& obj : app->gameObjects)
+		{
+			if (obj->radar == RadarVisibility::hidden || obj.get() == app->player->target)
+				continue;
+
+			int color = 0;
+			if (obj->radar == RadarVisibility::friendly)
+				color = 2;
+			else if (obj->radar == RadarVisibility::hostile)
+				color = 1;
+
+			vec3 p = inverse(viewRotation) * (obj->position - viewPos);
+			float xangle = std::atan2(p.x, p.z);
+			float yangle = std::atan2(-p.y, p.z);
+			float xx = degrees(xangle) / 180.0f;
+			float yy = degrees(yangle) / 180.0f;
+			float lensqr = xx * xx + yy * yy;
+			if (lensqr > 1.0f)
+			{
+				float rcplen = 1.0f / std::sqrt(lensqr);
+				xx *= rcplen;
+				yy *= rcplen;
+			}
+			int x = radarX + (int)std::round(xx * radarSize);
+			int y = radarY + (int)std::round(yy * radarSize);
+			renderdev->DrawImage(x, y, dots[color][0].get());
+		}
+
+		if (app->player->target)
+		{
+			auto obj = app->player->target;
+
+			int color = 0;
+			if (obj->radar == RadarVisibility::friendly)
+				color = 2;
+			else if (obj->radar == RadarVisibility::hostile)
+				color = 1;
+
+			vec3 p = inverse(viewRotation) * (obj->position - viewPos);
+			float xangle = std::atan2(p.x, p.z);
+			float yangle = std::atan2(-p.y, p.z);
+			float xx = degrees(xangle) / 180.0f;
+			float yy = degrees(yangle) / 180.0f;
+			float lensqr = xx * xx + yy * yy;
+			if (lensqr > 1.0f)
+			{
+				float rcplen = 1.0f / std::sqrt(lensqr);
+				xx *= rcplen;
+				yy *= rcplen;
+			}
+			int x = radarX + (int)std::round(xx * radarSize);
+			int y = radarY + (int)std::round(yy * radarSize);
+
+			renderdev->DrawImage(x - 1, y, dots[color][0].get());
+			renderdev->DrawImage(x + 1, y, dots[color][0].get());
+			renderdev->DrawImage(x, y - 1, dots[color][0].get());
+			renderdev->DrawImage(x, y + 1, dots[color][0].get());
+			renderdev->DrawImage(x, y, dots[color][0].get());
+		}
 	}
 
 	// Draw console: (where does the 5,-20 offset come from?)
 	{
-		int offx = 5;
-		int offy = -20;
+		int offx = 6;
+		int offy = -26;
 
 		auto& e = cockpit->cmfd;
-		renderdev->DrawImage(e.x0 + offx, e.y0 + offy, e.x1 - e.x0 + 1, e.y1 - e.y0 + 1, blackTexture.get());
+		renderdev->DrawImage(e.x0, e.y0 - 28, e.x1 - e.x0 + 16, e.y1 - e.y0 + 28, blackTexture.get());
 
 		// To do: draw contents of the console here
 		if (app->player->target)
 		{
+			int x = (e.x0 + e.x1) / 2 + offx;
+			int y = (e.y0 + e.y1) / 2 + offy;
+
 			Ship* ship = getShip(app->player->target->ship);
 			for (auto& tex : ship->target)
-				renderdev->DrawImage((e.x0 + e.x1) / 2 + offx, (e.y0 + e.y1) / 2 + offy, tex.get());
+				renderdev->DrawImage(x, y, tex.get());
+
+			DrawText(renderdev, x, y + 32, "Unknown  17072m", font, GameTextAlignment::Center, 1);
 		}
 
 		// renderdev->DrawImage(e.x0 + 16, e.y0 + 16, guns[0].get());
@@ -327,8 +410,10 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 	renderdev->DrawImage(0, 0, front[0].get());
 
 	// Draw speed: (where does the 60,38 offset come from?)
-	DrawText(renderdev, 60 + cockpit->setSpeed.x, 38 + cockpit->setSpeed.y, cockpit->setSpeed.text + std::to_string(250), font);
-	DrawText(renderdev, 60 + cockpit->actualSpeed.x, 38 + cockpit->actualSpeed.y, cockpit->actualSpeed.text + std::to_string(998), font);
+	int setSpeed = (int)std::round(app->player->input.afterburnerPressed ? app->player->afterburnerSpeed : app->player->setSpeed);
+	int actualSpeed = (int)std::round(length(app->player->velocity));
+	DrawText(renderdev, 60 + cockpit->setSpeed.x, 38 + cockpit->setSpeed.y, cockpit->setSpeed.text + std::to_string(setSpeed), font);
+	DrawText(renderdev, 60 + cockpit->actualSpeed.x, 38 + cockpit->actualSpeed.y, cockpit->actualSpeed.text + std::to_string(actualSpeed), font);
 
 	// Draw crosshair: (how does it know the location?)
 	renderdev->DrawImage(160, 75, crosshair[0].get());
@@ -348,8 +433,17 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 
 void CockpitScreen::OnKeyDown(InputKey key)
 {
-	if (key == InputKey::M)
+	if (key == InputKey::N)
 	{
+		app->player->input.forwardPressed = false;
+		app->player->input.backwardPressed = false;
+		app->player->input.bankLeftPressed = false;
+		app->player->input.bankRightPressed = false;
+		app->player->input.turnLeftPressed = false;
+		app->player->input.turnRightPressed = false;
+		app->player->input.turnUpPressed = false;
+		app->player->input.turnDownPressed = false;
+		app->player->input.afterburnerPressed = false;
 		PushScreen(std::make_unique<NavScreen>(app));
 	}
 	else if (key == InputKey::Left)
@@ -383,6 +477,10 @@ void CockpitScreen::OnKeyDown(InputKey key)
 	else if (key == InputKey::Z)
 	{
 		app->player->input.backwardPressed = true;
+	}
+	else if (key == InputKey::Tab)
+	{
+		app->player->input.afterburnerPressed = true;
 	}
 }
 
@@ -419,5 +517,9 @@ void CockpitScreen::OnKeyUp(InputKey key)
 	else if (key == InputKey::Z)
 	{
 		app->player->input.backwardPressed = false;
+	}
+	else if (key == InputKey::Tab)
+	{
+		app->player->input.afterburnerPressed = false;
 	}
 }

@@ -7,6 +7,14 @@
 
 class GameApp;
 
+enum class RadarVisibility
+{
+	hidden,
+	neutral,
+	friendly,
+	hostile
+};
+
 class GameObject
 {
 public:
@@ -25,6 +33,8 @@ public:
 	float size = 10.0f;
 	quaternion rotation;
 
+	RadarVisibility radar = RadarVisibility::hidden;
+
 	struct
 	{
 		bool forwardPressed = false;
@@ -35,6 +45,7 @@ public:
 		bool turnRightPressed = false;
 		bool turnUpPressed = false;
 		bool turnDownPressed = false;
+		bool afterburnerPressed = false;
 	} input;
 
 	GameApp* app = nullptr;
@@ -53,6 +64,11 @@ public:
 	void Tick(float timeElapsed) override;
 
 	GameObject* target = nullptr;
+
+	vec3 velocity = vec3(0.0f);
+	float setSpeed = 100.0f;
+	float maxSpeed = 250.0f;
+	float afterburnerSpeed = 350.0f;
 };
 
 class SpaceShip : public GameObject

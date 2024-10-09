@@ -57,8 +57,8 @@ void WCSectorData::LoadQuadrant(WCArchive* archive)
 		WCQuadrant quad;
 
 		reader.PushChunk("INFO");
-		quad.a = reader.ReadInt16();
-		quad.b = reader.ReadInt16();
+		quad.x = reader.ReadInt16();
+		quad.y = reader.ReadInt16();
 		std::vector<char> buffer(reader.GetChunkSize() - 4 + 1);
 		reader.Read(buffer.data(), reader.GetChunkSize() - 4);
 		quad.name = buffer.data();
@@ -72,9 +72,9 @@ void WCSectorData::LoadQuadrant(WCArchive* archive)
 			WCSystem system;
 
 			reader.PushChunk("INFO");
-			system.a = reader.ReadUint8();
-			system.b = reader.ReadInt16();
-			system.c = reader.ReadInt16();
+			system.sectorIndex = reader.ReadUint8();
+			system.x = reader.ReadInt16();
+			system.y = reader.ReadInt16();
 			std::vector<char> buffer2(reader.GetChunkSize() - 5 + 1);
 			reader.Read(buffer2.data(), reader.GetChunkSize() - 5);
 			system.name = buffer2.data();
@@ -164,7 +164,10 @@ void WCSectorData::LoadSectors(WCArchive* archive)
 					reader.ReadUint8();
 					sphere.z = reader.ReadInt24();
 					reader.ReadUint8();
-					reader.Read(sphere.unknown4, 4);
+					sphere.argtype = reader.ReadUint8();
+					sphere.arg0 = reader.ReadUint8();
+					sphere.arg1 = reader.ReadUint8();
+					sphere.arg2 = reader.ReadUint8();
 					sector.spheres.push_back(sphere);
 				}
 
@@ -217,7 +220,7 @@ void WCSectorData::LoadSectors(WCArchive* archive)
 										{
 											WCSectorEncounterItem item;
 											item.chance = reader.ReadUint8();
-											item.index = reader.ReadUint16();
+											item.encounterIndex = reader.ReadUint16();
 											char buffer[9] = {};
 											reader.Read(buffer, 8);
 											item.type = buffer;
@@ -235,7 +238,7 @@ void WCSectorData::LoadSectors(WCArchive* archive)
 										for (int i = 0; i < count; i++)
 										{
 											WCSectorJumpItem item;
-											item.index = reader.ReadUint16();
+											item.encounterIndex = reader.ReadUint16();
 											char buffer[9] = {};
 											reader.Read(buffer, 8);
 											item.type = buffer;
@@ -267,7 +270,8 @@ void WCSectorData::LoadSectors(WCArchive* archive)
 											reader.ReadUint8();
 											item.z = reader.ReadInt24();
 											reader.ReadUint8();
-											reader.Read(item.unknown11, 11);
+											reader.Read(item.unknown10, 10);
+											item.baseIndex = reader.ReadUint8();
 											sector.bases.push_back(std::move(item));
 										}
 									}
@@ -288,10 +292,19 @@ void WCSectorData::LoadSectors(WCArchive* archive)
 								while (!reader.IsEndOfChunk())
 								{
 									reader.PushChunk("SCEN");
-									std::vector<uint8_t> scene(reader.GetChunkSize());
-									reader.Read(scene.data(), scene.size());
+
+									WCSectorScene scene;
+									scene.a = reader.ReadUint8();
+									scene.index = reader.ReadUint8();
+									scene.sectorIndex = reader.ReadUint8();
+									scene.b = reader.ReadInt16();
+									scene.c = reader.ReadInt16();
+									scene.d = reader.ReadInt16();
+									scene.encounters.resize((reader.GetChunkSize() - 9) / sizeof(int16_t));
+									reader.Read(scene.encounters.data(), scene.encounters.size() * sizeof(int16_t));
 									sector.scenes.push_back(std::move(scene));
-									reader.PopChunk(false);
+
+									reader.PopChunk();
 								}
 							}
 							else if (tag4 == "LOAD")
