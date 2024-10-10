@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include "Math/Vec.h"
 
 class Widget;
 
@@ -51,6 +52,35 @@ public:
 		DrawImage(x, y, gameTexture->width, gameTexture->height, gameTexture, r, g, b, a);
 	}
 
+	void GetBounds(float x, float y, float scaleX, float scaleY, float rotation, GameTexture* gameTexture, vec2& tl, vec2& br)
+	{
+		float dirXx = std::cos(rotation * (3.14159265359f / 180.0f));
+		float dirXy = std::sin(rotation * (3.14159265359f / 180.0f));
+		float dirYy = dirXx;
+		float dirYx = -dirXy;
+
+		float x0 = gameTexture->x * scaleX;
+		float y0 = gameTexture->y * scaleY;
+		float x1 = (gameTexture->x + gameTexture->width) * scaleX;
+		float y1 = (gameTexture->y + gameTexture->height) * scaleY;
+
+		tl.x = x + dirXx * x0 + dirYx * y0;
+		br.x = tl.x;
+		for (float x : { x + dirXx * x1 + dirYx * y0, x + dirXx * x1 + dirYx * y1, x + dirXx * x0 + dirYx * y1 })
+		{
+			tl.x = std::min(tl.x, x);
+			br.x = std::max(br.x, x);
+		}
+
+		tl.y = y + dirXy * x0 + dirYy * y0;
+		br.y = tl.y;
+		for (float y : { y + dirXy * x1 + dirYy * y0, y + dirXy * x1 + dirYy * y1, y + dirXy * x0 + dirYy * y1 })
+		{
+			tl.y = std::min(tl.y, y);
+			br.y = std::max(br.y, y);
+		}
+	}
+
 	void Draw3DImage(float x, float y, float scaleX, float scaleY, float rotation, GameTexture* gameTexture, float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f)
 	{
 		float dirXx = std::cos(rotation * (3.14159265359f / 180.0f));
@@ -74,7 +104,6 @@ public:
 			y + dirXy * x0 + dirYy * y1,
 			gameTexture,
 			r, g, b, a);
-
 	}
 
 	virtual void End() = 0;

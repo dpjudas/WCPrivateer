@@ -86,4 +86,5 @@ public:
 	std::vector<std::unique_ptr<GameTexture>> dots[3];
 
 	std::unique_ptr<GameTexture> blackTexture;
+	std::unique_ptr<GameTexture> whiteTexture;
 };

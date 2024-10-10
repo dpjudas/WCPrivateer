@@ -57,6 +57,15 @@ public:
 	void Init() override;
 };
 
+class JumpPoint : public GameObject
+{
+public:
+	void Init() override;
+	void Tick(float timeElapsed) override;
+
+	float timeLeft = 0.0f;
+};
+
 class PlayerPawn : public GameObject
 {
 public:
@@ -94,8 +103,8 @@ public:
 template<typename T>
 T* Spawn(GameApp* app)
 {
-	app->gameObjects.push_back(std::make_unique<T>());
-	auto obj = static_cast<T*>(app->gameObjects.back().get());
+	app->playsim.gameObjects.push_back(std::make_unique<T>());
+	auto obj = static_cast<T*>(app->playsim.gameObjects.back().get());
 	obj->app = app;
 	obj->Init();
 	return obj;

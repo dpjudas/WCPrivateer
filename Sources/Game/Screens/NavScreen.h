@@ -25,8 +25,6 @@ public:
 	bool quadrantMode = false;
 	bool missionMode = false;
 	int quadrant = 0;
-	int sectorIndex = 58;
-	int navpoint = 2;
 
 	std::unique_ptr<WCPalette> palette;
 	std::vector<std::unique_ptr<GameTexture>> background;

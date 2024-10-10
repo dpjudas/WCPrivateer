@@ -4,6 +4,7 @@
 #include "FileFormat/WCGameData.h"
 #include "FileFormat/WCSector.h"
 #include "Audio/AudioSource.h"
+#include "Math/Vec.h"
 #include <cmath>
 
 class GameScreen;
@@ -30,8 +31,14 @@ public:
 	float Random(float minval, float maxval) { return minval + (maxval - minval) * rand() / RAND_MAX; }
 	int Random(int minval, int maxval) { return (int)std::round(Random((float)minval, (float)maxval)); }
 
-	std::vector<std::unique_ptr<GameObject>> gameObjects;
-	PlayerPawn* player = nullptr;
+	struct
+	{
+		vec3 spawnPoint = vec3(60000.0f, 2500.0f, -40000.0f);
+		std::vector<std::unique_ptr<GameObject>> gameObjects;
+		PlayerPawn* player = nullptr;
+		int sectorIndex = 58;
+		int navpoint = 2;
+	} playsim;
 
 	int64_t GetGameTime();
 	int64_t StartTimeNS = 0;

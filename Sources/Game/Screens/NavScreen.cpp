@@ -34,12 +34,12 @@ void NavScreen::Render(RenderDevice* renderdev)
 	}
 	else
 	{
-		const WCSector& sector = app->sectordata->sectors[sectorIndex];
+		const WCSector& sector = app->sectordata->sectors[app->playsim.sectorIndex];
 		for (const WCSectorSphere& sphere : sector.spheres)
 		{
-			if (sphere.argtype == 7 && sphere.arg2 == navpoint)
+			if (sphere.argtype == 7 && sphere.arg2 == app->playsim.navpoint)
 			{
-				DrawText(renderdev, 190, 35, "Nav " + std::to_string(navpoint), font, GameTextAlignment::Left, 1);
+				DrawText(renderdev, 190, 35, "Nav " + std::to_string(app->playsim.navpoint), font, GameTextAlignment::Left, 1);
 
 				if (sphere.arg0 == 1)
 				{
@@ -89,7 +89,7 @@ void NavScreen::Render(RenderDevice* renderdev)
 	}
 	else
 	{
-		const WCSector& sector = app->sectordata->sectors[sectorIndex];
+		const WCSector& sector = app->sectordata->sectors[app->playsim.sectorIndex];
 
 		DrawText(renderdev, 95, 28, "System : " + sector.label, font, GameTextAlignment::Center, 1);
 
@@ -103,7 +103,7 @@ void NavScreen::Render(RenderDevice* renderdev)
 				int color = 0; // Default to green
 				if (sphere.arg0 == 2) // Jump points are blue
 					color = 1;
-				if (sphere.arg2 == navpoint) // Selected nav point is yellow
+				if (sphere.arg2 == app->playsim.navpoint) // Selected nav point is yellow
 					color = 2;
 
 				if (sphere.arg0 == 1)
@@ -148,13 +148,13 @@ void NavScreen::OnNextClick()
 	}
 	else
 	{
-		navpoint++;
+		app->playsim.navpoint++;
 
 		bool foundNavPoint = false;
-		const WCSector& sector = app->sectordata->sectors[sectorIndex];
+		const WCSector& sector = app->sectordata->sectors[app->playsim.sectorIndex];
 		for (const WCSectorSphere& sphere : sector.spheres)
 		{
-			if (sphere.argtype == 7 && sphere.arg2 == navpoint)
+			if (sphere.argtype == 7 && sphere.arg2 == app->playsim.navpoint)
 			{
 				foundNavPoint = true;
 				break;
@@ -162,7 +162,7 @@ void NavScreen::OnNextClick()
 		}
 
 		if (!foundNavPoint)
-			navpoint = 1;
+			app->playsim.navpoint = 1;
 	}
 }
 

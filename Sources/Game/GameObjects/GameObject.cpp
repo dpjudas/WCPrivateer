@@ -65,7 +65,7 @@ void SpaceShip::Init()
 {
 	ship = "DEMON";
 	position = { 0.0f, -2.5f, 100.0f };
-	size = 10.0f;
+	size = 25.0f;
 	radar = RadarVisibility::neutral;
 }
 
@@ -87,7 +87,7 @@ void SpaceDebris::Init()
 
 void SpaceDebris::Tick(float timeElapsed)
 {
-	vec3 playerpos = app->player->position;
+	vec3 playerpos = app->playsim.player->position;
 	vec3 delta = position - playerpos;
 	if (delta.x > 50.0f) position.x -= 100.0f;
 	if (delta.x < -50.0f) position.x += 100.0f;
@@ -117,4 +117,24 @@ void StarBase::Init()
 	position = { 500.0f, 500.0f, 2000.0f };
 	size = 1000.0;
 	radar = RadarVisibility::friendly;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+void JumpPoint::Init()
+{
+	sprite = "JUMP";
+	spriteIndex = 0;
+	size = 1000.0;
+	radar = RadarVisibility::neutral;
+}
+
+void JumpPoint::Tick(float timeElapsed)
+{
+	timeLeft -= timeElapsed;
+	while (timeLeft < 0.0f)
+	{
+		spriteIndex++;
+		timeLeft += 0.1f;
+	}
 }
