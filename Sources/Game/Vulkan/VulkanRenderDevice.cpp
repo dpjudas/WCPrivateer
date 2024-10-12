@@ -458,7 +458,11 @@ void VulkanRenderDevice::ValidateTexture(GameTexture* gameTexture)
 	// Put a texture in the upload buffer
 
 	uint32_t* pixels = (uint32_t*)uploads;
-	memcpy(pixels, gameTexture->pixels.data(), gameTexture->pixels.size() * sizeof(uint32_t));
+	size_t uploadSize = gameTexture->pixels.size() * sizeof(uint32_t);
+	if (uploadSize > uploadBufferSize)
+		throw std::runtime_error("Texture upload buffer too small!");
+
+	memcpy(pixels, gameTexture->pixels.data(), uploadSize);
 
 	// Copy the pixels from the upload buffer to the image object and transition the image to the layout suitable for texture sampling
 

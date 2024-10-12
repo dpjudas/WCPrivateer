@@ -3,6 +3,7 @@
 #include "GameScreen.h"
 #include "FileFormat/WCTypes.h"
 #include "Math/Vec.h"
+#include "Math/Quaternion.h"
 
 class WCCockpit;
 class WCCockpitSoftware;
@@ -17,6 +18,17 @@ struct StarLocation
 	int index = 0;
 };
 
+enum class CockpitConsoleMode
+{
+	target,
+	view,
+	destination,
+	comm,
+	damageReport,
+	weapons,
+	cargoManifest
+};
+
 class CockpitScreen : public GameScreen
 {
 public:
@@ -26,6 +38,32 @@ public:
 	void Render(RenderDevice* renderdev) override;
 	void OnKeyDown(InputKey key) override;
 	void OnKeyUp(InputKey key) override;
+
+	void TickGameObjects();
+	void CheckResources();
+	void FindClosestTarget();
+	void RenderViewport(RenderDevice* renderdev);
+	void DrawTargetLock(RenderDevice* renderdev);
+	void DrawNavPoint(RenderDevice* renderdev);
+	void DrawEnergyIndicator(RenderDevice* renderdev);
+	void DrawFuelIndicator(RenderDevice* renderdev);
+	void DrawAutopilotIndicator(RenderDevice* renderdev);
+	void DrawShieldIndicator(RenderDevice* renderdev);
+	void DrawRadar(RenderDevice* renderdev);
+	void DrawConsole(RenderDevice* renderdev);
+	void DrawConsoleModeTarget(RenderDevice* renderdev, int x, int y);
+	void DrawConsoleModeView(RenderDevice* renderdev, int x, int y);
+	void DrawConsoleModeDestination(RenderDevice* renderdev, int x, int y);
+	void DrawConsoleModeComm(RenderDevice* renderdev, int x, int y);
+	void DrawConsoleModeDamageReport(RenderDevice* renderdev, int x, int y);
+	void DrawConsoleModeWeapons(RenderDevice* renderdev, int x, int y);
+	void DrawConsoleModeCargoManifest(RenderDevice* renderdev, int x, int y);
+	void DrawSpeed(RenderDevice* renderdev);
+	void DrawCrosshair(RenderDevice* renderdev);
+	void DrawCockpit(RenderDevice* renderdev);
+	void DrawPauseDialog(RenderDevice* renderdev);
+
+	static ivec2 GetRadarPos(const vec3& objPos, const vec3& viewPos, const quaternion& viewRotation, int radarX, int radarY, int radarSize);
 
 	std::unique_ptr<WCTargetingType> targeting;
 
@@ -81,10 +119,18 @@ public:
 
 	std::vector<std::unique_ptr<GameTexture>> explosion;
 	std::vector<std::unique_ptr<GameTexture>> plaquetextures;
+	std::vector<std::unique_ptr<GameTexture>> plaquesmallfont;
+	std::map<std::string, std::vector<std::unique_ptr<GameTexture>>> plaquefonts;
 
 	std::vector<std::unique_ptr<GameTexture>> radar;
 	std::vector<std::unique_ptr<GameTexture>> dots[3];
 
 	std::unique_ptr<GameTexture> blackTexture;
 	std::unique_ptr<GameTexture> whiteTexture;
+
+	vec2 targetBoxTL = vec2(0.0f);
+	vec2 targetBoxBR = vec2(0.0f);
+	vec2 navPoint = vec2(0.0f);
+
+	CockpitConsoleMode consoleMode = CockpitConsoleMode::target;
 };

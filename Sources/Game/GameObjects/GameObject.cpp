@@ -64,8 +64,7 @@ void PlayerPawn::Tick(float timeElapsed)
 void SpaceShip::Init()
 {
 	ship = "DEMON";
-	position = { 0.0f, -2.5f, 100.0f };
-	size = 25.0f;
+	size = 200.0f;
 	radar = RadarVisibility::neutral;
 }
 
@@ -103,10 +102,10 @@ void Asteroid::Init()
 {
 	spriteIndex = app->Random(0, 100);
 	sprite = "ASTROID" + std::to_string(Random(1, 2));
-	size = 50.0f;
-	position.x = app->Random(-400.0f, 400.0f);
-	position.y = app->Random(-400.0f, 400.0f);
-	position.z = app->Random(-400.0f, 400.0f);
+	size = 200.0f;
+	position.x = app->Random(-2000.0f, 2000.0f);
+	position.y = app->Random(-2000.0f, 2000.0f);
+	position.z = app->Random(-2000.0f, 2000.0f);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -126,6 +125,7 @@ void JumpPoint::Init()
 	sprite = "JUMP";
 	spriteIndex = 0;
 	size = 1000.0;
+	alpha = 0.5f;
 	radar = RadarVisibility::neutral;
 }
 

@@ -38,6 +38,8 @@ public:
 		PlayerPawn* player = nullptr;
 		int sectorIndex = 58;
 		int navpoint = 2;
+		bool autopilotAllowed = false;
+		bool paused = false;
 	} playsim;
 
 	int64_t GetGameTime();

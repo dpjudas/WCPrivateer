@@ -25,6 +25,7 @@ public:
 	int Random(int minval, int maxval) { return (int)std::round(Random((float)minval, (float)maxval)); }
 
 	std::string sprite;
+	float alpha = 1.0f;
 	int spriteIndex = -1;
 	std::string cockpit;
 	std::string ship;
