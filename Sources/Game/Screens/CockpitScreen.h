@@ -38,11 +38,13 @@ public:
 	void Render(RenderDevice* renderdev) override;
 	void OnKeyDown(InputKey key) override;
 	void OnKeyUp(InputKey key) override;
+	void ReleaseKeys();
 
+	void FlyToNavpoint();
 	void TickGameObjects();
 	void CheckResources();
 	void FindClosestTarget();
-	void RenderViewport(RenderDevice* renderdev);
+	void RenderViewport(RenderDevice* renderdev, const vec3& viewPos, const quaternion& viewRotation, bool hidePlayer = true);
 	void DrawTargetLock(RenderDevice* renderdev);
 	void DrawNavPoint(RenderDevice* renderdev);
 	void DrawEnergyIndicator(RenderDevice* renderdev);
@@ -123,7 +125,7 @@ public:
 	std::map<std::string, std::vector<std::unique_ptr<GameTexture>>> plaquefonts;
 
 	std::vector<std::unique_ptr<GameTexture>> radar;
-	std::vector<std::unique_ptr<GameTexture>> dots[3];
+	std::vector<std::unique_ptr<GameTexture>> dots[4];
 
 	std::unique_ptr<GameTexture> blackTexture;
 	std::unique_ptr<GameTexture> whiteTexture;

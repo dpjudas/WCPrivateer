@@ -103,7 +103,7 @@ VulkanRenderDevice::VulkanRenderDevice(Widget* viewport) : viewport(viewport)
 			void main()
 			{
 				outColor = texture(Texture, texCoord) * color;
-				if (outColor.a < 0.5) discard;
+				// if (outColor.a < 0.5) discard;
 			}
 		)";
 
@@ -179,6 +179,7 @@ VulkanRenderDevice::VulkanRenderDevice(Widget* viewport) : viewport(viewport)
 		.AddFragmentShader(fragmentShaderNoTex.get())
 		.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT)
 		.AddDynamicState(VK_DYNAMIC_STATE_SCISSOR)
+		.AddColorBlendAttachment(ColorBlendAttachmentBuilder().AlphaBlendMode().Create())
 		.DebugName("pipelineNoTex")
 		.Create(device.get());
 
@@ -193,6 +194,7 @@ VulkanRenderDevice::VulkanRenderDevice(Widget* viewport) : viewport(viewport)
 		.AddFragmentShader(fragmentShaderTextured.get())
 		.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT)
 		.AddDynamicState(VK_DYNAMIC_STATE_SCISSOR)
+		.AddColorBlendAttachment(ColorBlendAttachmentBuilder().AlphaBlendMode().Create())
 		.DebugName("pipelineTextured")
 		.Create(device.get());
 

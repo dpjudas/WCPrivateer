@@ -9,6 +9,8 @@ void PlayerPawn::Init()
 	//cockpit = "TUGCK";
 	//cockpit = "MERCHCK";
 	cockpit = "FIGHTCK";
+	ship = "FIGHTER";
+	size = 200.0f;
 }
 
 void PlayerPawn::Tick(float timeElapsed)
@@ -125,8 +127,7 @@ void JumpPoint::Init()
 	sprite = "JUMP";
 	spriteIndex = 0;
 	size = 1000.0;
-	alpha = 0.5f;
-	radar = RadarVisibility::neutral;
+	alpha = 0.40f;
 }
 
 void JumpPoint::Tick(float timeElapsed)

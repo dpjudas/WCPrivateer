@@ -1,6 +1,7 @@
 
 #include "CockpitScreen.h"
 #include "NavScreen.h"
+#include "AutopilotScreen.h"
 #include "FileFormat/WCCockpit.h"
 #include "FileFormat/WCSpace.h"
 #include "FileFormat/WCPak.h"
@@ -29,7 +30,6 @@ CockpitScreen::CockpitScreen(GameApp* app) : GameScreen(app)
 		const WCSectorSphere& sphere = sector.spheres[jump.sphereIndex];
 		auto obj = Spawn<JumpPoint>(app);
 		obj->position = { (float)sphere.x, (float)sphere.y, (float)sphere.z };
-		obj->radar = RadarVisibility::neutral;
 	}
 
 	for (const WCSectorBaseItem& base : sector.bases)
@@ -187,6 +187,7 @@ void CockpitScreen::CheckResources()
 	dots[0] = LoadDotImage(174, 174, 174);
 	dots[1] = LoadDotImage(31, 51, 222);
 	dots[2] = LoadDotImage(255, 103, 0);
+	dots[3] = LoadDotImage(255, 255, 255);
 }
 
 void CockpitScreen::Render(RenderDevice* renderdev)
@@ -194,7 +195,7 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 	TickGameObjects();
 	FindClosestTarget();
 	CheckResources();
-	RenderViewport(renderdev);
+	RenderViewport(renderdev, app->playsim.player->position, app->playsim.player->rotation);
 	DrawCockpit(renderdev);
 	DrawPauseDialog(renderdev);
 }
@@ -212,12 +213,37 @@ void CockpitScreen::TickGameObjects()
 
 void CockpitScreen::FindClosestTarget()
 {
+	vec3 viewPos = app->playsim.player->position;
+	vec3 viewDir = app->playsim.player->rotation * vec3(0.0f, 0.0f, 1.0f);
+
+	app->playsim.autopilotAllowed = false;
+	const WCSector& sector = app->sectordata->sectors[app->playsim.sectorIndex];
+	for (const WCSectorSphere& sphere : sector.spheres)
+	{
+		if (sphere.argtype == 7 && sphere.arg2 == app->playsim.navpoint)
+		{
+			vec3 position(sphere.x, sphere.y, sphere.z);
+			vec3 L = position - viewPos;
+			if (dot(L, L) > 5000.0f * 5000.0f)
+				app->playsim.autopilotAllowed = true;
+		}
+	}
+
+	// Drop current target if out of range
+	if (app->playsim.player->target)
+	{
+		vec3 dir = app->playsim.player->target->position - viewPos;
+		float distancesqr = dot(dir, dir);
+		if (distancesqr >= 10000.0f * 10000.0f)
+		{
+			app->playsim.player->target = nullptr;
+		}
+	}
+
 	// Find target closest to player
 	GameObject* target = nullptr;
 	float targetCosAngle = std::cos(radians(10.0f));
 	float targetDistance = 10000.0f;
-	vec3 viewPos = app->playsim.player->position;
-	vec3 viewDir = app->playsim.player->rotation * vec3(0.0f, 0.0f, 1.0f);
 	for (auto& obj : app->playsim.gameObjects)
 	{
 		if (obj.get() == app->playsim.player || obj->radar == RadarVisibility::hidden)
@@ -242,7 +268,7 @@ void CockpitScreen::FindClosestTarget()
 		app->playsim.player->target = target;
 }
 
-void CockpitScreen::RenderViewport(RenderDevice* renderdev)
+void CockpitScreen::RenderViewport(RenderDevice* renderdev, const vec3& viewPos, const quaternion& viewRotation, bool hidePlayer)
 {
 	targetBoxTL = vec2(0.0f);
 	targetBoxBR = vec2(0.0f);
@@ -256,9 +282,6 @@ void CockpitScreen::RenderViewport(RenderDevice* renderdev)
 	float viewportHeight = 200.0;
 	float halfViewportWidth = viewportWidth * 0.5f;
 	float halfViewportHeight = viewportHeight * 0.5f;
-
-	vec3 viewPos = app->playsim.player->position;
-	quaternion viewRotation = app->playsim.player->rotation;
 
 	mat4 worldToView = mat4::quaternion(inverse(viewRotation)) * mat4::translate(vec3(0.0f) - viewPos);
 	mat4 projMatrix = mat4::perspective(50.0f, viewportWidth / viewportHeight, 1.0f, 65535.0f, handedness::left, clipzrange::zero_positive_w);
@@ -317,7 +340,7 @@ void CockpitScreen::RenderViewport(RenderDevice* renderdev)
 	{
 		GameObject* obj = item.second;
 
-		if (obj == app->playsim.player)
+		if (hidePlayer && obj == app->playsim.player)
 			continue;
 
 		vec4 clippos = projMatrix * worldToView * vec4(obj->position, 1.0f);
@@ -421,15 +444,15 @@ void CockpitScreen::DrawTargetLock(RenderDevice* renderdev)
 	int y1 = y0 + (y3 - y0) / 4;
 	int y2 = y3 - (y3 - y0) / 4;
 
-	renderdev->DrawImage(x0, y0, x1 - x0, 1, whiteTexture.get(), 0.5f, 0.5f, 0.5f);
-	renderdev->DrawImage(x2, y0, x3 - x2, 1, whiteTexture.get(), 0.5f, 0.5f, 0.5f);
-	renderdev->DrawImage(x0, y0, 1, y1 - y0, whiteTexture.get(), 0.5f, 0.5f, 0.5f);
-	renderdev->DrawImage(x3, y0, 1, y1 - y0, whiteTexture.get(), 0.5f, 0.5f, 0.5f);
+	renderdev->DrawImage(x0, y0, x1 - x0, 1, whiteTexture.get(), 0.7f, 0.7f, 0.7f);
+	renderdev->DrawImage(x2, y0, x3 - x2, 1, whiteTexture.get(), 0.7f, 0.7f, 0.7f);
+	renderdev->DrawImage(x0, y0, 1, y1 - y0, whiteTexture.get(), 0.7f, 0.7f, 0.7f);
+	renderdev->DrawImage(x3, y0, 1, y1 - y0, whiteTexture.get(), 0.7f, 0.7f, 0.7f);
 
-	renderdev->DrawImage(x0, y3, x1 - x0, 1, whiteTexture.get(), 0.5f, 0.5f, 0.5f);
-	renderdev->DrawImage(x2, y3, x3 - x2 + 1, 1, whiteTexture.get(), 0.5f, 0.5f, 0.5f);
-	renderdev->DrawImage(x0, y2, 1, y3 - y2, whiteTexture.get(), 0.5f, 0.5f, 0.5f);
-	renderdev->DrawImage(x3, y2, 1, y3 - y2 + 1, whiteTexture.get(), 0.5f, 0.5f, 0.5f);
+	renderdev->DrawImage(x0, y3, x1 - x0, 1, whiteTexture.get(), 0.7f, 0.7f, 0.7f);
+	renderdev->DrawImage(x2, y3, x3 - x2 + 1, 1, whiteTexture.get(), 0.7f, 0.7f, 0.7f);
+	renderdev->DrawImage(x0, y2, 1, y3 - y2, whiteTexture.get(), 0.7f, 0.7f, 0.7f);
+	renderdev->DrawImage(x3, y2, 1, y3 - y2 + 1, whiteTexture.get(), 0.7f, 0.7f, 0.7f);
 }
 
 void CockpitScreen::DrawNavPoint(RenderDevice* renderdev)
@@ -453,12 +476,9 @@ void CockpitScreen::DrawFuelIndicator(RenderDevice* renderdev)
 
 void CockpitScreen::DrawAutopilotIndicator(RenderDevice* renderdev)
 {
-	if (!app->playsim.autopilotAllowed)
-		return;
-
 	auto& e = cockpit->autoPos;
 	renderdev->DrawImage(e.x0, e.y0, e.x1 - e.x0 + 1, e.y1 - e.y0 + 1, blackTexture.get());
-	renderdev->DrawImage((e.x0 + e.x1) / 2, (e.y0 + e.y1) / 2, autopilot[1].get());
+	renderdev->DrawImage((e.x0 + e.x1) / 2, (e.y0 + e.y1) / 2, autopilot[app->playsim.autopilotAllowed].get());
 }
 
 void CockpitScreen::DrawShieldIndicator(RenderDevice* renderdev)
@@ -509,7 +529,7 @@ void CockpitScreen::DrawRadar(RenderDevice* renderdev)
 		if (sphere.argtype == 7 && sphere.arg2 == app->playsim.navpoint)
 		{
 			vec3 position(sphere.x, sphere.y, sphere.z);
-			int color = 0;
+			int color = 3;
 			ivec2 p = GetRadarPos(position, viewPos, viewRotation, radarX, radarY, radarSize);
 			renderdev->DrawImage(p.x - 1, p.y, dots[color][0].get());
 			renderdev->DrawImage(p.x + 1, p.y, dots[color][0].get());
@@ -611,6 +631,28 @@ void CockpitScreen::DrawConsoleModeTarget(RenderDevice* renderdev, int x, int y)
 void CockpitScreen::DrawConsoleModeView(RenderDevice* renderdev, int x, int y)
 {
 	// To do: draw a camera view of the target
+}
+
+void CockpitScreen::FlyToNavpoint()
+{
+	const WCSector& sector = app->sectordata->sectors[app->playsim.sectorIndex];
+	for (const WCSectorSphere& sphere : sector.spheres)
+	{
+		if (sphere.argtype == 7 && sphere.arg2 == app->playsim.navpoint)
+		{
+			vec3 dir = vec3(sphere.x, sphere.y, sphere.z) - app->playsim.player->position;
+			float dist = length(dir);
+			if (dist < 5000.0f)
+				return;
+			dir /= dist;
+			quaternion rotation = rotation_between(vec3(0.0f, 0.0f, 1.0f), app->playsim.player->rotation * dir);
+			dir *= dist - 5000.0f;
+
+			app->playsim.player->position += dir;
+			app->playsim.player->rotation = app->playsim.player->rotation * rotation;
+			break;
+		}
+	}
 }
 
 void CockpitScreen::DrawConsoleModeDestination(RenderDevice* renderdev, int x, int y)
@@ -741,20 +783,33 @@ void CockpitScreen::DrawPauseDialog(RenderDevice* renderdev)
 	}
 }
 
+void CockpitScreen::ReleaseKeys()
+{
+	app->playsim.player->input.forwardPressed = false;
+	app->playsim.player->input.backwardPressed = false;
+	app->playsim.player->input.bankLeftPressed = false;
+	app->playsim.player->input.bankRightPressed = false;
+	app->playsim.player->input.turnLeftPressed = false;
+	app->playsim.player->input.turnRightPressed = false;
+	app->playsim.player->input.turnUpPressed = false;
+	app->playsim.player->input.turnDownPressed = false;
+	app->playsim.player->input.afterburnerPressed = false;
+}
+
 void CockpitScreen::OnKeyDown(InputKey key)
 {
 	if (key == InputKey::N)
 	{
-		app->playsim.player->input.forwardPressed = false;
-		app->playsim.player->input.backwardPressed = false;
-		app->playsim.player->input.bankLeftPressed = false;
-		app->playsim.player->input.bankRightPressed = false;
-		app->playsim.player->input.turnLeftPressed = false;
-		app->playsim.player->input.turnRightPressed = false;
-		app->playsim.player->input.turnUpPressed = false;
-		app->playsim.player->input.turnDownPressed = false;
-		app->playsim.player->input.afterburnerPressed = false;
+		ReleaseKeys();
 		PushScreen(std::make_unique<NavScreen>(app));
+	}
+	if (key == InputKey::F)
+	{
+		if (app->playsim.autopilotAllowed)
+		{
+			ReleaseKeys();
+			PushScreen(std::make_unique<AutopilotScreen>(app, this));
+		}
 	}
 	else if (key == InputKey::Left)
 	{
