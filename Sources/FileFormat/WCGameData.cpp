@@ -376,9 +376,10 @@ void WCGameData::LoadGameFlow()
 			reader.PopChunk();
 
 			reader.PushChunk("EFCT");
-			std::vector<uint8_t> effect(reader.GetChunkSize());
-			reader.Read(effect.data(), effect.size());
-			mission.effect = std::move(effect);
+			int one = reader.ReadUint8();
+			if (one != 1)
+				throw std::runtime_error("Unexpected EFCT data");
+			mission.startSceneIndex = reader.ReadUint8();
 			reader.PopChunk();
 
 			while (!reader.IsEndOfChunk())
@@ -390,7 +391,7 @@ void WCGameData::LoadGameFlow()
 					WCGameFlowScene scene;
 
 					reader.PushChunk("INFO");
-					scene.info = reader.ReadUint8();
+					scene.sceneIndex = reader.ReadUint8();
 					if (!reader.IsEndOfChunk())
 						throw std::runtime_error("More data in scene info");
 					reader.PopChunk();

@@ -36,6 +36,7 @@ public:
 		vec3 spawnPoint = vec3(60000.0f, 2500.0f, -40000.0f);
 		std::vector<std::unique_ptr<GameObject>> gameObjects;
 		PlayerPawn* player = nullptr;
+		int baseIndex = 0;
 		int sectorIndex = 58;
 		int navpoint = 2;
 		bool autopilotAllowed = false;

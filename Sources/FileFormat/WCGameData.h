@@ -191,7 +191,7 @@ public:
 class WCGameFlowScene
 {
 public:
-	int info = 0;
+	int sceneIndex = 0;
 	std::vector<WCGameFlowSprite> sprites;
 };
 
@@ -200,7 +200,7 @@ class WCGameFlowMission
 public:
 	int info = 0;
 	int tune = 0;
-	std::vector<uint8_t> effect;
+	int startSceneIndex = 0;
 	std::vector<WCGameFlowScene> scenes;
 };
 
