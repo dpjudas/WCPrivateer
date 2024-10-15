@@ -5,7 +5,7 @@
 class MerchantScreen : public SceneScreen
 {
 public:
-	MerchantScreen(GameApp* app);
+	MerchantScreen(GameApp* app, const WCGameFlowTarget* target);
 	void Render(RenderDevice* renderdev) override;
 	void OnClickTarget(WCTarget target) override;
 };

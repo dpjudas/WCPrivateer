@@ -2,9 +2,9 @@
 #include "MerchantScreen.h"
 #include "BaseScreen.h"
 
-MerchantScreen::MerchantScreen(GameApp* app) : SceneScreen(app)
+MerchantScreen::MerchantScreen(GameApp* app, const WCGameFlowTarget* target) : SceneScreen(app)
 {
-	nextScene = 61;
+	SetScene(target);
 }
 
 void MerchantScreen::Render(RenderDevice* renderdev)
@@ -20,7 +20,7 @@ void MerchantScreen::OnClickTarget(WCTarget target)
 {
 	if (target == WCTarget::MainConcourse)
 	{
-		ShowScreen(std::make_unique<BaseScreen>(app));
+		ShowScreen(std::make_unique<BaseScreen>(app, GetFlowTarget(target)));
 	}
 	else if (target == WCTarget::Computer)
 	{

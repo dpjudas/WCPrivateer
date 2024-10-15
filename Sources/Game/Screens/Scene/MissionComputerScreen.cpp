@@ -4,7 +4,7 @@
 #include "Game/GameApp.h"
 #include <cstdio>
 
-MissionComputerScreen::MissionComputerScreen(GameApp* app) : SceneScreen(app)
+MissionComputerScreen::MissionComputerScreen(GameApp* app, const WCGameFlowTarget* target) : SceneScreen(app)
 {
 	nextScene = 58;
 
@@ -92,7 +92,7 @@ void MissionComputerScreen::OnClickTarget(WCTarget target)
 {
 	if (target == WCTarget::MainConcourse)
 	{
-		ShowScreen(std::make_unique<BaseScreen>(app));
+		ShowScreen(std::make_unique<BaseScreen>(app, GetFlowTarget(target)));
 	}
 	else if (target == WCTarget::ActivateComputer)
 	{

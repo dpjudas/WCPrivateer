@@ -402,25 +402,26 @@ void WCGameData::LoadGameFlow()
 
 						if (tag2 == "SPRT")
 						{
-							WCGameFlowSprite sprite;
+							WCGameFlowTarget sprite;
 							while (!reader.IsEndOfChunk())
 							{
 								std::string tag3 = reader.PushChunk();
 								if (tag3 == "INFO")
 								{
-									sprite.info = reader.ReadUint8();
+									sprite.target = reader.ReadUint8();
 								}
 								else if (tag3 == "EFCT")
 								{
-									std::vector<uint8_t> sprteffect(reader.GetChunkSize());
-									reader.Read(sprteffect.data(), sprteffect.size());
-									sprite.effect = std::move(sprteffect);
+									sprite.effect = (WCGameFlowEffect)reader.ReadUint8();
+									std::vector<uint8_t> args(reader.GetChunkSize() - 1);
+									reader.Read(args.data(), args.size());
+									sprite.args = std::move(args);
 								}
 								else if (tag3 == "REQU")
 								{
 									std::vector<uint8_t> requ(reader.GetChunkSize());
 									reader.Read(requ.data(), requ.size());
-									sprite.request = std::move(requ);
+									sprite.requ = std::move(requ);
 								}
 								else
 								{
@@ -430,7 +431,7 @@ void WCGameData::LoadGameFlow()
 									throw std::runtime_error("More data in sprite chunk");
 								reader.PopChunk();
 							}
-							scene.sprites.push_back(sprite);
+							scene.targets.push_back(sprite);
 						}
 						else
 						{

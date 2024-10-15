@@ -5,7 +5,7 @@
 class MissionComputerScreen : public SceneScreen
 {
 public:
-	MissionComputerScreen(GameApp* app);
+	MissionComputerScreen(GameApp* app, const WCGameFlowTarget* target);
 	void Render(RenderDevice* renderdev) override;
 	void OnClickTarget(WCTarget target) override;
 

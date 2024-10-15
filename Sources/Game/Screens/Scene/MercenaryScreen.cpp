@@ -2,9 +2,9 @@
 #include "MercenaryScreen.h"
 #include "BaseScreen.h"
 
-MercenaryScreen::MercenaryScreen(GameApp* app) : SceneScreen(app)
+MercenaryScreen::MercenaryScreen(GameApp* app, const WCGameFlowTarget* target) : SceneScreen(app)
 {
-	nextScene = 59;
+	SetScene(target);
 }
 
 void MercenaryScreen::Render(RenderDevice* renderdev)
@@ -17,7 +17,7 @@ void MercenaryScreen::OnClickTarget(WCTarget target)
 {
 	if (target == WCTarget::MainConcourse)
 	{
-		ShowScreen(std::make_unique<BaseScreen>(app));
+		ShowScreen(std::make_unique<BaseScreen>(app, GetFlowTarget(target)));
 	}
 	else if (target == WCTarget::Computer)
 	{

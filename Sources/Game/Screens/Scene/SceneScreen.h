@@ -2,8 +2,11 @@
 
 #include "Game/Screens/GameScreen.h"
 #include "FileFormat/WCScene.h"
+#include "FileFormat/WCGameData.h"
 
 class WCSceneList;
+class WCGameFlowScene;
+class WCGameFlowTarget;
 
 class SceneScreen : public GameScreen
 {
@@ -17,6 +20,9 @@ public:
 
 	void DrawSprite(RenderDevice* renderdev, int index, int x = 0, int y = 0);
 
+	void SetScene(const WCGameFlowTarget* target);
+	const WCGameFlowTarget* GetFlowTarget(WCTarget target);
+
 	virtual void OnClickTarget(WCTarget target) { }
 
 	int GetHotRegion();
@@ -29,8 +35,10 @@ public:
 
 	int scene = -1;
 	int nextScene = 0;
+	const WCGameFlowScene* flow = nullptr;
 
-	int framecounter = 0;
+	int64_t startTime = 0;
+	int curTime = 0;
 
 	int regionTextX = 160;
 	int regionTextY = 190;

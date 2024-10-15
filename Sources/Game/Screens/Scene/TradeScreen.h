@@ -5,7 +5,7 @@
 class TradeScreen : public SceneScreen
 {
 public:
-	TradeScreen(GameApp* app);
+	TradeScreen(GameApp* app, const WCGameFlowTarget* target);
 	void Render(RenderDevice* renderdev) override;
 	void OnClickTarget(WCTarget target) override;
 

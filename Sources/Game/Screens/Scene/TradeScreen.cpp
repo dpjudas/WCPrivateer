@@ -3,7 +3,7 @@
 #include "BaseScreen.h"
 #include "Game/GameApp.h"
 
-TradeScreen::TradeScreen(GameApp* app) : SceneScreen(app)
+TradeScreen::TradeScreen(GameApp* app, const WCGameFlowTarget* target) : SceneScreen(app)
 {
 	nextScene = 63;
 }
@@ -55,7 +55,7 @@ void TradeScreen::OnClickTarget(WCTarget target)
 {
 	if (target == WCTarget::MainConcourse)
 	{
-		ShowScreen(std::make_unique<BaseScreen>(app));
+		ShowScreen(std::make_unique<BaseScreen>(app, GetFlowTarget(target)));
 	}
 	else if (target == WCTarget::TradeNextItem)
 	{

@@ -21,6 +21,21 @@ void SceneScreen::Render(RenderDevice* renderdev)
 		ship.clear();
 		scene = nextScene;
 
+		const WCGameFlowMission& baseInfo = app->gamedata->gameFlow.missions[app->playsim.baseIndex];
+
+		// How do we figure out which flow applies?
+		flow = nullptr;
+		for (const WCGameFlowScene& sceneFlow : baseInfo.scenes)
+		{
+			if (sceneFlow.sceneIndex == scene)
+			{
+				if (!flow || flow->targets.size() < sceneFlow.targets.size())
+					flow = &sceneFlow;
+			}
+		}
+
+		startTime = app->GetGameTime();
+
 		palette = LoadPakPalette("DATA\\OPTIONS\\OPTPALS.PAK", app->gamedata->sceneList->scenes[scene].background.palette);
 		for (const auto& bgshape : app->gamedata->sceneList->scenes[scene].background.shapes)
 		{
@@ -38,13 +53,13 @@ void SceneScreen::Render(RenderDevice* renderdev)
 		font = LoadOptFont(palette.get());
 	}
 
-	framecounter++;
+	curTime = (int)(app->GetGameTime() - startTime);
 
 	for (size_t i = 0; i < app->gamedata->sceneList->scenes[scene].background.shapes.size(); i++)
 	{
 		if (!backgrounds[i].empty())
 		{
-			GameTexture* bgimage = backgrounds[i][(framecounter / 20) % backgrounds[i].size()].get();
+			GameTexture* bgimage = backgrounds[i][(curTime / 150) % backgrounds[i].size()].get();
 			const auto& shape = app->gamedata->sceneList->scenes[scene].background.shapes[i];
 			renderdev->DrawImage(shape.offsetX, shape.offsetY, bgimage);
 		}
@@ -67,13 +82,36 @@ void SceneScreen::Render(RenderDevice* renderdev)
 	}
 }
 
+const WCGameFlowTarget* SceneScreen::GetFlowTarget(WCTarget target)
+{
+	if (flow)
+	{
+		for (const WCGameFlowTarget& t : flow->targets)
+		{
+			if (t.target == (int)target)
+			{
+				return &t;
+			}
+		}
+	}
+	return nullptr;
+}
+
+void SceneScreen::SetScene(const WCGameFlowTarget* target)
+{
+	if (!target || target->effect != WCGameFlowEffect::SetScene)
+		return;
+
+	nextScene = target->args[0];
+}
+
 void SceneScreen::DrawSprite(RenderDevice* renderdev, int i, int x, int y)
 {
 	if (i < 0 || (size_t)i >= sprites.size() || sprites[i].empty())
 		return;
 
 	const auto& sprite = app->gamedata->sceneList->scenes[scene].foreground.sprites[i];
-	int frame = sprite.sequence.empty() ? (framecounter / 20) % sprites[i].size() : sprite.sequence[(framecounter / 20) % sprite.sequence.size()];
+	int frame = sprite.sequence.empty() ? (curTime / 150) % sprites[i].size() : sprite.sequence[(curTime / 150) % sprite.sequence.size()];
 	GameTexture* fgimage = sprites[i][frame].get();
 	renderdev->DrawImage(x + sprite.x1, y + sprite.y1, fgimage);
 }

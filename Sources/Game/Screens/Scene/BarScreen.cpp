@@ -2,9 +2,9 @@
 #include "BarScreen.h"
 #include "BaseScreen.h"
 
-BarScreen::BarScreen(GameApp* app) : SceneScreen(app)
+BarScreen::BarScreen(GameApp* app, const WCGameFlowTarget* target) : SceneScreen(app)
 {
-	nextScene = 5;
+	SetScene(target);
 }
 
 void BarScreen::Render(RenderDevice* renderdev)
@@ -17,6 +17,6 @@ void BarScreen::OnClickTarget(WCTarget target)
 {
 	if (target == WCTarget::MainConcourse)
 	{
-		ShowScreen(std::make_unique<BaseScreen>(app));
+		ShowScreen(std::make_unique<BaseScreen>(app, GetFlowTarget(target)));
 	}
 }

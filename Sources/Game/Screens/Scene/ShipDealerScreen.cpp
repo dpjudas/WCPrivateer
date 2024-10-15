@@ -4,16 +4,16 @@
 #include "ShipGarageScreen.h"
 #include "Game/Screens/ConversationScreen.h"
 
-ShipDealerScreen::ShipDealerScreen(GameApp* app) : SceneScreen(app)
+ShipDealerScreen::ShipDealerScreen(GameApp* app, const WCGameFlowTarget* target) : SceneScreen(app)
 {
-	nextScene = 45;
+	SetScene(target);
 }
 
 void ShipDealerScreen::OnClickTarget(WCTarget target)
 {
 	if (target == WCTarget::MainConcourse)
 	{
-		ShowScreen(std::make_unique<BaseScreen>(app));
+		ShowScreen(std::make_unique<BaseScreen>(app, GetFlowTarget(target)));
 	}
 	else if (target == WCTarget::RepairAndUpgrade)
 	{
