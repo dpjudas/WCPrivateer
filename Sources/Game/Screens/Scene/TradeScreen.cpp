@@ -55,7 +55,7 @@ void TradeScreen::OnClickTarget(WCTarget target)
 {
 	if (target == WCTarget::MainConcourse)
 	{
-		ShowScreen(std::make_unique<BaseScreen>(app, GetFlowTarget(target)));
+		PopScreen();
 	}
 	else if (target == WCTarget::TradeNextItem)
 	{

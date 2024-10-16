@@ -23,7 +23,7 @@ public:
 	void SetScene(const WCGameFlowTarget* target);
 	const WCGameFlowTarget* GetFlowTarget(WCTarget target);
 
-	virtual void OnClickTarget(WCTarget target) { }
+	virtual void OnClickTarget(WCTarget target);
 
 	int GetHotRegion();
 
@@ -34,7 +34,7 @@ public:
 	std::vector<std::unique_ptr<GameTexture>> font;
 
 	int scene = -1;
-	int nextScene = 0;
+	int nextScene = -1;
 	const WCGameFlowScene* flow = nullptr;
 
 	int64_t startTime = 0;

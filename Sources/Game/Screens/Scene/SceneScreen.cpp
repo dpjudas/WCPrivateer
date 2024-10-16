@@ -1,8 +1,13 @@
 
 #include "Precomp.h"
 #include "SceneScreen.h"
+#include "MissionComputerScreen.h"
+#include "ShipGarageScreen.h"
+#include "TradeScreen.h"
 #include "FileFormat/WCScene.h"
 #include "Game/GameApp.h"
+#include "Game/Screens/Movie/TakeoffScreen.h"
+#include "Game/Screens/ConversationScreen.h"
 
 SceneScreen::SceneScreen(GameApp* app) : GameScreen(app)
 {
@@ -14,6 +19,13 @@ SceneScreen::~SceneScreen()
 
 void SceneScreen::Render(RenderDevice* renderdev)
 {
+	if (nextScene == -1)
+	{
+		const WCGameFlowMission& baseInfo = app->gamedata->gameFlow.missions[app->playsim.baseIndex];
+		PlayMusic("DATA\\SOUND\\BASETUNE.GEN", baseInfo.tune);
+		nextScene = baseInfo.startSceneIndex;
+	}
+
 	if (scene != nextScene)
 	{
 		backgrounds.clear();
@@ -62,6 +74,23 @@ void SceneScreen::Render(RenderDevice* renderdev)
 			GameTexture* bgimage = backgrounds[i][(curTime / 150) % backgrounds[i].size()].get();
 			const auto& shape = app->gamedata->sceneList->scenes[scene].background.shapes[i];
 			renderdev->DrawImage(shape.offsetX, shape.offsetY, bgimage);
+		}
+	}
+
+	if (flow)
+	{
+		int i = 0;
+		for (const auto& sprite : app->gamedata->sceneList->scenes[scene].foreground.sprites)
+		{
+			for (const auto& target : flow->targets)
+			{
+				if (target.target == (int)sprite.target)
+				{
+					DrawSprite(renderdev, i);
+					break;
+				}
+			}
+			i++;
 		}
 	}
 
@@ -174,5 +203,65 @@ void SceneScreen::OnKeyUp(InputKey key)
 			const auto& region = app->gamedata->sceneList->scenes[scene].regions[hotRegion];
 			OnClickTarget(region.target);
 		}
+	}
+}
+
+void SceneScreen::OnClickTarget(WCTarget target)
+{
+	const WCGameFlowTarget* t = GetFlowTarget(target);
+	if (!t)
+		return;
+
+	if (t->effect == WCGameFlowEffect::SetScene)
+	{
+		nextScene = t->args[0];
+	}
+	else if (t->effect == WCGameFlowEffect::LaunchShip)
+	{
+		ShowScreen(std::make_unique<TakeoffScreen>(app));
+	}
+	else if (t->effect == WCGameFlowEffect::MissionComputer)
+	{
+		PushScreen(std::make_unique<MissionComputerScreen>(app, t));
+	}
+	else if (t->effect == WCGameFlowEffect::MercenaryAction)
+	{
+		WCMerchantAction action = (WCMerchantAction)t->args[0];
+		if (action == WCMerchantAction::UseComputer)
+		{
+			nextScene = 60;
+		}
+		else if (action == WCMerchantAction::Talk)
+		{
+		}
+	}
+	else if (t->effect == WCGameFlowEffect::MerchantAction)
+	{
+		WCMerchantAction action = (WCMerchantAction)t->args[0];
+		if (action == WCMerchantAction::UseComputer)
+		{
+			// pakindex for screen fade effect is 17
+			// pakindex for cds is 22
+			nextScene = 62;
+		}
+		else if (action == WCMerchantAction::Talk)
+		{
+		}
+	}
+	else if (t->effect == WCGameFlowEffect::ShipGarage)
+	{
+		PushScreen(std::make_unique<ShipGarageScreen>(app));
+	}
+	else if (t->effect == WCGameFlowEffect::CommodityExchange)
+	{
+		PushScreen(std::make_unique<TradeScreen>(app, t));
+	}
+	else if (t->effect == WCGameFlowEffect::PurchaseShip)
+	{
+		PushScreen(std::make_unique<ConversationScreen>(app, "TOOPOOR"));
+	}
+	else
+	{
+		nextScene = 0;
 	}
 }

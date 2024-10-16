@@ -90,12 +90,12 @@ void SpaceDebris::Tick(float timeElapsed)
 {
 	vec3 playerpos = app->playsim.player->position;
 	vec3 delta = position - playerpos;
-	if (delta.x > 50.0f) position.x -= 100.0f;
-	if (delta.x < -50.0f) position.x += 100.0f;
-	if (delta.y > 50.0f) position.y -= 100.0f;
-	if (delta.y < -50.0f) position.y += 100.0f;
-	if (delta.z > 50.0f) position.z -= 100.0f;
-	if (delta.z < -50.0f) position.z += 100.0f;
+	if (delta.x > 50.0f) position.x = playerpos.x + std::fmod(delta.x + 50.0f, 100.0f) - 50.0f;
+	if (delta.x < -50.0f) position.x = playerpos.x - std::fmod(50.0f - delta.x, 100.0f) + 50.0f;
+	if (delta.y > 50.0f) position.y = playerpos.y + std::fmod(delta.y + 50.0f, 100.0f) - 50.0f;
+	if (delta.y < -50.0f) position.y = playerpos.y - std::fmod(50.0f - delta.y, 100.0f) + 50.0f;
+	if (delta.z > 50.0f) position.z = playerpos.z + std::fmod(delta.z + 50.0f, 100.0f) - 50.0f;
+	if (delta.z < -50.0f) position.z = playerpos.z - std::fmod(50.0f - delta.z, 100.0f) + 50.0f;
 }
 
 /////////////////////////////////////////////////////////////////////////////

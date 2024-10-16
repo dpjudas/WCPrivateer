@@ -52,7 +52,7 @@ void ShipSoftwareScreen::OnClickTarget(WCTarget target)
 {
 	if (target == WCTarget::MainConcourse)
 	{
-		ShowScreen(std::make_unique<ShipGarageScreen>(app));
+		PopScreen();
 	}
 	else if (target == WCTarget::SoftwareSell)
 	{

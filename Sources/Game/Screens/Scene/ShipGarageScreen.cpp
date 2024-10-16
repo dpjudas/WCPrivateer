@@ -89,11 +89,11 @@ void ShipGarageScreen::OnClickTarget(WCTarget target)
 {
 	if (target == WCTarget::MainConcourse)
 	{
-		ShowScreen(std::make_unique<ShipDealerScreen>(app, GetFlowTarget(target)));
+		PopScreen();
 	}
 	else if (target == WCTarget::SoftwareBooth)
 	{
-		ShowScreen(std::make_unique<ShipSoftwareScreen>(app));
+		PushScreen(std::make_unique<ShipSoftwareScreen>(app));
 	}
 	else if (target == WCTarget::GarageSell)
 	{
