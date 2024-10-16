@@ -2,6 +2,8 @@
 #include "Precomp.h"
 #include "SceneScreen.h"
 #include "MissionComputerScreen.h"
+#include "MercenaryComputerScreen.h"
+#include "MerchantComputerScreen.h"
 #include "ShipGarageScreen.h"
 #include "TradeScreen.h"
 #include "FileFormat/WCScene.h"
@@ -229,7 +231,7 @@ void SceneScreen::OnClickTarget(WCTarget target)
 		WCMerchantAction action = (WCMerchantAction)t->args[0];
 		if (action == WCMerchantAction::UseComputer)
 		{
-			nextScene = 60;
+			PushScreen(std::make_unique<MercenaryComputerScreen>(app, t));
 		}
 		else if (action == WCMerchantAction::Talk)
 		{
@@ -240,9 +242,7 @@ void SceneScreen::OnClickTarget(WCTarget target)
 		WCMerchantAction action = (WCMerchantAction)t->args[0];
 		if (action == WCMerchantAction::UseComputer)
 		{
-			// pakindex for screen fade effect is 17
-			// pakindex for cds is 22
-			nextScene = 62;
+			PushScreen(std::make_unique<MerchantComputerScreen>(app, t));
 		}
 		else if (action == WCMerchantAction::Talk)
 		{

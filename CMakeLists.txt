@@ -51,20 +51,12 @@ set(WCPRIVATEERCOMMON_SOURCES
 	Sources/Game/Screens/JoystickScreen.h
 	Sources/Game/Screens/Scene/SceneScreen.cpp
 	Sources/Game/Screens/Scene/SceneScreen.h
-	Sources/Game/Screens/Scene/BarScreen.cpp
-	Sources/Game/Screens/Scene/BarScreen.h
-	Sources/Game/Screens/Scene/BaseScreen.cpp
-	Sources/Game/Screens/Scene/BaseScreen.h
-	Sources/Game/Screens/Scene/HangarScreen.cpp
-	Sources/Game/Screens/Scene/HangarScreen.h
-	Sources/Game/Screens/Scene/MercenaryScreen.cpp
-	Sources/Game/Screens/Scene/MercenaryScreen.h
-	Sources/Game/Screens/Scene/MerchantScreen.cpp
-	Sources/Game/Screens/Scene/MerchantScreen.h
+	Sources/Game/Screens/Scene/MercenaryComputerScreen.cpp
+	Sources/Game/Screens/Scene/MercenaryComputerScreen.h
+	Sources/Game/Screens/Scene/MerchantComputerScreen.cpp
+	Sources/Game/Screens/Scene/MerchantComputerScreen.h
 	Sources/Game/Screens/Scene/MissionComputerScreen.cpp
 	Sources/Game/Screens/Scene/MissionComputerScreen.h
-	Sources/Game/Screens/Scene/ShipDealerScreen.cpp
-	Sources/Game/Screens/Scene/ShipDealerScreen.h
 	Sources/Game/Screens/Scene/ShipGarageScreen.cpp
 	Sources/Game/Screens/Scene/ShipGarageScreen.h
 	Sources/Game/Screens/Scene/ShipSoftwareScreen.cpp

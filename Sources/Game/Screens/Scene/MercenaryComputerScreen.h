@@ -2,10 +2,10 @@
 
 #include "SceneScreen.h"
 
-class BarScreen : public SceneScreen
+class MercenaryComputerScreen : public SceneScreen
 {
 public:
-	BarScreen(GameApp* app, const WCGameFlowTarget* target);
+	MercenaryComputerScreen(GameApp* app, const WCGameFlowTarget* target);
 	void Render(RenderDevice* renderdev) override;
 	void OnClickTarget(WCTarget target) override;
 };

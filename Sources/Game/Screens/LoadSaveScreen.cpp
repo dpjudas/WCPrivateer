@@ -1,6 +1,6 @@
 
 #include "LoadSaveScreen.h"
-#include "Scene/HangarScreen.h"
+#include "Scene/SceneScreen.h"
 
 LoadSaveScreen::LoadSaveScreen(GameApp* app, LoadSaveScreenState state) : GameScreen(app), state(state)
 {
@@ -70,7 +70,7 @@ void LoadSaveScreen::OnKeyUp(InputKey key)
 		}
 		else if (action == ButtonName::Load)
 		{
-			ShowScreen(std::make_unique<HangarScreen>(app));
+			ShowScreen(std::make_unique<SceneScreen>(app));
 		}
 		else if (action == ButtonName::Missions)
 		{

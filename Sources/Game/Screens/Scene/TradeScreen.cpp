@@ -1,6 +1,5 @@
 
 #include "TradeScreen.h"
-#include "BaseScreen.h"
 #include "Game/GameApp.h"
 
 TradeScreen::TradeScreen(GameApp* app, const WCGameFlowTarget* target) : SceneScreen(app)
