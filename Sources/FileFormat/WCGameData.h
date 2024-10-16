@@ -184,11 +184,11 @@ enum class WCGameFlowEffect
 {
 	None = 0, // Visual only effects?
 	SetScene = 1, // args[0] = sceneIndex
-	Unknown6 = 6, // 47 bytes of args, 24 bytes of requ
+	Conversation = 6, // 47 bytes of args, 24 bytes of requ
 	LaunchShip = 14,
 	MissionComputer = 24,
-	MercenaryAction = 25, // args[0] = WCMerchantAction
-	MerchantAction = 26, // args[0] = WCMerchantAction
+	MerchantAction = 25, // args[0] = WCMerchantAction
+	MercenaryAction = 26, // args[0] = WCMerchantAction
 	ShipGarage = 27,
 	CommodityExchange = 28,
 	PurchaseShip = 30,

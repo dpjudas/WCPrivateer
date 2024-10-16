@@ -26,6 +26,7 @@ public:
 	virtual void OnClickTarget(WCTarget target);
 
 	int GetHotRegion();
+	int GetHotSprite();
 
 	std::unique_ptr<WCPalette> palette;
 	std::vector<std::vector<std::unique_ptr<GameTexture>>> backgrounds;

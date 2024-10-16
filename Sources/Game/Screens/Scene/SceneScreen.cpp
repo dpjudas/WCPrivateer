@@ -69,12 +69,40 @@ void SceneScreen::Render(RenderDevice* renderdev)
 
 	curTime = (int)(app->GetGameTime() - startTime);
 
-	for (size_t i = 0; i < app->gamedata->sceneList->scenes[scene].background.shapes.size(); i++)
+	const auto& bg = app->gamedata->sceneList->scenes[scene].background;
+	for (size_t i = 0; i < bg.shapes.size(); i++)
 	{
-		if (!backgrounds[i].empty())
+		if (backgrounds[i].empty())
+			continue;
+
+		if (bg.shapes[i].unknown16 == 0) // Always looping?
 		{
 			GameTexture* bgimage = backgrounds[i][(curTime / 150) % backgrounds[i].size()].get();
-			const auto& shape = app->gamedata->sceneList->scenes[scene].background.shapes[i];
+			const auto& shape = bg.shapes[i];
+			renderdev->DrawImage(shape.offsetX, shape.offsetY, bgimage);
+		}
+		else if (bg.shapes[i].unknown16 == 3) // Chance to play?
+		{
+			GameTexture* bgimage = backgrounds[i][(curTime / 150) % backgrounds[i].size()].get();
+			const auto& shape = bg.shapes[i];
+			renderdev->DrawImage(shape.offsetX, shape.offsetY, bgimage);
+		}
+		else if (bg.shapes[i].unknown16 == 4) // The people in the bar. Chance to appear?
+		{
+			GameTexture* bgimage = backgrounds[i][0].get();
+			const auto& shape = bg.shapes[i];
+			renderdev->DrawImage(shape.offsetX, shape.offsetY, bgimage);
+		}
+		else if (bg.shapes[i].unknown16 == 5) // Show only one frame or very slowly changing?
+		{
+			GameTexture* bgimage = backgrounds[i][(curTime / 5000) % backgrounds[i].size()].get();
+			const auto& shape = bg.shapes[i];
+			renderdev->DrawImage(shape.offsetX, shape.offsetY, bgimage);
+		}
+		else // What other variants do we have?
+		{
+			GameTexture* bgimage = backgrounds[i][(curTime / 150) % backgrounds[i].size()].get();
+			const auto& shape = bg.shapes[i];
 			renderdev->DrawImage(shape.offsetX, shape.offsetY, bgimage);
 		}
 	}
@@ -100,7 +128,15 @@ void SceneScreen::Render(RenderDevice* renderdev)
 		renderdev->DrawImage(0, 0, ship[0].get());
 
 	int hotRegion = GetHotRegion();
-	if (hotRegion != -1)
+	int hotSprite = GetHotSprite();
+	if (hotSprite != -1)
+	{
+		const auto& region = app->gamedata->sceneList->scenes[scene].foreground.sprites[hotSprite];
+		DrawText(renderdev, regionTextX, regionTextY, region.label, font, GameTextAlignment::Center);
+
+		DrawText(renderdev, 10, 20, std::to_string(scene) + " - " + std::to_string((int)region.target), font);
+	}
+	else if (hotRegion != -1)
 	{
 		const auto& region = app->gamedata->sceneList->scenes[scene].regions[hotRegion];
 		DrawText(renderdev, regionTextX, regionTextY, region.label, font, GameTextAlignment::Center);
@@ -142,7 +178,7 @@ void SceneScreen::DrawSprite(RenderDevice* renderdev, int i, int x, int y)
 		return;
 
 	const auto& sprite = app->gamedata->sceneList->scenes[scene].foreground.sprites[i];
-	int frame = sprite.sequence.empty() ? (curTime / 150) % sprites[i].size() : sprite.sequence[(curTime / 150) % sprite.sequence.size()];
+	int frame = sprite.sequence.empty() ? 0 : sprite.sequence[(curTime / 150) % sprite.sequence.size()];
 	GameTexture* fgimage = sprites[i][frame].get();
 	renderdev->DrawImage(x + sprite.x1, y + sprite.y1, fgimage);
 }
@@ -183,6 +219,43 @@ int SceneScreen::GetHotRegion()
 	return -1;
 }
 
+int SceneScreen::GetHotSprite()
+{
+	int index = 0;
+	for (auto& sprite : app->gamedata->sceneList->scenes[scene].foreground.sprites)
+	{
+		bool spriteVisible = false;
+		for (const auto& target : flow->targets)
+		{
+			if (target.target == (int)sprite.target)
+			{
+				spriteVisible = true;
+				break;
+			}
+		}
+
+		if (!spriteVisible)
+		{
+			index++;
+			continue;
+		}
+
+		int minx = sprite.x1;
+		int miny = sprite.y1;
+		int maxx = sprite.x2;
+		int maxy = sprite.y2;
+		if (mouseX < minx || mouseX > maxx || mouseY < miny || mouseY > maxy)
+		{
+			index++;
+			continue;
+		}
+
+		return index;
+	}
+
+	return -1;
+}
+
 void SceneScreen::OnKeyDown(InputKey key)
 {
 	if (key == InputKey::Left)
@@ -200,7 +273,13 @@ void SceneScreen::OnKeyUp(InputKey key)
 	if (key == InputKey::LeftMouse)
 	{
 		int hotRegion = GetHotRegion();
-		if (hotRegion != -1)
+		int hotSprite = GetHotSprite();
+		if (hotSprite != -1)
+		{
+			const auto& region = app->gamedata->sceneList->scenes[scene].foreground.sprites[hotSprite];
+			OnClickTarget((WCTarget)region.target);
+		}
+		else if (hotRegion != -1)
 		{
 			const auto& region = app->gamedata->sceneList->scenes[scene].regions[hotRegion];
 			OnClickTarget(region.target);
@@ -259,6 +338,9 @@ void SceneScreen::OnClickTarget(WCTarget target)
 	else if (t->effect == WCGameFlowEffect::PurchaseShip)
 	{
 		PushScreen(std::make_unique<ConversationScreen>(app, "TOOPOOR"));
+	}
+	else if (t->effect == WCGameFlowEffect::Conversation)
+	{
 	}
 	else
 	{
