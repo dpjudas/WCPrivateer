@@ -51,6 +51,8 @@ VulkanRenderDevice::VulkanRenderDevice(Widget* viewport) : viewport(viewport)
 			{
 				mat4 ProjectionMatrix;
 				mat4 ViewMatrix;
+				vec2 ViewportOrigin;
+				vec2 ViewportScale;
 			};
 		)";
 
@@ -64,10 +66,10 @@ VulkanRenderDevice::VulkanRenderDevice(Widget* viewport) : viewport(viewport)
 			#include "uniforms.glsl"
 
 			layout(location = 0) in vec4 aPosition;
-			layout(location = 1) in vec2 aTexCoord;
+			layout(location = 1) in vec3 aTexCoord;
 			layout(location = 2) in vec4 aColor;
 
-			layout(location = 0) out vec2 texCoord;
+			layout(location = 0) out vec3 texCoord;
 			layout(location = 1) out vec4 color;
 
 			void main()
@@ -82,7 +84,7 @@ VulkanRenderDevice::VulkanRenderDevice(Widget* viewport) : viewport(viewport)
 
 	std::string fragmentShaderNoTexCode = R"(
 
-			layout(location = 0) in vec2 texCoord;
+			layout(location = 0) in vec3 texCoord;
 			layout(location = 1) in vec4 color;
 			layout(location = 0) out vec4 outColor;
 
@@ -96,24 +98,50 @@ VulkanRenderDevice::VulkanRenderDevice(Widget* viewport) : viewport(viewport)
 
 			layout(set = 1, binding = 0) uniform sampler2D Texture;
 
-			layout(location = 0) in vec2 texCoord;
+			layout(location = 0) in vec3 texCoord;
 			layout(location = 1) in vec4 color;
 			layout(location = 0) out vec4 outColor;
 
 			void main()
 			{
-				outColor = texture(Texture, texCoord) * color;
+				outColor = texture(Texture, texCoord.st) * color;
 				// if (outColor.a < 0.5) discard;
+			}
+		)";
+
+	std::string fragmentShaderLineCode = R"(
+
+			#include "uniforms.glsl"
+
+			layout(location = 0) in vec3 texCoord;
+			layout(location = 1) in vec4 color;
+			layout(location = 0) out vec4 outColor;
+
+			void main()
+			{
+				outColor = color;
+
+				vec2 fragpos = (gl_FragCoord.xy - ViewportOrigin) / ViewportScale;
+				vec2 pixelpos = floor(fragpos) + 0.5;
+				float dist = dot(vec3(pixelpos, 1.0), texCoord);
+				outColor.a *= clamp(1.0 - abs(dist), 0.0, 1.0);
 			}
 		)";
 
 	// Create a vertex shader
 
+	auto oninclude = [=](auto headerName, auto includerName, size_t depth) {
+		if (headerName == "uniforms.glsl")
+			return ShaderIncludeResult(headerName, includedCode);
+		else
+			return ShaderIncludeResult("File not found: " + headerName);
+		};
+
 	vertexShader = ShaderBuilder()
 		.Type(ShaderType::Vertex)
 		.AddSource("versionblock", versionBlock)
 		.AddSource("vertexCode.glsl", vertexCode)
-		.OnIncludeLocal([=](auto headerName, auto includerName, size_t depth) { if (headerName == "uniforms.glsl") return ShaderIncludeResult(headerName, includedCode); else return ShaderIncludeResult("File not found: " + headerName); })
+		.OnIncludeLocal(oninclude)
 		.DebugName("vertexShader")
 		.Create("vertex", device.get());
 
@@ -122,21 +150,31 @@ VulkanRenderDevice::VulkanRenderDevice(Widget* viewport) : viewport(viewport)
 	fragmentShaderNoTex = ShaderBuilder()
 		.Type(ShaderType::Fragment)
 		.AddSource("versionblock", versionBlock)
-		.AddSource("fragmentShaderNoTexCode.glsl", fragmentShaderNoTexCode)
+		.AddSource("fragmentShaderNoTex.glsl", fragmentShaderNoTexCode)
+		.OnIncludeLocal(oninclude)
 		.DebugName("fragmentShaderNoTex")
 		.Create("fragmentShaderNoTex", device.get());
 
 	fragmentShaderTextured = ShaderBuilder()
 		.Type(ShaderType::Fragment)
 		.AddSource("versionblock", versionBlock)
-		.AddSource("fragmentShaderTexturedCode.glsl", fragmentShaderTexturedCode)
+		.AddSource("fragmentShaderTextured.glsl", fragmentShaderTexturedCode)
+		.OnIncludeLocal(oninclude)
 		.DebugName("fragmentShaderTextured")
 		.Create("fragmentShaderTextured", device.get());
+
+	fragmentShaderLine = ShaderBuilder()
+		.Type(ShaderType::Fragment)
+		.AddSource("versionblock", versionBlock)
+		.AddSource("fragmentShaderLine.glsl", fragmentShaderLineCode)
+		.OnIncludeLocal(oninclude)
+		.DebugName("fragmentShaderLine")
+		.Create("fragmentShaderNoTex", device.get());
 
 	// Create descriptor set layouts
 
 	uniformSetLayout = DescriptorSetLayoutBuilder()
-		.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT)
+		.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
 		.DebugName("uniformSetLayout")
 		.Create(device.get());
 
@@ -173,7 +211,7 @@ VulkanRenderDevice::VulkanRenderDevice(Widget* viewport) : viewport(viewport)
 		.Layout(pipelineLayoutNoTex.get())
 		.AddVertexBufferBinding(0, sizeof(Vertex))
 		.AddVertexAttribute(0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, x))
-		.AddVertexAttribute(1, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, u))
+		.AddVertexAttribute(1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, s))
 		.AddVertexAttribute(2, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, r))
 		.AddVertexShader(vertexShader.get())
 		.AddFragmentShader(fragmentShaderNoTex.get())
@@ -183,12 +221,27 @@ VulkanRenderDevice::VulkanRenderDevice(Widget* viewport) : viewport(viewport)
 		.DebugName("pipelineNoTex")
 		.Create(device.get());
 
+	pipelineLine = GraphicsPipelineBuilder()
+		.RenderPass(renderPass.get())
+		.Layout(pipelineLayoutNoTex.get())
+		.AddVertexBufferBinding(0, sizeof(Vertex))
+		.AddVertexAttribute(0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, x))
+		.AddVertexAttribute(1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, s))
+		.AddVertexAttribute(2, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, r))
+		.AddVertexShader(vertexShader.get())
+		.AddFragmentShader(fragmentShaderLine.get())
+		.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT)
+		.AddDynamicState(VK_DYNAMIC_STATE_SCISSOR)
+		.AddColorBlendAttachment(ColorBlendAttachmentBuilder().AlphaBlendMode().Create())
+		.DebugName("pipelineLine")
+		.Create(device.get());
+
 	pipelineTextured = GraphicsPipelineBuilder()
 		.RenderPass(renderPass.get())
 		.Layout(pipelineLayoutTextured.get())
 		.AddVertexBufferBinding(0, sizeof(Vertex))
 		.AddVertexAttribute(0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, x))
-		.AddVertexAttribute(1, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, u))
+		.AddVertexAttribute(1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, s))
 		.AddVertexAttribute(2, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, r))
 		.AddVertexShader(vertexShader.get())
 		.AddFragmentShader(fragmentShaderTextured.get())
@@ -353,6 +406,11 @@ bool VulkanRenderDevice::Begin()
 	memcpy(uniforms->ProjectionMatrix, projMatrix, sizeof(float) * 16);
 	memcpy(uniforms->ViewMatrix, viewMatrix, sizeof(float) * 16);
 
+	uniforms->ViewportX = std::round((width - letterboxwidth) * 0.5f);
+	uniforms->ViewportY = 0.0f;
+	uniforms->ViewportScaleX = letterboxwidth / 320.0f;
+	uniforms->ViewportScaleY = height / 200.0f;
+
 	// Set the scissor box
 	VkRect2D scissor = {};
 	scissor.offset.x = (int)std::round((width - letterboxwidth) * 0.5f);
@@ -365,6 +423,44 @@ bool VulkanRenderDevice::Begin()
 	return true;
 }
 
+void VulkanRenderDevice::DrawLine(int x1, int y1, int x2, int y2, float r, float g, float b, float a)
+{
+	if (x1 == x2 && y1 == y2)
+		return;
+
+	vec2 start(x1 + 0.5f, y1 + 0.5f);
+	vec2 end(x2 + 0.5f, y2 + 0.5f);
+	vec2 dir = normalize(end - start);
+	vec2 normal(-dir.y, dir.x);
+	vec2 normal2 = normal * 2.0f;
+	vec2 v0 = start - normal2 - dir * 0.5f;
+	vec2 v1 = start + normal2 - dir * 0.5f;
+	vec2 v2 = end + normal2 + dir * 0.5f;
+	vec2 v3 = end - normal2 + dir * 0.5f;
+
+	float aa = normal.x;
+	float bb = normal.y;
+	float cc = -dot(start, normal);
+
+	if (vertexPos + 6 > maxVertices)
+		return;
+
+	Vertex* v = vertices + vertexPos;
+
+	v[0] = Vertex(v0.x, v0.y, 0.0f, aa, bb, cc, r, g, b, a);
+	v[1] = Vertex(v1.x, v1.y, 0.0f, aa, bb, cc, r, g, b, a);
+	v[2] = Vertex(v3.x, v3.y, 0.0f, aa, bb, cc, r, g, b, a);
+
+	v[3] = Vertex(v3.x, v3.y, 0.0f, aa, bb, cc, r, g, b, a);
+	v[4] = Vertex(v1.x, v1.y, 0.0f, aa, bb, cc, r, g, b, a);
+	v[5] = Vertex(v2.x, v2.y, 0.0f, aa, bb, cc, r, g, b, a);
+
+	drawcommands->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLine.get());
+	drawcommands->draw(6, 1, vertexPos, 0);
+
+	vertexPos += 6;
+}
+
 void VulkanRenderDevice::DrawImageBox(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, GameTexture* gameTexture, float r, float g, float b, float a)
 {
 	ValidateTexture(gameTexture);
@@ -374,13 +470,13 @@ void VulkanRenderDevice::DrawImageBox(float x0, float y0, float x1, float y1, fl
 
 	Vertex* v = vertices + vertexPos;
 
-	v[0] = Vertex(x0, y0, 0.0f, 0.0f, 0.0f, r, g, b, a);
-	v[1] = Vertex(x1, y1, 0.0f, 1.0f, 0.0f, r, g, b, a);
-	v[2] = Vertex(x3, y3, 0.0f, 0.0f, 1.0f, r, g, b, a);
+	v[0] = Vertex(x0, y0, 0.0f, 0.0f, 0.0f, 0.0f, r, g, b, a);
+	v[1] = Vertex(x1, y1, 0.0f, 1.0f, 0.0f, 0.0f, r, g, b, a);
+	v[2] = Vertex(x3, y3, 0.0f, 0.0f, 1.0f, 0.0f, r, g, b, a);
 
-	v[3] = Vertex(x3, y3, 0.0f, 0.0f, 1.0f, r, g, b, a);
-	v[4] = Vertex(x1, y1, 0.0f, 1.0f, 0.0f, r, g, b, a);
-	v[5] = Vertex(x2, y2, 0.0f, 1.0f, 1.0f, r, g, b, a);
+	v[3] = Vertex(x3, y3, 0.0f, 0.0f, 1.0f, 0.0f, r, g, b, a);
+	v[4] = Vertex(x1, y1, 0.0f, 1.0f, 0.0f, 0.0f, r, g, b, a);
+	v[5] = Vertex(x2, y2, 0.0f, 1.0f, 1.0f, 0.0f, r, g, b, a);
 
 	drawcommands->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayoutTextured.get(), 1, static_cast<VulkanCachedTexture*>(gameTexture->CacheEntry.get())->textureSet.get());
 	drawcommands->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineTextured.get());

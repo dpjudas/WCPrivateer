@@ -86,6 +86,8 @@ void NavScreen::Render(RenderDevice* renderdev)
 			renderdev->DrawImage(x, y, circle[0][0].get());
 			DrawText(renderdev, x, y + 7, system.name, font, GameTextAlignment::Center, 1);
 		}
+
+		renderdev->DrawLine(25, 25, 200, 100, 1.0f, 1.0f, 0.0f, 1.0f);
 	}
 	else
 	{

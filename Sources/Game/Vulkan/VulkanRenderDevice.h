@@ -8,10 +8,10 @@ class VulkanRenderDevice;
 struct Vertex
 {
 	Vertex() = default;
-	Vertex(float x, float y, float z, float u, float v, float r, float g, float b, float a) : x(x), y(y), z(z), u(u), v(v), r(r), g(g), b(b), a(a) { }
+	Vertex(float x, float y, float z, float s, float t, float p, float r, float g, float b, float a) : x(x), y(y), z(z), s(s), t(t), p(p), r(r), g(g), b(b), a(a) { }
 
 	float x, y, z;
-	float u, v;
+	float s, t, p;
 	float r, g, b, a;
 };
 
@@ -19,6 +19,10 @@ struct Uniforms
 {
 	float ProjectionMatrix[16];
 	float ViewMatrix[16];
+	float ViewportX;
+	float ViewportY;
+	float ViewportScaleX;
+	float ViewportScaleY;
 };
 
 class VulkanCachedTexture : public CachedTexture
@@ -40,6 +44,7 @@ public:
 	~VulkanRenderDevice();
 
 	bool Begin() override;
+	void DrawLine(int x1, int y1, int x2, int y2, float r, float g, float b, float a) override;
 	void DrawImageBox(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, GameTexture* gameTexture, float r, float g, float b, float a) override;
 	void End() override;
 
@@ -71,6 +76,7 @@ private:
 	std::unique_ptr<VulkanShader> vertexShader;
 	std::unique_ptr<VulkanShader> fragmentShaderNoTex;
 	std::unique_ptr<VulkanShader> fragmentShaderTextured;
+	std::unique_ptr<VulkanShader> fragmentShaderLine;
 
 	std::unique_ptr<VulkanDescriptorSetLayout> uniformSetLayout;
 	std::unique_ptr<VulkanDescriptorSetLayout> textureSetLayout;
@@ -82,6 +88,7 @@ private:
 
 	std::unique_ptr<VulkanPipeline> pipelineNoTex;
 	std::unique_ptr<VulkanPipeline> pipelineTextured;
+	std::unique_ptr<VulkanPipeline> pipelineLine;
 
 	size_t maxVertices = 1'000'000;
 	std::unique_ptr<VulkanBuffer> vertexBuffer;
