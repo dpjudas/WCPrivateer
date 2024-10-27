@@ -124,7 +124,10 @@ VulkanRenderDevice::VulkanRenderDevice(Widget* viewport) : viewport(viewport)
 				vec2 fragpos = (gl_FragCoord.xy - ViewportOrigin) / ViewportScale;
 				vec2 pixelpos = floor(fragpos) + 0.5;
 				float dist = dot(vec3(pixelpos, 1.0), texCoord);
-				outColor.a *= clamp(1.0 - abs(dist), 0.0, 1.0);
+				//if (dist < -0.5 || dist >= 0.5)
+				//	discard;
+				float alpha = clamp(1.0 - abs(dist), 0.0, 1.0);
+				outColor.a *= alpha;
 			}
 		)";
 
@@ -432,33 +435,42 @@ void VulkanRenderDevice::DrawLine(int x1, int y1, int x2, int y2, float r, float
 	vec2 end(x2 + 0.5f, y2 + 0.5f);
 	vec2 dir = normalize(end - start);
 	vec2 normal(-dir.y, dir.x);
-	vec2 normal2 = normal * 2.0f;
-	vec2 v0 = start - normal2 - dir * 0.5f;
-	vec2 v1 = start + normal2 - dir * 0.5f;
-	vec2 v2 = end + normal2 + dir * 0.5f;
-	vec2 v3 = end - normal2 + dir * 0.5f;
-
 	float aa = normal.x;
 	float bb = normal.y;
 	float cc = -dot(start, normal);
 
-	if (vertexPos + 6 > maxVertices)
+	float minx = std::min(x1, x2);
+	float maxx = std::max(x1, x2);
+	float miny = std::min(y1, y2);
+	float maxy = std::max(y1, y2);
+	float xleft = std::min(minx + 2.0f, maxx);
+	float xright = std::max(maxx - 2.0f, minx);
+	float ytop = std::min(miny + 2.0f, maxy);
+	float ybottom = std::max(maxy - 2.0f, miny);
+
+	vec2 v[6] =
+	{
+		vec2(minx, ytop),
+		vec2(xleft, miny),
+		vec2(maxx, ybottom),
+		vec2(xright, maxy),
+		vec2(minx, miny),
+		vec2(maxx, maxy)
+	};
+
+	if (vertexPos + 12 > maxVertices)
 		return;
 
-	Vertex* v = vertices + vertexPos;
-
-	v[0] = Vertex(v0.x, v0.y, 0.0f, aa, bb, cc, r, g, b, a);
-	v[1] = Vertex(v1.x, v1.y, 0.0f, aa, bb, cc, r, g, b, a);
-	v[2] = Vertex(v3.x, v3.y, 0.0f, aa, bb, cc, r, g, b, a);
-
-	v[3] = Vertex(v3.x, v3.y, 0.0f, aa, bb, cc, r, g, b, a);
-	v[4] = Vertex(v1.x, v1.y, 0.0f, aa, bb, cc, r, g, b, a);
-	v[5] = Vertex(v2.x, v2.y, 0.0f, aa, bb, cc, r, g, b, a);
+	Vertex* vptr = vertices + vertexPos;
+	for (int i : { 0, 1, 3, 3, 1, 2, 4, 1, 0, 2, 5, 3 })
+	{
+		*(vptr++) = Vertex(v[i].x, v[i].y, 0.0f, aa, bb, cc, r, g, b, a);
+	}
 
 	drawcommands->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLine.get());
-	drawcommands->draw(6, 1, vertexPos, 0);
+	drawcommands->draw(12, 1, vertexPos, 0);
 
-	vertexPos += 6;
+	vertexPos += 12;
 }
 
 void VulkanRenderDevice::DrawImageBox(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, GameTexture* gameTexture, float r, float g, float b, float a)
