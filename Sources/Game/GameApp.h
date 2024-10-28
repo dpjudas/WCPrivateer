@@ -10,6 +10,7 @@
 class GameScreen;
 class GameObject;
 class PlayerPawn;
+class StarBase;
 class AudioPlayer;
 class WCVOCSound;
 
@@ -41,6 +42,8 @@ public:
 		int navpoint = 2;
 		bool autopilotAllowed = false;
 		bool paused = false;
+		StarBase* landingZone = nullptr;
+		int64_t landingStartTime = 0;
 	} playsim;
 
 	int64_t GetGameTime();

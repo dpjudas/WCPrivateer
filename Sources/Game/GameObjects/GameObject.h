@@ -56,6 +56,9 @@ class StarBase : public GameObject
 {
 public:
 	void Init() override;
+	void Tick(float timeElapsed) override;
+
+	int baseIndex = 0;
 };
 
 class JumpPoint : public GameObject
@@ -77,8 +80,8 @@ public:
 
 	vec3 velocity = vec3(0.0f);
 	float setSpeed = 100.0f;
-	float maxSpeed = 250.0f;
-	float afterburnerSpeed = 350.0f;
+	float maxSpeed = 350.0f;
+	float afterburnerSpeed = 700.0f;
 };
 
 class SpaceShip : public GameObject

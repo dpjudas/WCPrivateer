@@ -17,5 +17,7 @@ public:
 	std::vector<std::unique_ptr<GameTexture>> background;
 	std::vector<std::unique_ptr<GameTexture>> base;
 	std::vector<std::unique_ptr<GameTexture>> ship;
-	int framecounter = 0;
+
+	int64_t startTime = 0;
+	int curTime = 0;
 };

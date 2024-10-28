@@ -8,6 +8,7 @@
 #include "FileFormat/FileEntryReader.h"
 #include "Game/GameApp.h"
 #include "Game/GameObjects/GameObject.h"
+#include "Movie/LandingScreen.h"
 
 CockpitScreen::CockpitScreen(GameApp* app) : GameScreen(app)
 {
@@ -38,6 +39,7 @@ CockpitScreen::CockpitScreen(GameApp* app) : GameScreen(app)
 		obj->position = { (float)base.x, (float)base.y, (float)base.z };
 		obj->sprite = base.name;
 		obj->radar = RadarVisibility::friendly;
+		obj->baseIndex = base.baseIndex;
 	}
 
 	for (const WCSectorEncounterItem& encounter : sector.encounters)
@@ -135,6 +137,7 @@ void CockpitScreen::CheckResources()
 		quaternion rotation = quaternion::euler(radians(app->Random(0.0f, 360.0f)), radians(app->Random(0.0f, 360.0f)), 0.0f);
 		StarLocation location;
 		location.position = rotation * vec3(0.0f, 0.0f, 10000.0f);
+		location.rotates = true;
 		location.index = (int)stars.size();
 		starLocations.push_back(location);
 		stars.push_back(LoadWCImage(*t->shape, palette.get()));
@@ -144,6 +147,7 @@ void CockpitScreen::CheckResources()
 		quaternion rotation = quaternion::euler(radians(app->Random(0.0f, 360.0f)), radians(app->Random(0.0f, 360.0f)), 0.0f);
 		StarLocation location;
 		location.position = rotation * vec3(0.0f, 0.0f, 10000.0f);
+		location.rotates = true;
 		location.index = (int)stars.size();
 		starLocations.push_back(location);
 		stars.push_back(LoadWCImage(*starwhite->shape, palette.get()));
@@ -198,6 +202,15 @@ void CockpitScreen::Render(RenderDevice* renderdev)
 	RenderViewport(renderdev, app->playsim.player->position, app->playsim.player->rotation);
 	DrawCockpit(renderdev);
 	DrawPauseDialog(renderdev);
+
+	if (app->playsim.landingZone && app->GetGameTime() - app->playsim.landingStartTime > 5000)
+	{
+		app->playsim.baseIndex = app->playsim.landingZone->baseIndex;
+		app->playsim.gameObjects.clear();
+		app->playsim.player = nullptr;
+		app->playsim.landingZone = nullptr;
+		ShowScreen(std::make_unique<LandingScreen>(app));
+	}
 }
 
 void CockpitScreen::TickGameObjects()
@@ -307,21 +320,26 @@ void CockpitScreen::RenderViewport(RenderDevice* renderdev, const vec3& viewPos,
 	}
 
 	// Draw space backdrop:
-
-	for (const StarLocation& location : starLocations)
 	{
-		vec4 clippos = projMatrix * worldToView * vec4(viewPos + location.position, 1.0f);
-		if (clippos.w <= 0.0f)
-			continue;
+		quaternion rot = inverse(viewRotation);
+		vec3 side = rot * vec3(1.0f, 0.0f, 0.0f);
+		float rotation = degrees(-std::atan2(side.y, side.x));
 
-		clippos.w = 1.0f / clippos.w;
-		clippos.x *= clippos.w;
-		clippos.y *= clippos.w;
-		clippos.z *= clippos.w;
-		vec3 screenpos = { viewportX + (1.0f + clippos.x) * halfViewportWidth, viewportY + (1.0f - clippos.y) * halfViewportHeight, clippos.w };
+		for (const StarLocation& location : starLocations)
+		{
+			vec4 clippos = projMatrix * worldToView * vec4(viewPos + location.position, 1.0f);
+			if (clippos.w <= 0.0f)
+				continue;
 
-		GameTexture* tex = stars[location.index][0].get();
-		renderdev->Draw3DImage(screenpos.x, screenpos.y, 1.0f, 1.0f, 0.0f, tex);
+			clippos.w = 1.0f / clippos.w;
+			clippos.x *= clippos.w;
+			clippos.y *= clippos.w;
+			clippos.z *= clippos.w;
+			vec3 screenpos = { viewportX + (1.0f + clippos.x) * halfViewportWidth, viewportY + (1.0f - clippos.y) * halfViewportHeight, clippos.w };
+
+			GameTexture* tex = stars[location.index][0].get();
+			renderdev->Draw3DImage(screenpos.x, screenpos.y, 1.0f, 1.0f, location.rotates ? rotation : 0.0f, tex);
+		}
 	}
 
 	// Game objects
@@ -357,12 +375,15 @@ void CockpitScreen::RenderViewport(RenderDevice* renderdev, const vec3& viewPos,
 
 		if (Sprite* sprite = getSprite(obj->sprite))
 		{
+			quaternion rot = inverse(viewRotation) * obj->rotation;
+			vec3 side = rot * vec3(1.0f,0.0f, 0.0f);
+			float rotation = degrees(-std::atan2(side.y, side.x));
+
 			if (obj->spriteIndex == -1)
 			{
 				bool first = true;
 				for (auto& tex : sprite->shape)
 				{
-					float rotation = 0.0f;
 					float scale = screenpos.z * obj->size;
 					renderdev->Draw3DImage(screenpos.x, screenpos.y, scale, scale, rotation, tex.get(), fade, fade, fade, obj->alpha);
 
@@ -389,7 +410,6 @@ void CockpitScreen::RenderViewport(RenderDevice* renderdev, const vec3& viewPos,
 			else
 			{
 				int index = obj->spriteIndex % sprite->shape.size();
-				float rotation = 0.0f;
 				float scale = screenpos.z * obj->size;
 				renderdev->Draw3DImage(screenpos.x, screenpos.y, scale, scale, rotation, sprite->shape[index].get(), fade, fade, fade, obj->alpha);
 
@@ -402,24 +422,24 @@ void CockpitScreen::RenderViewport(RenderDevice* renderdev, const vec3& viewPos,
 		{
 			vec3 p = normalize(inverse(obj->rotation) * (viewPos - obj->position));
 			float latitude = degrees(std::acos(p.y)) - 90.0f;
-			float longitude = degrees(std::atan2(p.x, p.z));
+			float longitude = degrees(std::atan2(p.z, p.x));
 
-			while (longitude < 0.0f) longitude += 360.0f;
-			while (longitude >= 360.0f) longitude -= 360.0f;
+			quaternion rot = inverse(viewRotation) * obj->rotation * quaternion::euler(radians(longitude), radians(latitude), 0.0f);
+			vec3 side = rot * vec3(1.0f, 0.0f, 0.0f);
+			float rotation = degrees(-std::atan2(side.y, side.x));
 
 			// 0 to 6 range, mirrored for other side
-			int yawindex = clamp((int)std::round(longitude * 6.0f / 180.0f), 0, 12);
+			int yawindex = clamp((int)std::round(longitude * 6.0f / 180.0f), -6, 6);
 			float mirror = 1.0f;
-			if (yawindex > 6)
+			if (yawindex < 0)
 			{
-				yawindex = 12 - yawindex;
+				yawindex = -yawindex;
 				mirror = -1.0f;
 			}
 
 			// 0 to 4 range
 			int pitchindex = clamp(2 + (int)std::round(latitude * 2.0f / 90.0f), 0, 4);
 
-			float rotation = 0.0f;
 			int direction = 1 + yawindex + pitchindex * 7;
 			float scale = screenpos.z * obj->size;
 			renderdev->Draw3DImage(screenpos.x, screenpos.y, scale * mirror, scale, rotation, ship->shapes[direction].front().get(), fade, fade, fade);
@@ -650,6 +670,7 @@ void CockpitScreen::FlyToNavpoint()
 
 			app->playsim.player->position += dir;
 			app->playsim.player->rotation = app->playsim.player->rotation * rotation;
+			app->playsim.player->velocity = vec3(0.0f);
 			break;
 		}
 	}

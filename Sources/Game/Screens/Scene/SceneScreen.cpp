@@ -221,6 +221,9 @@ int SceneScreen::GetHotRegion()
 
 int SceneScreen::GetHotSprite()
 {
+	if (!flow)
+		return -1;
+
 	int index = 0;
 	for (auto& sprite : app->gamedata->sceneList->scenes[scene].foreground.sprites)
 	{

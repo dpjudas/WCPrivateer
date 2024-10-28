@@ -42,21 +42,18 @@ void PlayerPawn::Tick(float timeElapsed)
 	else if (input.backwardPressed)
 		setSpeed = std::max(setSpeed - 100.0f * timeElapsed, 0.0f);
 
-	// We don't have wind resistance in space, but we do in this game!
-	float stopAccel = 75.0f * timeElapsed;
+	vec3 thrustDirection = rotation * vec3(0.0f, 0.0f, 1.0f);
+	float targetSpeed = input.afterburnerPressed ? afterburnerSpeed : setSpeed;
 	float enginePower = (input.afterburnerPressed ? 400.0f : 150.0f) * timeElapsed;
 
-	float curSpeed = length(velocity);
-	if (curSpeed > 0.0f)
+	vec3 targetVelocity = thrustDirection * targetSpeed;
+	vec3 deltaVelocity = targetVelocity - velocity;
+	float thrustNeeded = length(deltaVelocity);
+	if (thrustNeeded > 0.0f)
 	{
-		curSpeed = std::max(curSpeed - stopAccel, 0.0f);
-		velocity = normalize(velocity) * curSpeed;
+		float thrustApplied = std::min(thrustNeeded, enginePower);
+		velocity += deltaVelocity * (thrustApplied / thrustNeeded);
 	}
-
-	float targetSpeed = input.afterburnerPressed ? afterburnerSpeed : setSpeed;
-	float targetThrust = targetSpeed - curSpeed;
-	targetThrust = std::max(std::min(targetThrust, enginePower), 0.0f);
-	velocity += rotation * vec3(0.0f, 0.0f, targetThrust);
 
 	position += velocity * (0.1f * timeElapsed);
 }
@@ -118,6 +115,24 @@ void StarBase::Init()
 	position = { 500.0f, 500.0f, 2000.0f };
 	size = 1000.0;
 	radar = RadarVisibility::friendly;
+}
+
+void StarBase::Tick(float timeElapsed)
+{
+	vec3 v = app->playsim.player->position - position;
+	if (dot(v, v) < 2000.0 * 2000.0)
+	{
+		if (app->playsim.landingZone != this)
+		{
+			app->playsim.landingZone = this;
+			app->playsim.landingStartTime = app->GetGameTime();
+			app->PlayMusic("DATA\\SOUND\\COMBAT.GEN", 9); // What is the landing song index?
+		}
+	}
+	else if (app->playsim.landingZone == this)
+	{
+		app->playsim.landingStartTime = 0; // Cancel landing
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////

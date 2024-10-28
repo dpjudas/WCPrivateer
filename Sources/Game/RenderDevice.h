@@ -60,25 +60,28 @@ public:
 		float dirYy = dirXx;
 		float dirYx = -dirXy;
 
+		float aspect = 1.2f;
+		float rcpAspect = 1.0f / 1.2f;
+
 		float x0 = gameTexture->x * scaleX;
-		float y0 = gameTexture->y * scaleY;
+		float y0 = gameTexture->y * scaleY * aspect;
 		float x1 = (gameTexture->x + gameTexture->width) * scaleX;
-		float y1 = (gameTexture->y + gameTexture->height) * scaleY;
+		float y1 = (gameTexture->y + gameTexture->height) * scaleY * aspect;
 
 		tl.x = x + dirXx * x0 + dirYx * y0;
 		br.x = tl.x;
-		for (float x : { x + dirXx * x1 + dirYx * y0, x + dirXx * x1 + dirYx * y1, x + dirXx * x0 + dirYx * y1 })
+		for (float xx : { dirXx * x1 + dirYx * y0, dirXx * x1 + dirYx * y1, dirXx * x0 + dirYx * y1 })
 		{
-			tl.x = std::min(tl.x, x);
-			br.x = std::max(br.x, x);
+			tl.x = std::min(tl.x, x + xx);
+			br.x = std::max(br.x, x + xx);
 		}
 
-		tl.y = y + dirXy * x0 + dirYy * y0;
+		tl.y = y + (dirXy * x0 + dirYy * y0) * rcpAspect;
 		br.y = tl.y;
-		for (float y : { y + dirXy * x1 + dirYy * y0, y + dirXy * x1 + dirYy * y1, y + dirXy * x0 + dirYy * y1 })
+		for (float yy : { dirXy * x1 + dirYy * y0, dirXy * x1 + dirYy * y1, dirXy * x0 + dirYy * y1 })
 		{
-			tl.y = std::min(tl.y, y);
-			br.y = std::max(br.y, y);
+			tl.y = std::min(tl.y, y + yy * rcpAspect);
+			br.y = std::max(br.y, y + yy * rcpAspect);
 		}
 	}
 
@@ -89,20 +92,23 @@ public:
 		float dirYy = dirXx;
 		float dirYx = -dirXy;
 
+		float aspect = 1.2f;
+		float rcpAspect = 1.0f / 1.2f;
+
 		float x0 = gameTexture->x * scaleX;
-		float y0 = gameTexture->y * scaleY;
+		float y0 = gameTexture->y * scaleY * aspect;
 		float x1 = (gameTexture->x + gameTexture->width) * scaleX;
-		float y1 = (gameTexture->y + gameTexture->height) * scaleY;
+		float y1 = (gameTexture->y + gameTexture->height) * scaleY * aspect;
 
 		DrawImageBox(
 			x + dirXx * x0 + dirYx * y0,
-			y + dirXy * x0 + dirYy * y0,
+			y + (dirXy * x0 + dirYy * y0) * rcpAspect,
 			x + dirXx * x1 + dirYx * y0,
-			y + dirXy * x1 + dirYy * y0,
+			y + (dirXy * x1 + dirYy * y0) * rcpAspect,
 			x + dirXx * x1 + dirYx * y1,
-			y + dirXy * x1 + dirYy * y1,
+			y + (dirXy * x1 + dirYy * y1) * rcpAspect,
 			x + dirXx * x0 + dirYx * y1,
-			y + dirXy * x0 + dirYy * y1,
+			y + (dirXy * x0 + dirYy * y1) * rcpAspect,
 			gameTexture,
 			r, g, b, a);
 	}

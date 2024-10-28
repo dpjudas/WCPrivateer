@@ -9,10 +9,12 @@ TakeoffScreen::TakeoffScreen(GameApp* app) : GameScreen(app)
 	movie = std::make_unique<WCMovie>("DATA\\MIDGAMES\\TAKEOFFS.IFF", app->archive.get());
 	palette = LoadPakPalette("DATA\\MIDGAMES\\TAKEOFFS.PAK", 0);
 	background = LoadPakImage("DATA\\MIDGAMES\\TAKEOFFS.PAK", 1, palette.get());
-	base = LoadPakImage("DATA\\MIDGAMES\\LTOBASES.PAK", 0, palette.get());
+	base = LoadPakImage("DATA\\MIDGAMES\\LTOBASES.PAK", 2, palette.get());
 	ship = LoadPakImage("DATA\\MIDGAMES\\TAKEOFFS.PAK", 2, palette.get());
 
 	PlayMusic("DATA\\SOUND\\COMBAT.GEN", 4);
+
+	startTime = app->GetGameTime();
 }
 
 TakeoffScreen::~TakeoffScreen()
@@ -21,7 +23,8 @@ TakeoffScreen::~TakeoffScreen()
 
 void TakeoffScreen::Render(RenderDevice* renderdev)
 {
-	framecounter++;
+	curTime = (int)(app->GetGameTime() - startTime);
+	int framecounter = curTime / 12;
 
 	int planetX = 90 - framecounter / 2;
 

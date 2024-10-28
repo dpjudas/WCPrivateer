@@ -16,6 +16,7 @@ struct StarLocation
 {
 	vec3 position = vec3(0.0f);
 	int index = 0;
+	bool rotates = false;
 };
 
 enum class CockpitConsoleMode
