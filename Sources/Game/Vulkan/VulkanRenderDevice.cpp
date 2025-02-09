@@ -13,13 +13,11 @@
 VulkanRenderDevice::VulkanRenderDevice(Widget* viewport) : viewport(viewport)
 {
 	instance = VulkanInstanceBuilder()
-		.RequireSurfaceExtensions()
+		.RequireExtensions(viewport->GetVulkanInstanceExtensions())
 		.DebugLayer(false)
 		.Create();
 
-	surface = VulkanSurfaceBuilder()
-		.Win32Window((HWND)viewport->GetNativeHandle())
-		.Create(instance);
+	surface = std::make_shared<VulkanSurface>(instance, viewport->CreateVulkanSurface(instance->Instance));
 
 	device = VulkanDeviceBuilder()
 		.Surface(surface)
@@ -331,10 +329,8 @@ VulkanRenderDevice::~VulkanRenderDevice()
 bool VulkanRenderDevice::Begin()
 {
 	// How big is the window client area in this frame?
-	RECT clientRect = {};
-	GetClientRect((HWND)viewport->GetNativeHandle(), &clientRect);
-	width = clientRect.right;
-	height = clientRect.bottom;
+	width = viewport->GetNativePixelWidth();
+	height = viewport->GetNativePixelHeight();
 
 	// Do we need to resize or recreate the swapchain?
 	if (width > 0 && height > 0 && width != lastWidth || height != lastHeight || swapchain->Lost())
@@ -343,7 +339,7 @@ bool VulkanRenderDevice::Begin()
 		lastHeight = height;
 		framebuffers.clear();
 
-		swapchain->Create(width, height, 1, true, false, false);
+		swapchain->Create(width, height, 1, true, false);
 
 		// Create frame buffer objects for the new swap chain images
 		for (int imageIndex = 0; imageIndex < swapchain->ImageCount(); imageIndex++)

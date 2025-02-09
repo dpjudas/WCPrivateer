@@ -13,8 +13,11 @@ public:
 
 	VulkanInstanceBuilder& ApiVersionsToTry(const std::vector<uint32_t>& versions);
 	VulkanInstanceBuilder& RequireExtension(const std::string& extensionName);
-	VulkanInstanceBuilder& RequireSurfaceExtensions(bool enable = true);
+	VulkanInstanceBuilder& RequireExtensions(const std::vector<std::string>& extensions);
+	VulkanInstanceBuilder& RequireExtensions(const std::vector<const char*>& extensions);
+	VulkanInstanceBuilder& RequireExtensions(const char** extensions, size_t count);
 	VulkanInstanceBuilder& OptionalExtension(const std::string& extensionName);
+	VulkanInstanceBuilder& OptionalSwapchainColorspace();
 	VulkanInstanceBuilder& DebugLayer(bool enable = true);
 
 	std::shared_ptr<VulkanInstance> Create();
@@ -25,23 +28,6 @@ private:
 	std::set<std::string> optionalExtensions;
 	bool debugLayer = false;
 };
-
-#ifdef VK_USE_PLATFORM_WIN32_KHR
-
-class VulkanSurfaceBuilder
-{
-public:
-	VulkanSurfaceBuilder();
-
-	VulkanSurfaceBuilder& Win32Window(HWND handle);
-
-	std::shared_ptr<VulkanSurface> Create(std::shared_ptr<VulkanInstance> instance);
-
-private:
-	HWND hwnd = {};
-};
-
-#endif
 
 class VulkanDeviceBuilder
 {
@@ -119,6 +105,8 @@ class ImageBuilder
 public:
 	ImageBuilder();
 
+	ImageBuilder& Type(VkImageType type);
+	ImageBuilder& Flags(VkImageCreateFlags flags);
 	ImageBuilder& Size(int width, int height, int miplevels = 1, int arrayLayers = 1);
 	ImageBuilder& Samples(VkSampleCountFlagBits samples);
 	ImageBuilder& Format(VkFormat format);
@@ -394,8 +382,10 @@ public:
 
 	GraphicsPipelineBuilder& AddVertexBufferBinding(int index, size_t stride);
 	GraphicsPipelineBuilder& AddVertexAttribute(int location, int binding, VkFormat format, size_t offset);
-
+	
 	GraphicsPipelineBuilder& AddDynamicState(VkDynamicState state);
+
+	GraphicsPipelineBuilder& PolygonMode(VkPolygonMode mode) {rasterizer.polygonMode = mode; return *this;};
 
 	GraphicsPipelineBuilder& DebugName(const char* name) { debugName = name; return *this; }
 

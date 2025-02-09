@@ -50,7 +50,7 @@ std::vector<GameInputEvent> gameEvents;
 class GameWindow : public Widget
 {
 public:
-	GameWindow() : Widget(nullptr, WidgetType::Window)
+	GameWindow() : Widget(nullptr, WidgetType::Window, RenderAPI::Vulkan)
 	{
 		SetWindowTitle("Wing Commander: Privateer");
 		Size screenSize = Widget::GetScreenSize();
@@ -206,6 +206,7 @@ int GameApp::main(std::vector<std::string> args)
 {
 	try
 	{
+		DisplayBackend::Set(DisplayBackend::TryCreateBackend());
 		WidgetTheme::SetTheme(std::make_unique<DarkWidgetTheme>());
 
 		archive = std::make_unique<WCArchive>("PRIV.TRE");
