@@ -22,7 +22,7 @@ enum class WidgetType
 class Widget : DisplayWindowHost
 {
 public:
-	Widget(Widget* parent = nullptr, WidgetType type = WidgetType::Child);
+	Widget(Widget* parent = nullptr, WidgetType type = WidgetType::Child, RenderAPI api = RenderAPI::Unspecified);
 	virtual ~Widget();
 
 	void SetParent(Widget* parent);
@@ -41,10 +41,23 @@ public:
 
 	// Widget noncontent area
 	void SetNoncontentSizes(double left, double top, double right, double bottom);
-	double GetNoncontentLeft() const { return GetStyleDouble("noncontent-left"); }
-	double GetNoncontentTop() const { return GetStyleDouble("noncontent-top"); }
-	double GetNoncontentRight() const { return GetStyleDouble("noncontent-right"); }
-	double GetNoncontentBottom() const { return GetStyleDouble("noncontent-bottom"); }
+	double GetNoncontentLeft() const { return GridFitSize(GetStyleDouble("noncontent-left")); }
+	double GetNoncontentTop() const { return GridFitSize(GetStyleDouble("noncontent-top")); }
+	double GetNoncontentRight() const { return GridFitSize(GetStyleDouble("noncontent-right")); }
+	double GetNoncontentBottom() const { return GridFitSize(GetStyleDouble("noncontent-bottom")); }
+
+	// Get the DPI scale factor for the window the widget is located on
+	double GetDpiScale() const;
+
+	// Align point to the nearest physical screen pixel
+	double GridFitPoint(double p) const;
+	Point GridFitPoint(double x, double y) const { return GridFitPoint(Point(x, y)); }
+	Point GridFitPoint(Point p) const { return Point(GridFitPoint(p.x), GridFitPoint(p.y)); }
+
+	// Convert size to exactly covering physical screen pixels
+	double GridFitSize(double s) const;
+	Size GridFitSize(double w, double h) const { return GridFitSize(Size(w, h)); }
+	Size GridFitSize(Size s) const { return Size(GridFitSize(s.width), GridFitSize(s.height)); }
 
 	// Widget frame box
 	Rect GetFrameGeometry() const;
@@ -100,18 +113,25 @@ public:
 	void LockCursor();
 	void UnlockCursor();
 	void SetCursor(StandardCursor cursor);
-	void CaptureMouse();
-	void ReleaseMouseCapture();
+
+	void SetPointerCapture();
+	void ReleasePointerCapture();
+
+	void SetModalCapture();
+	void ReleaseModalCapture();
 
 	bool GetKeyState(InputKey key);
 
 	std::string GetClipboardText();
 	void SetClipboardText(const std::string& text);
 
-	Widget* Window();
+	Widget* Window() const;
 	Canvas* GetCanvas() const;
 	Widget* ChildAt(double x, double y) { return ChildAt(Point(x, y)); }
 	Widget* ChildAt(const Point& pos);
+
+	bool IsParent(const Widget* w) const;
+	bool IsChild(const Widget* w) const;
 
 	Widget* Parent() const { return ParentObj; }
 	Widget* PrevSibling() const { return PrevSiblingObj; }
@@ -129,7 +149,14 @@ public:
 
 	static Size GetScreenSize();
 
+	void SetCanvas(std::unique_ptr<Canvas> canvas);
 	void* GetNativeHandle();
+	int GetNativePixelWidth();
+	int GetNativePixelHeight();
+
+	// Vulkan support:
+	std::vector<std::string> GetVulkanInstanceExtensions() { return Window()->DispWindow->GetVulkanInstanceExtensions(); }
+	VkSurfaceKHR CreateVulkanSurface(VkInstance instance) { return Window()->DispWindow->CreateVulkanSurface(instance); }
 
 protected:
 	virtual void OnPaintFrame(Canvas* canvas);
@@ -158,6 +185,7 @@ private:
 	// DisplayWindowHost
 	void OnWindowPaint() override;
 	void OnWindowMouseMove(const Point& pos) override;
+	void OnWindowMouseLeave() override;
 	void OnWindowMouseDown(const Point& pos, InputKey key) override;
 	void OnWindowMouseDoubleclick(const Point& pos, InputKey key) override;
 	void OnWindowMouseUp(const Point& pos, InputKey key) override;
@@ -206,4 +234,7 @@ private:
 	Widget& operator=(const Widget&) = delete;
 
 	friend class Timer;
+	friend class OpenFileDialog;
+	friend class OpenFolderDialog;
+	friend class SaveFileDialog;
 };

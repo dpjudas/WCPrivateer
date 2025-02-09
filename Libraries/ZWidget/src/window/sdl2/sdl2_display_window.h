@@ -3,12 +3,13 @@
 #include <list>
 #include <unordered_map>
 #include <zwidget/window/window.h>
+#include <zwidget/window/sdl2nativehandle.h>
 #include <SDL2/SDL.h>
 
 class SDL2DisplayWindow : public DisplayWindow
 {
 public:
-	SDL2DisplayWindow(DisplayWindowHost* windowHost);
+	SDL2DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, SDL2DisplayWindow* owner, RenderAPI renderAPI);
 	~SDL2DisplayWindow();
 
 	void SetWindowTitle(const std::string& text) override;
@@ -45,7 +46,13 @@ public:
 	std::string GetClipboardText() override;
 	void SetClipboardText(const std::string& text) override;
 
-	void* GetNativeHandle() override { return WindowHandle; }
+	Point MapFromGlobal(const Point& pos) const override;
+	Point MapToGlobal(const Point& pos) const override;
+
+	void* GetNativeHandle() override { return &Handle; }
+
+	std::vector<std::string> GetVulkanInstanceExtensions() override;
+	VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
 
 	static void DispatchEvent(const SDL_Event& event);
 	static SDL2DisplayWindow* FindEventWindow(const SDL_Event& event);
@@ -81,11 +88,13 @@ public:
 	static void StopTimer(void* timerID);
 
 	DisplayWindowHost* WindowHost = nullptr;
-	SDL_Window* WindowHandle = nullptr;
+	SDL2NativeHandle Handle;
 	SDL_Renderer* RendererHandle = nullptr;
 	SDL_Texture* BackBufferTexture = nullptr;
 	int BackBufferWidth = 0;
 	int BackBufferHeight = 0;
+
+	bool CursorLocked = false;
 
 	static bool ExitRunLoop;
 	static Uint32 PaintEventNumber;
